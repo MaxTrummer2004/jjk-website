@@ -1,0 +1,65 @@
+--- app/globals.css
++++ app/globals.css
+@@ -944,7 +944,7 @@
+    is behind the room, it is not in front of it. Leaving the content on auto put
+    the glowing inscription over the gallery images, which is exactly what a
+    background must never do. */
+-.jjk-inklit > *:not(.jjk-wall):not(.jjk-ink-veil):not(.jjk-ink-glow) {
++.jjk-inklit > *:not(.jjk-wall):not(.jjk-ink-veil):not(.jjk-wall-glow) {
+   position: relative;
+   z-index: 3;
+ }
+@@ -966,23 +966,19 @@
+    run of gen-wall.py with identical geometry, and the entire effect rests on the
+    glow landing on the strokes; a different `background-size` here would slide
+    the light off the thing it is coming from. */
+-.jjk-ink-glow {
++.jjk-wall-glow {
+   position: absolute;
+   inset: 0;
+   z-index: 2;
+   pointer-events: none;
+-  background-image: url("/img/wall-ink-glow.jpg");
+-  background-size: 1400px auto;
++  background-image: url("/img/wall-glow.jpg");
++  background-size: 2000px auto;
+   background-repeat: repeat;
+   mix-blend-mode: screen;
+-  /* Slow and shallow. Old paint holding an ember, not a neon sign. */
+-  animation: jjk-flicker 7s ease-in-out infinite;
+-}
+-
+-@media (prefers-reduced-motion: reduce) {
+-  .jjk-ink-glow {
+-    animation: none;
+-  }
++  /* No flicker. A slow breathing pulse was in here and it was wrong twice over:
++     a painting does not pulse, and a background that moves at all is a
++     background you keep noticing. The only thing that changes in this section
++     now is the one fade on the way in. */
+ }
+ 
+ /* ==========================================================================
+@@ -1006,12 +1002,16 @@
+   inset: 0;
+   z-index: 0;
+   pointer-events: none;
+-  background-image: url("/img/wall-ink.jpg");
+-  /* The plate tiles seamlessly (scripts/gen-wall.py builds it that way), but
+-     seamless is not the same as unnoticeable: the long ink sweeps are
+-     recognisable, and at 1100px they came round often enough down a section
+-     this tall to read as wallpaper. Larger tile, rarer repeat. */
+-  background-size: 1400px auto;
++  background-image: url("/img/wall.jpg");
++  /* 2000px, against a plate that is 1859px wide — a tenth of upscale, which on
++     a wall this dark is nothing, and in exchange a 1920px screen sees a single
++     tile across and never a repeat. The plate is 3172px tall, so it does not
++     come round vertically inside the section either.
++     At 1100px it repeated twice per screen and read as a collage of small
++     panels rather than as one painted wall — the giveaway was the same demon
++     appearing twice side by side. Pushing the tile past 2400px instead fixes
++     that but doubles the file for detail nobody can see at 5% luminance. */
++  background-size: 2000px auto;
+   background-repeat: repeat;
+   opacity: 0.85;
+ }

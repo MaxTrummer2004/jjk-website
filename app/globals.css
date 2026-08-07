@@ -1,0 +1,2833 @@
+@import "tailwindcss";
+
+/* The site draws its own pointer everywhere — a trail of embers above the
+   Programs section, a ring and dot below it (components/providers.tsx). The
+   system arrow on top of either is two cursors, so it is off site-wide rather
+   than region by region.
+
+   `!important` and the descendant selector together, because half the UI
+   library sets `cursor: pointer` on its own buttons and every one of those
+   would otherwise put the arrow back. */
+html,
+body,
+body *,
+.jjk-no-cursor,
+.jjk-no-cursor * {
+  cursor: none !important;
+}
+
+/* ==========================================================================
+   JJK — JIU-JITSU KAISEN ACADEMY · DESIGN SYSTEM
+   "Shibuya Incident" ember aesthetic. Dark-only. A near-black, slightly warm
+   base lit exclusively by red neon and candle-ember orange, with a gold
+   championship highlight. Everything sits under film grain + vignette.
+   ========================================================================== */
+
+:root,
+.dark {
+  /* --- Surfaces ---------------------------------------------------------- */
+  --background: #07070a;
+  --background-deep: #030304;
+  --card: #0d0e13;
+  --card-raised: #14151b;
+  --muted: #111218;
+  --muted-foreground: #8f8880;
+  --border: #241f1f;
+  --border-hot: #3d1c1c;
+
+  /* --- Ink --------------------------------------------------------------- */
+  --foreground: #f3efe9;
+  --foreground-dim: #b9b2a9;
+
+  /* --- Light sources ----------------------------------------------------- */
+  --accent: #d3202a; /* neon red — the Shibuya glow */
+  --accent-bright: #ff2f36;
+  --accent-deep: #7a0c14;
+  --accent-foreground: #fff6f4;
+  --ember: #ff6a1f; /* candle flame body */
+  --ember-hot: #ffb14a; /* flame core */
+  --gold: #f2c14e;
+  --night-sky: #0e2b34; /* the teal-blue sky above the neon */
+  --ring: #d3202a;
+
+  /* --- Type -------------------------------------------------------------- */
+  --font-display: var(--font-oswald), "Arial Narrow", sans-serif;
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  /* Loaded via <link> in the layout — next/font's manifest has no Japanese
+     subset for these families, so it would strip every kanji glyph. */
+  --font-jp:
+    "Shippori Mincho B1", "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN",
+    "MS PMincho", serif;
+  --font-brush: "Yuji Syuku", "Shippori Mincho B1", "Yu Mincho", serif;
+
+  /* --- The seal ---------------------------------------------------------
+     A square that has been cut by hand and inked by hand: every edge is off by
+     a percent or two. Kept here rather than in the seal's own rule because the
+     ring cursor wears the same shape — see .jjk-cursor-seal — and two hand-made
+     squares that are meant to be the same stamp must not be two different
+     hand-made squares. */
+  --seal-edge: polygon(
+    0% 1.7%, 14.3% 0.1%, 28.6% 1.4%, 42.9% 0.2%, 57.1% 0%, 71.4% 0%, 85.7% 0%,
+    97.9% 0%, 100% 14.3%, 100% 28.6%, 98.9% 42.9%, 100% 57.1%, 98.4% 71.4%,
+    100% 85.7%, 100% 99.4%, 85.7% 98.7%, 71.4% 100%, 57.1% 100%, 42.9% 100%,
+    28.6% 100%, 14.3% 99.2%, 1.7% 100%, 1.3% 85.7%, 0% 71.4%, 1.7% 57.1%,
+    0.6% 42.9%, 2% 28.6%, 1.1% 14.3%
+  );
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-deep: var(--background-deep);
+  --color-foreground: var(--foreground);
+  --color-foreground-dim: var(--foreground-dim);
+  --color-card: var(--card);
+  --color-card-raised: var(--card-raised);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-border-hot: var(--border-hot);
+  --color-accent: var(--accent);
+  --color-accent-bright: var(--accent-bright);
+  --color-accent-deep: var(--accent-deep);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-ember: var(--ember);
+  --color-ember-hot: var(--ember-hot);
+  --color-gold: var(--gold);
+  --color-night-sky: var(--night-sky);
+  --color-ring: var(--ring);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-jp: var(--font-jp);
+  --font-brush: var(--font-brush);
+  --breakpoint-3xl: 120rem;
+}
+
+html,
+html.dark {
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  background-color: var(--background);
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
+
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  line-height: 0.92;
+}
+
+/* ---- Kanji title, 呪術廻戦-logo treatment -------------------------------
+   Black fill, cream stroke drawn *behind* the glyph so the outline sits
+   outside the shape, then a red bloom underneath. Scales with font-size. */
+.jjk-kanji {
+  font-family: var(--font-jp);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  color: #08070a;
+  -webkit-text-stroke: 0.055em #f4e3a8;
+  paint-order: stroke fill;
+  text-shadow:
+    0 0 0.35em rgba(211, 32, 42, 0.55),
+    0 0 1.1em rgba(211, 32, 42, 0.3);
+}
+
+/* ---- Kanji title as SVG, drawn by cursed energy -------------------------
+   See components/kanji-title.tsx. Every path carries pathLength=1, so the dash
+   animation is in normalised units and all four glyphs draw at the same pace
+   regardless of how much outline they actually have. */
+.jjk-kanji-svg {
+  display: block;
+  overflow: visible;
+}
+
+.jjk-kanji-fill {
+  fill: #08070a;
+  stroke: #f4e3a8;
+  /* 46 font units on a 1000 upm em ≈ the 0.055em text-stroke the live-text
+     title used, so the logo keeps the same heft it had before. */
+  stroke-width: 46;
+  paint-order: stroke fill;
+  opacity: 0;
+  animation: jjk-kanji-fill 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--delay, 0s) both;
+  animation-delay: calc(var(--delay, 0s) + 0.55s);
+}
+
+.jjk-kanji-trace {
+  fill: none;
+  stroke: #ffd9a0;
+  stroke-width: 9;
+  stroke-linecap: round;
+  stroke-dasharray: 0.14 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  animation:
+    jjk-kanji-trace 1.5s cubic-bezier(0.5, 0, 0.2, 1) var(--delay, 0s) both,
+    jjk-kanji-trace-out 0.5s ease-out both;
+  animation-delay: var(--delay, 0s), calc(var(--delay, 0s) + 1.25s);
+}
+
+.jjk-kanji-bloom {
+  fill: none;
+  stroke: #ff2f22;
+  stroke-width: 30;
+  stroke-dasharray: 0.14 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  animation:
+    jjk-kanji-trace 1.5s cubic-bezier(0.5, 0, 0.2, 1) var(--delay, 0s) both,
+    jjk-kanji-bloom-settle 1.3s ease-out both;
+  animation-delay: var(--delay, 0s), calc(var(--delay, 0s) + 1.2s);
+}
+
+@keyframes jjk-kanji-trace {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+/* The hot edge burns out once it has finished its lap. */
+@keyframes jjk-kanji-trace-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* The red bloom does not vanish — it settles into the standing glow the title
+   keeps for the rest of the page. */
+@keyframes jjk-kanji-bloom-settle {
+  to {
+    opacity: 0.5;
+    stroke-dasharray: 1 0;
+    stroke-width: 22;
+  }
+}
+
+@keyframes jjk-kanji-fill {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jjk-kanji-fill {
+    opacity: 1;
+  }
+  .jjk-kanji-trace {
+    opacity: 0;
+  }
+  .jjk-kanji-bloom {
+    opacity: 0.5;
+    stroke-dasharray: 1 0;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ---- The burn: the intro run backwards ----------------------------------
+   Triggered once by scroll (see components/kanji-title.tsx), then on its own
+   clock. `--burn-delay` staggers the glyphs; each one catches, is outlined by
+   the hot edge one last time, and lifts away. */
+/* Timings are slow on purpose. This is the payoff of the whole opening, and at
+   the previous ~1s the glyphs were gone before you had registered that they had
+   caught.
+
+   `both`, not `forwards`, and that is not cosmetic. The staggered glyphs sit in
+   their `--burn-delay` before their animation starts, and with `forwards` alone
+   they fall back to their BASE styles during it - `.jjk-kanji-fill` is
+   `opacity: 0` at rest, held visible only by the intro animation's `both`, which
+   these rules replace. The result was three of the four glyphs blinking out for
+   a moment the instant you started scrolling. With `both` the 0% keyframe covers
+   the delay instead, and every 0% below is written to match the resting look. */
+.jjk-kanji-svg[data-burn="on"] .jjk-kanji-fill {
+  animation: jjk-kanji-burn-fill 2.3s cubic-bezier(0.32, 0, 0.72, 1)
+    var(--burn-delay, 0s) both;
+}
+
+.jjk-kanji-svg[data-burn="on"] .jjk-kanji-trace {
+  animation: jjk-kanji-burn-trace 2.65s cubic-bezier(0.3, 0, 0.7, 1)
+    var(--burn-delay, 0s) both;
+}
+
+.jjk-kanji-svg[data-burn="on"] .jjk-kanji-bloom {
+  animation: jjk-kanji-burn-bloom 2.8s ease-out var(--burn-delay, 0s) both;
+}
+
+/* The fill does not simply fade: it heats up first. Going straight to
+   transparent reads as a dissolve; going through ember reads as burning. */
+/* Seven stages rather than four. The glyph is black, then a dull red heat, then
+   properly alight, then ash — and each of those is a visibly different thing
+   rather than an interpolation between two extremes. Four stops crossfaded
+   through a muddy middle; the point of the extra ones is that you can watch it
+   happen instead of seeing only the before and after. The colours step through
+   the actual palette: accent-deep, accent, ember, ember-hot. */
+@keyframes jjk-kanji-burn-fill {
+  0% {
+    fill: #08070a;
+    stroke: #f4e3a8;
+    opacity: 1;
+    transform: translateY(0);
+  }
+  16% {
+    fill: #24080c;
+    stroke: #f7dfa4;
+    opacity: 1;
+  }
+  32% {
+    fill: #5c0b12;
+    stroke: #ffd9a0;
+    opacity: 1;
+  }
+  48% {
+    fill: #a3160f;
+    stroke: #ff9f52;
+    opacity: 1;
+  }
+  64% {
+    fill: #e8430f;
+    stroke: #ffc978;
+    opacity: 0.95;
+    transform: translateY(-4px);
+  }
+  80% {
+    fill: #ff6a1f;
+    stroke: #ffe3b0;
+    opacity: 0.7;
+    transform: translateY(-13px);
+  }
+  100% {
+    fill: #ffb14a;
+    stroke: #ffb14a;
+    opacity: 0;
+    transform: translateY(-38px);
+  }
+}
+
+/* The same lap the intro drew, run the other way round. */
+/* The same lap the intro drew, run the other way round — and now cooling as it
+   travels, instead of jumping from white-hot straight to gone. */
+@keyframes jjk-kanji-burn-trace {
+  0% {
+    stroke: #ffd9a0;
+    stroke-width: 9;
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+  7% {
+    opacity: 1;
+    stroke: #fff4dd;
+    stroke-width: 17;
+  }
+  22% {
+    stroke: #ffe3b0;
+    stroke-width: 15;
+    opacity: 1;
+  }
+  44% {
+    stroke: #ffb14a;
+    stroke-width: 12;
+    opacity: 0.92;
+  }
+  68% {
+    stroke: #ff8a3d;
+    stroke-width: 9;
+    opacity: 0.66;
+  }
+  86% {
+    stroke: #ff6a1f;
+    stroke-width: 7;
+    opacity: 0.34;
+  }
+  100% {
+    stroke: #d3202a;
+    stroke-width: 5;
+    stroke-dashoffset: -1;
+    opacity: 0;
+  }
+}
+
+/* The standing red glow flares before it goes. */
+@keyframes jjk-kanji-burn-bloom {
+  0% {
+    opacity: 0.5;
+    stroke-width: 22;
+    stroke: #ff2f22;
+    stroke-dasharray: 1 0;
+  }
+  15% {
+    opacity: 0.82;
+    stroke-width: 33;
+    stroke: #ff5a14;
+  }
+  30% {
+    opacity: 1;
+    stroke-width: 46;
+    stroke: #ff8a3d;
+  }
+  50% {
+    opacity: 0.88;
+    stroke-width: 56;
+    stroke: #ff6a1f;
+  }
+  72% {
+    opacity: 0.52;
+    stroke-width: 64;
+    stroke: #d3202a;
+  }
+  88% {
+    opacity: 0.22;
+    stroke-width: 71;
+    stroke: #a3160f;
+  }
+  100% {
+    opacity: 0;
+    stroke-width: 78;
+    stroke: #7a0c14;
+    stroke-dasharray: 1 0;
+  }
+}
+
+/* Sparks coming off the top of each glyph as it catches. Duration tracks the
+   burn: they have to still be in the air while the glyph they came off is
+   burning, or they read as a separate event. */
+.jjk-kanji-spark {
+  position: absolute;
+  bottom: 34%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, #ffd08a 0%, #ff6a1f 45%, rgba(211, 32, 42, 0) 72%);
+  box-shadow: 0 0 8px rgba(255, 122, 45, 0.8);
+  opacity: 0;
+  animation: jjk-kanji-spark 3s ease-out var(--spark-delay, 0s) forwards;
+}
+
+@keyframes jjk-kanji-spark {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.4);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--sx, 0), -220px, 0) scale(1.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jjk-kanji-spark {
+    display: none;
+  }
+}
+
+/* ---- Everything that is not a kanji burns off too ------------------------
+   Same physics as the glyphs - heat, flare, gone - but over in a third of a
+   second rather than two. That difference is the whole point: the kanji are the
+   event, and anything still sitting on screen while they burn competes with
+   them. The furigana, the lockup, the city label and the scroll cue used to
+   slide out of frame instead, which read as a slideshow rather than as fire.
+
+   `color` is deliberately absent from the 0% keyframe. Each of these elements
+   is a different opacity of the foreground, and naming a colour at 0% would
+   snap them all to one shade the instant the burn starts; leaving it out lets
+   each interpolate from whatever it already was. */
+.jjk-burn-text[data-burn="on"] {
+  animation: jjk-burn-text 0.32s cubic-bezier(0.4, 0, 0.9, 1) forwards;
+}
+
+@keyframes jjk-burn-text {
+  0% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0);
+  }
+  28% {
+    opacity: 1;
+    color: #ffe3b0;
+    text-shadow:
+      0 0 12px rgba(255, 122, 45, 0.95),
+      0 0 30px rgba(211, 32, 42, 0.6);
+  }
+  62% {
+    opacity: 0.72;
+    color: #ff8a3d;
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 0;
+    color: #ffb14a;
+    text-shadow: 0 0 26px rgba(255, 122, 45, 0);
+    filter: blur(5px);
+    transform: translateY(-16px);
+  }
+}
+
+/* The hairline goes the same way: it flares white, swells, and is gone. */
+.jjk-burn-rule[data-burn="on"] {
+  animation: jjk-burn-rule 0.3s cubic-bezier(0.4, 0, 0.9, 1) forwards;
+}
+
+@keyframes jjk-burn-rule {
+  0% {
+    opacity: 1;
+    filter: blur(0px) brightness(1);
+    transform: scaleY(1);
+  }
+  32% {
+    opacity: 1;
+    filter: blur(0px) brightness(2.8);
+    transform: scaleY(2.6);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(4px) brightness(3.2);
+    transform: scaleY(0.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jjk-burn-text[data-burn="on"],
+  .jjk-burn-rule[data-burn="on"] {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* Lighter variant for small in-page accents */
+.jjk-kanji-soft {
+  font-family: var(--font-jp);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  color: color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.jjk-brush {
+  font-family: var(--font-brush);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+/* ---- Furigana (ruby text above the kanji) ------------------------------- */
+.jjk-furigana {
+  display: block;
+  font-family: var(--font-jp);
+  font-weight: 600;
+  font-size: 0.19em;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  color: color-mix(in srgb, var(--foreground) 78%, transparent);
+  text-shadow: 0 0 0.6em rgba(211, 32, 42, 0.6);
+  margin-bottom: 0.22em;
+}
+
+/* Vertical Japanese label — the thin column of glyphs down a section edge */
+.jjk-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  font-family: var(--font-jp);
+  letter-spacing: 0.3em;
+}
+
+/* ==========================================================================
+   LIGHT & ATMOSPHERE
+   ========================================================================== */
+
+/* There is no zoom-grain layer any more. It existed to keep the frame reading as
+   sharp while the plate scaled past its own resolution, and it did that — but it
+   was a full-screen field of fine bright noise that switched on at the moment of
+   the click, which is exactly the wrong thing to add to a frame whose entire job
+   from that moment on is to get out of the way. The background is black inside a
+   second now; there is nothing left to keep sharp. */
+
+/* ---- Film grain: fixed so it never scrolls with content ----------------- */
+.jjk-grain {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  opacity: 0.17;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: jjk-grain-shift 0.9s steps(4) infinite;
+}
+
+@keyframes jjk-grain-shift {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-2%, 1.5%);
+  }
+  50% {
+    transform: translate(1.5%, -2%);
+  }
+  75% {
+    transform: translate(-1%, -1.5%);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+/* ---- Vignette: hard corners like the candle shot ------------------------ */
+.jjk-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 120% 90% at 50% 45%,
+      transparent 48%,
+      rgba(3, 3, 4, 0.28) 82%,
+      rgba(3, 3, 4, 0.6) 100%
+    );
+}
+
+/* ---- Scanline / interlace, very faint ----------------------------------- */
+.jjk-scanline {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.09;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.5) 3px,
+    rgba(0, 0, 0, 0) 4px
+  );
+}
+
+/* ---- Chromatic aberration on headings ----------------------------------- */
+.jjk-aberrate {
+  text-shadow:
+    0.022em 0 0 rgba(255, 46, 54, 0.5),
+    -0.022em 0 0 rgba(46, 220, 235, 0.35);
+}
+
+.jjk-aberrate-strong {
+  text-shadow:
+    0.045em 0 0 rgba(255, 46, 54, 0.65),
+    -0.045em 0 0 rgba(46, 220, 235, 0.45),
+    0 0 0.8em rgba(211, 32, 42, 0.45);
+}
+
+/* ---- Ember glow: the pool of warm light a candle throws ----------------- */
+.jjk-ember-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 70% 55% at 50% 100%,
+    rgba(255, 106, 31, 0.22) 0%,
+    rgba(211, 32, 42, 0.12) 38%,
+    transparent 72%
+  );
+}
+
+.jjk-ember-glow-top::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 70% 55% at 50% 0%,
+    rgba(255, 106, 31, 0.18) 0%,
+    rgba(211, 32, 42, 0.1) 38%,
+    transparent 72%
+  );
+}
+
+/* ---- Ink-wash texture, the faded curse painting behind the candle ------- */
+.jjk-ink::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='i'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.02' numOctaves='4' seed='7'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23i)'/%3E%3C/svg%3E");
+  background-size: 620px 620px;
+}
+
+/* ---- Neon-red night grade for photography -------------------------------
+   Crushes the photo to a warm red duotone with a cold sky retained at the
+   top, then lifts the highlights so city lights read as neon. */
+/* Default: no grade at all.
+
+   The source is already graded to the ember ramp by the scripts that produce
+   public/img/graz-*.webp, so this only ever had a little contrast and a little
+   darkening on it — and both had to go, because of what they were doing to the
+   fly-in's landing.
+
+   The opening ends on graz-night.webp, which IS unlit screened with glow. The
+   backdrop underneath rebuilds the same thing out of its two layers, so the two
+   should be the same picture. They were not: contrast(1.08) crushes a plate
+   whose mean is 0.012 straight to black, so the graded unlit layer contributed
+   essentially nothing and the backdrop was the glow alone — a quarter darker
+   than the frame the move had just landed on. Measured against the composite,
+   ungraded is a mean error of 0.011 and a worst pixel of 0.04; graded was six
+   times that at the worst pixel.
+
+   A raw photo still needs the duotone below to do the work; that path is
+   untouched. */
+
+/* For a RAW photo — a daylight aerial, a snapshot — the duotone below has to do
+   the work. Deliberately not grayscale: luma weights red at 0.2126, so
+   desaturating a red-dominant frame collapses it to near-black. The `color`
+   blend replaces hue and saturation anyway and keeps this layer's luminance. */
+.jjk-neon-grade-wrap.is-raw .jjk-neon-grade {
+  filter: contrast(1.14) brightness(1.18) saturate(0.55);
+}
+
+/* No `position` here on purpose: callers set it with a utility class, and a
+   `position: relative` in this file would out-specify Tailwind's `absolute`
+   (same specificity, later in the sheet) and collapse the layer to zero height. */
+.jjk-neon-grade-wrap {
+  isolation: isolate;
+}
+
+/* Hot core, cold rim — matches how the reference frame reads: the dense city
+   burns orange-red, the thin suburbs fall away into teal-black. */
+.jjk-neon-grade-wrap.is-raw::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: color;
+  background: radial-gradient(
+    ellipse 78% 82% at 52% 48%,
+    #ff6a1f 0%,
+    #d3202a 28%,
+    #8d1016 52%,
+    #3a1418 72%,
+    #0e2b34 100%
+  );
+}
+
+.jjk-neon-grade-wrap.is-raw::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    ellipse 70% 62% at 52% 48%,
+    rgba(211, 32, 42, 0.34) 0%,
+    rgba(122, 12, 20, 0.18) 46%,
+    transparent 78%
+  );
+}
+
+/* ---- The opening's plates -----------------------------------------------
+   The <img> fallback, and what is on screen until the canvas is up. Sized to
+   the WHOLE plate rather than object-fit: cover, because a cover-fitted image
+   is clipped to its box and a tilted camera has to see ground the box would
+   have cropped away.
+
+   `translate` and `transform-origin` together put the element's centre on the
+   container's centre, which is the coordinate system Camera.cssMatrix works in.
+   Per spec the used transform is translate · rotate · scale · transform, so the
+   half-box shift is applied AFTER the matrix — in screen space — which is
+   exactly what centring the element means. */
+.jjk-fly-plate {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: fill;
+  translate: -50% -50%;
+  transform-origin: 50% 50%;
+}
+
+/* ---- The target ---------------------------------------------------------
+   A box with nothing drawn on it.
+
+   It used to be the four corner ticks, and the ticks are gone for the reason
+   given at the top of the ensō rules below: they were a targeting computer on a
+   page made of brush and paper. What is drawn here now is the last ensō, which
+   is a separate element because it is anchored to the ground rather than to the
+   pointer — so what is left of the button is its JOB. It takes the click, it
+   takes focus, it carries the cue, and the ring cursor morphs to it and becomes
+   the seal. None of that needs a border.
+
+   `cursor: none` because the real pointer is the ring — see
+   components/custom-cursor.tsx. */
+.jjk-fly-marker {
+  position: absolute;
+  pointer-events: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: none;
+  translate: -50% -50%;
+  scale: var(--snap, 1);
+  transition: opacity 0.18s linear;
+  z-index: 7;
+}
+.jjk-fly-marker:focus-visible {
+  outline: none;
+}
+/* Keyboard users get the one affordance a pointer user gets from the cursor
+   morphing: something happens when this has focus. */
+.jjk-fly-marker:focus-visible::before {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  border: 1px solid rgba(255, 236, 214, 0.8);
+  border-radius: 50%;
+}
+
+/* The label. Small, and it says the one thing the brackets cannot: that this is
+   waiting for you. Same type treatment as the title card's own cue, so it reads
+   as part of the same voice rather than as a tooltip.
+
+   Shown by the phase and not by a driven opacity, because while the sequence is
+   waiting there is no clock running to drive one with — see the note on the hole
+   in the timeline in components/fly-in.tsx. The delay is deliberate: the dive
+   onto the address has to land and settle before anything asks for a click. */
+.jjk-fly-cue {
+  opacity: 0;
+  transition: opacity 0.45s linear;
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 12px);
+  transform: translateX(-50%);
+  font-family: var(--font-display, inherit);
+  font-size: 0.5rem;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  white-space: nowrap;
+  color: rgba(255, 196, 140, 0.92);
+  text-shadow: 0 0 6px rgba(255, 110, 40, 0.7);
+  pointer-events: none;
+  /* Pulsed on `filter`, not `opacity`. The element's own opacity is written
+     every frame by components/fly-in.tsx — the cue only exists once the search
+     is over — and an animation on the same property would win over the inline
+     style and pin it visible from the first frame. filter: opacity() multiplies
+     with it instead of replacing it. */
+  animation: jjk-reticle-cue 1.6s ease-in-out infinite;
+}
+
+/* The ring cursor, once it has locked onto something carrying
+   `data-cursor-brackets` — see components/custom-cursor.tsx. It keeps the
+   morph it already does, to the target's box; this only swaps what is drawn on
+   that box, from a closed outline to the same four corners. Steady rather than
+   pulsing: the thing underneath is already doing that, and two blinks out of
+   phase is a mess. */
+[data-phase="ready"] .jjk-fly-cue {
+  opacity: 1;
+  transition: opacity 0.5s linear 0.5s;
+}
+
+/* The ring cursor over the target: it stops being a ring and becomes a seal —
+   the reader's own, next to the one the search pressed. See `sealMode` in
+   components/custom-cursor.tsx, which also drops the ring's padding to zero so
+   the two boxes coincide. */
+.jjk-cursor-seal {
+  /* Nothing on the box itself. The ring morphs to the ANSWER's box, which is
+     the whole circle, and a stamp that size is a placard — so the box stays
+     empty and the stamp is drawn small in the middle of it, the same size it
+     is on the map. */
+  background: none;
+  /* So it can be sized against the box rather than against the document's font
+     size: the cursor's box is written as motion values by
+     components/custom-cursor.tsx, and a percentage here would resolve against
+     16px and print a glyph six pixels tall inside a hundred-pixel target. */
+  container-type: size;
+}
+.jjk-cursor-seal::after {
+  content: "柔";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  display: grid;
+  place-items: center;
+  width: 24cqw;
+  height: 24cqw;
+  background: linear-gradient(150deg, #cf3226 0%, #a8231c 100%);
+  clip-path: var(--seal-edge);
+  filter: drop-shadow(0 0 10px rgba(200, 48, 42, 0.55));
+  font-family: var(--font-jp);
+  font-weight: 700;
+  font-size: 15cqw;
+  line-height: 1;
+  color: rgba(14, 9, 7, 0.86);
+}
+
+@keyframes jjk-reticle-cue {
+  0%,
+  100% {
+    filter: opacity(0.55);
+  }
+  50% {
+    filter: opacity(1);
+  }
+}
+
+/* =========================================================================
+   The opening's interface
+   =========================================================================
+   A readout over a cold map, and the reason the map is on screen at all. Every
+   rule in here is written to disappear: the whole layer is faded out by
+   components/fly-in.tsx as the fire starts, because a hero with an interface
+   still bolted to it is a screenshot of a hero.
+
+   ── Why it is fixed and not absolute ──────────────────────────────────────
+   Because it is portalled to the body, OUT of the hero's transformed city
+   wrapper. That wrapper carries scale 1.12 and a 7deg X-rotation at a 1400px
+   perspective, and everything drawn inside it inherits them: measured on a
+   1920x950 viewport, a corner readout with a 66px inset landed at x = -1.8 and
+   its opposite number at 1921.8. The map has to be in there. Type does not.
+   components/fly-in.tsx does that transform by hand for the brackets, which are
+   the one thing that has to agree with the map.
+
+   ── Green ─────────────────────────────────────────────────────────────────
+   Phosphor green on a blue-grey map, and no red anywhere. Two reasons, and
+   neither is decoration. The payoff of the sequence is the map turning from
+   cold to hot, and a colour change is only a payoff if what came before was a
+   different colour — every warm pixel spent up here is taken off the ignition.
+   And green against the map's blue separates INTERFACE from WORLD at a glance:
+   the reader never has to work out which lit thing is a street and which is a
+   machine talking.
+
+   Type sizes are in clamp() against the viewport rather than at breakpoints:
+   this is a full-bleed layer with text pinned to its corners, and the failure
+   mode on a narrow screen is not a bad line break, it is two readouts meeting in
+   the middle. */
+
+.jjk-hud-veil {
+  position: absolute;
+  inset: 0;
+  /* The plate's own darkest value, not #000 - so the fade up is the picture
+     arriving rather than a light coming on behind it. */
+  background: #05070c;
+  pointer-events: none;
+  z-index: 8;
+}
+
+.jjk-hud-layer {
+  position: fixed;
+  inset: 0;
+  /* Above the header, which is fixed at z-50 and would otherwise sit on top of
+     a readout that is meant to be the only thing on the screen. Nothing in here
+     takes the pointer except the target itself; the click lands on the map
+     layer underneath, which is what handles it. */
+  z-index: 55;
+  pointer-events: none;
+  color: rgba(226, 214, 196, 0.9);
+}
+
+/* The frame is gone: the label, the status readout and the coordinates went
+   with the four corner ticks before them. See the note in components/fly-in.tsx
+   — they were a machine annotating its own screen, on a page that is a sheet of
+   painted silk. `.jjk-hud` itself is gone too; nothing wore it. */
+
+/* ---- The question -------------------------------------------------------
+   Dead centre, and the largest thing on the screen while it is being asked,
+   because for those three seconds it IS the content - everything else on screen
+   at that moment is a dark map nobody has been given a reason to look at yet.
+   It carries its own scrim, a soft dark ellipse that dims the map under it and
+   nothing else: a question that has to be squinted at is a decoration.
+
+   A title, not a terminal line. It used to be a monospace string typing itself
+   behind a blinking block; the caret was the loudest thing on a page that is
+   otherwise brush, paper and stamp, and it made a machine out of something that
+   should read as written already. See the note in components/fly-in.tsx.
+
+   Two lines, stacked: the brush line is the title, the German line is the gloss
+   under a hairline. Only the opacity is animated, and it is animated on the
+   wrapper, so both lines arrive as one thing. */
+.jjk-hud-query {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85em;
+  max-width: 92vw;
+  pointer-events: none;
+  text-align: center;
+  text-shadow:
+    0 0 10px rgba(90, 40, 26, 0.6),
+    0 0 26px rgba(12, 8, 6, 0.95);
+}
+.jjk-hud-query::before {
+  content: "";
+  position: absolute;
+  inset: -2.4em -3.6em;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(10, 7, 5, 0.92) 0%,
+    rgba(10, 7, 5, 0.72) 42%,
+    rgba(10, 7, 5, 0) 76%
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* The brush line. Big, because it is the heading — and loose in the tracking,
+   because Yuji Syuku is a written hand and a written hand does not set tight. */
+.jjk-hud-query-jp {
+  font-family: var(--font-brush);
+  font-size: clamp(1.8rem, 5.4vw, 3.9rem);
+  line-height: 1.05;
+  letter-spacing: 0.14em;
+  /* The tracking is symmetric, so the line ends up half a step right of centre
+     without this. */
+  text-indent: 0.14em;
+  color: rgba(248, 240, 228, 0.985);
+}
+
+/* The gloss. Under a hairline rather than in a box: it is the same sentence,
+   not a second one. */
+.jjk-hud-query-de {
+  position: relative;
+  padding-top: 0.95em;
+  font-family: var(--font-display);
+  font-size: clamp(0.8rem, 1.75vw, 1.22rem);
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  text-transform: uppercase;
+  color: rgba(226, 214, 196, 0.92);
+}
+.jjk-hud-query-de::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  translate: -50% 0;
+  width: 3.4em;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(190, 60, 46, 0) 0%,
+    rgba(190, 60, 46, 0.85) 50%,
+    rgba(190, 60, 46, 0) 100%
+  );
+}
+
+/* ---- The small label ----------------------------------------------------
+   Pinned beside the brackets by components/fly-in.tsx, which also flips it to
+   the other side rather than let it run off the right edge. It carries the
+   rejected candidates during the search and then hands over to the file. */
+.jjk-hud-label {
+  position: absolute;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  padding-inline-start: 0.85em;
+  border-inline-start: 1px solid rgba(196, 178, 152, 0.5);
+  font-family: var(--font-mono);
+  font-size: clamp(0.5rem, 0.85vw, 0.66rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 0 10px rgba(14, 10, 7, 0.95);
+}
+.jjk-hud-label[data-side="left"] {
+  align-items: flex-end;
+  padding-inline-start: 0;
+  padding-inline-end: 0.85em;
+  border-inline-start: 0;
+  border-inline-end: 1px solid rgba(196, 178, 152, 0.5);
+}
+
+.jjk-hud-name {
+  color: rgba(246, 238, 226, 0.96);
+}
+.jjk-hud-note {
+  font-size: 0.85em;
+  letter-spacing: 0.2em;
+  color: rgba(176, 158, 134, 0.78);
+}
+
+/* ---- The brush circles --------------------------------------------------
+   One ensō per place the search looks at, and every one of them stays.
+
+   ── Why they replaced the reticle ────────────────────────────────────────
+   The old opening moved one set of corner brackets from landmark to landmark.
+   That is the universal drawing for a machine acquiring a target, and it was
+   the single most futuristic thing on a page whose whole vocabulary is brush,
+   paper and stamp. A circle drawn round a place says the same thing — LOOKED
+   AT — in the register the rest of the site is written in, and because the
+   circles are left behind, what the reader ends up with is not an animation
+   that ran but a map somebody worked on.
+
+   ── The reveal ───────────────────────────────────────────────────────────
+   A conic mask sweeping the finished shape from the angle the brush landed at.
+   Both numbers come from lib/enso.ts — `--from` is written onto the element by
+   components/fly-in.tsx and `--draw` is written every frame — so the revealing
+   edge is the brush tip to the degree, with no second copy of the geometry
+   here to drift out of step. The four-degree soft stop is the wet leading edge
+   of a stroke; a hard one reads as a shape being uncovered.
+
+   The mask is duplicated with the -webkit- prefix. Safari still needs it, and
+   without it the whole circle appears at once, which is the one failure mode
+   that does not look like a bug and therefore never gets reported. */
+.jjk-enso {
+  position: absolute;
+  translate: -50% -50%;
+  pointer-events: none;
+  z-index: 6;
+  transition: opacity 0.2s linear;
+  /* Dark rather than bright: the circles sit on a city made of small bright
+     things, and a shape that glows disappears into it. A shadow separates. */
+  filter: drop-shadow(0 0 7px rgba(8, 5, 4, 0.9));
+
+  -webkit-mask-image: conic-gradient(
+    from var(--from, 0deg) at 50% 50%,
+    #000 0deg,
+    #000 calc(var(--draw, 0deg) - 4deg),
+    transparent var(--draw, 0deg)
+  );
+  mask-image: conic-gradient(
+    from var(--from, 0deg) at 50% 50%,
+    #000 0deg,
+    #000 calc(var(--draw, 0deg) - 4deg),
+    transparent var(--draw, 0deg)
+  );
+}
+.jjk-enso svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.jjk-enso path {
+  fill: rgba(232, 222, 204, 0.88);
+}
+/* The answer is drawn in ink of a different colour, and it is the first warm
+   thing in the whole sequence — the seal lands on it, the fire starts from it. */
+.jjk-enso[data-answer] path {
+  fill: rgba(203, 38, 34, 0.95);
+}
+.jjk-enso[data-answer] {
+  filter: drop-shadow(0 0 10px rgba(190, 40, 30, 0.55))
+    drop-shadow(0 0 3px rgba(8, 5, 4, 0.9));
+  z-index: 8;
+}
+
+/* ---- The seal -----------------------------------------------------------
+   A hanko, pressed onto the answer's circle once the machine has made up its
+   mind. The characters are cut OUT of the ink rather than printed in it, which
+   is how a real seal works: the stone is carved away and what is left takes the
+   vermilion.
+
+   Everything that moves here is written from components/fly-in.tsx — the scale
+   as it comes down, and `--hit`, which is 0 until contact and then runs to 1.
+   Not a keyframe animation: the reader can skip the entire beat with a click,
+   and a keyframe would then start playing from the beginning at the exact
+   moment the map is supposed to be catching fire. */
+.jjk-seal {
+  position: absolute;
+  z-index: 9;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55));
+}
+/* The ink is on the FACE and not on the wrapper, because the wrapper also
+   carries the ring below, and an element's clip-path clips its own children —
+   inking the wrapper would cut the halo off at exactly the edge it is supposed
+   to jump out from. */
+.jjk-seal-face {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(150deg, #cf3226 0%, #a8231c 100%);
+  clip-path: var(--seal-edge);
+  font-weight: 700;
+  line-height: 1;
+  /* The map showing through the carved-away stone, not black paint on red. */
+  color: rgba(12, 8, 6, 0.88);
+}
+/* The ink that jumps out from under the edge when it lands. */
+.jjk-seal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(203, 38, 34, 0.9);
+  scale: calc(1 + var(--hit, 0) * 0.75);
+  opacity: calc((1 - var(--hit, 0)) * 0.7);
+}
+
+/* ---- The slip -----------------------------------------------------------
+   What the search hands over once it is certain: a paper fuda hanging off the
+   circle on a thread.
+
+   This was a dossier card — dark panel, hairline frame, a scan line across the
+   photograph, VERIFIZIERT in the corner. Every one of those is the machine
+   register the circles and the seal were brought in to replace, so none of them
+   survived. The INFORMATION is identical; what changed is who is meant to have
+   made it. A record printed by a system, or a slip somebody wrote out after
+   going to look.
+
+   It unrolls from its top edge — `scaleY` written per frame by
+   components/fly-in.tsx — because that is what a strip of paper does. The torn
+   bottom edge is a clip-path, which is also the reason the unroll cannot be
+   one: an element has the one clip-path, and the tear is worth more than the
+   wipe. */
+.jjk-fuda {
+  position: absolute;
+  width: clamp(212px, 19vw, 292px);
+  padding: 1rem 0.95rem 2.1rem;
+  transform-origin: 50% 0;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: clamp(0.5rem, 0.78vw, 0.66rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #241a12;
+  /* THE paper — the actual sheet the night parade is painted on.
+     public/img/fuda.webp is a crop of clean silk out of the same scans the wall
+     is built from (scripts/gen-wall.py), mirrored down its own length so the
+     slip has a full sheet with no repeat in it, and taken down 7% because a
+     museum scan is lit for a museum and this page is lit by a candle.
+     A CSS gradient with a fibre pattern over it was here before and it looked
+     like what it was: a rectangle pretending. */
+  background-color: #cfc0a1;
+  background-image: url("/img/fuda.webp");
+  background-size: cover;
+  background-position: 50% 20%;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.62);
+  clip-path: polygon(0% 0%, 100% 0%, 100% 98.2%, 93.8% 98.5%, 87.5% 99.2%, 81.2% 99.1%, 75% 96.7%, 68.8% 97.4%, 62.5% 96.5%, 56.2% 96.5%, 50% 96.4%, 43.8% 96.8%, 37.5% 99.8%, 31.2% 97.9%, 25% 97.3%, 18.8% 99.5%, 12.5% 99.5%, 6.2% 100%, 0% 97.5%);
+}
+
+/* Written down the sheet, in the brush face, clear of everything else — which
+   is what the body's right padding is for. */
+.jjk-fuda-title {
+  position: absolute;
+  right: 0.7rem;
+  top: 0.75rem;
+  writing-mode: vertical-rl;
+  font-family: var(--font-brush);
+  font-size: clamp(1.15rem, 1.5vw, 1.45rem);
+  letter-spacing: 0.16em;
+  text-transform: none;
+  color: #1c130c;
+}
+
+.jjk-fuda-body {
+  padding-right: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+/* Pasted on, slightly out of true. A photograph squared up to the millimetre on
+   a hand-written slip is the one detail that would give the whole thing away. */
+.jjk-fuda-shot {
+  rotate: -1.2deg;
+  border: 1px solid rgba(60, 44, 28, 0.5);
+  background: #17110c;
+  overflow: hidden;
+}
+.jjk-fuda-shot img {
+  display: block;
+  width: 100%;
+  height: clamp(84px, 8.6vw, 112px);
+  object-fit: cover;
+  /* An old print rather than a still: the page has exactly one photographic
+     register and this is it. */
+  filter: grayscale(1) sepia(0.42) contrast(1.08) brightness(0.95);
+}
+
+.jjk-fuda-address {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.jjk-fuda-address span:last-child {
+  color: rgba(46, 33, 21, 0.72);
+}
+
+.jjk-fuda-rows {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28em;
+  border-top: 1px solid rgba(74, 55, 34, 0.32);
+  padding-top: 0.42em;
+}
+.jjk-fuda-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8em;
+}
+.jjk-fuda-row dt {
+  color: rgba(74, 55, 34, 0.7);
+}
+.jjk-fuda-row dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  color: #241a12;
+}
+
+/* The countersign, bottom right, over the tear. One character, because a second
+   seal the size of the first would compete with the one that matters. */
+.jjk-fuda-stamp {
+  position: absolute;
+  right: 0.7rem;
+  bottom: 0.75rem;
+  display: grid;
+  place-items: center;
+  width: 1.55em;
+  height: 1.55em;
+  rotate: 5deg;
+  font-size: clamp(0.8rem, 1.1vw, 1rem);
+  line-height: 1;
+  color: rgba(240, 230, 210, 0.92);
+  background: #b8281f;
+  clip-path: var(--seal-edge);
+  opacity: 0.92;
+}
+
+/* The thread. Its geometry and its draw-on are both written every frame by
+   components/fly-in.tsx; pathLength="1" is what lets this file not know how
+   long the line happens to be at any viewport. Ink, not a wire: one hairline,
+   no glow, no dash pattern. */
+.jjk-file-lead {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+}
+.jjk-file-lead polyline {
+  fill: none;
+  stroke: rgba(214, 200, 176, 0.5);
+  stroke-width: 1;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+/* =========================================================================
+   The programme boards
+   ========================================================================= */
+
+/* ---- The programme boards -----------------------------------------------
+   Cut into the dark rather than floated over it. There is no radius and no
+   shadow: a rounded card with a drop shadow is an object lying ON a surface,
+   and everything here is meant to be part of the wall. The grid gives them
+   one-pixel gaps over a border-coloured ground, so six boards read as one panel
+   that has been divided.
+
+   Hovering does not add a colour. It LIGHTS the board — the rule along the top
+   catches, the character behind it warms, an ember rises off the bottom edge,
+   and the type comes up out of the dark. That is the same thing the wall above
+   does when the figures ignite, which is the entire point of the exercise. */
+.jjk-board {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 21rem;
+  padding: 1.6rem 1.5rem 1.7rem;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(
+    170deg,
+    rgba(13, 14, 19, 0.86) 0%,
+    rgba(7, 7, 10, 0.94) 62%,
+    rgba(5, 5, 8, 0.97) 100%
+  );
+  transition: background 0.45s ease-out;
+}
+.jjk-board:hover {
+  background: linear-gradient(
+    170deg,
+    rgba(20, 21, 27, 0.88) 0%,
+    rgba(11, 9, 11, 0.94) 62%,
+    rgba(9, 6, 7, 0.97) 100%
+  );
+}
+
+/* The rule along the top. A hairline at rest, a lit filament on hover, and it
+   grows from the left rather than fading in — a line that is being DRAWN reads
+   as a switch being thrown. */
+.jjk-board::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  transform-origin: left;
+  scale: 0.28 1;
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0%,
+    var(--ember) 55%,
+    rgba(255, 106, 31, 0) 100%
+  );
+  opacity: 0.3;
+  transition:
+    scale 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.45s ease-out;
+  z-index: 2;
+}
+.jjk-board:hover::before {
+  scale: 1 1;
+  opacity: 1;
+}
+
+/* The ember off the bottom edge. Screened, so it can only add light — the board
+   never gets a red wash over its type, it gets warmer where it is already lit. */
+.jjk-board::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 62%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+  background: radial-gradient(
+    130% 100% at 50% 100%,
+    rgba(255, 106, 31, 0.2) 0%,
+    rgba(211, 32, 42, 0.09) 42%,
+    rgba(211, 32, 42, 0) 74%
+  );
+  transition: opacity 0.5s ease-out;
+  z-index: 0;
+}
+.jjk-board:hover::after {
+  opacity: 1;
+}
+
+/* The character, at the size it would be if somebody had painted it on the
+   board. Bottom right and bleeding off two edges, because a glyph that fits
+   inside its box is a logo and this is meant to be the wall showing through. */
+.jjk-board-kanji {
+  position: absolute;
+  right: -0.07em;
+  bottom: -0.16em;
+  z-index: 0;
+  line-height: 0.78;
+  font-size: clamp(5.5rem, 8vw, 8rem);
+  color: rgba(243, 239, 233, 0.045);
+  pointer-events: none;
+  user-select: none;
+  transition:
+    color 0.55s ease-out,
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.jjk-board:hover .jjk-board-kanji {
+  color: rgba(255, 122, 48, 0.16);
+  transform: translateY(-0.03em);
+}
+
+.jjk-board-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.jjk-board-tag {
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 0.28em 0.6em;
+  color: var(--foreground-dim);
+  border: 1px solid var(--border);
+  transition:
+    color 0.4s ease-out,
+    border-color 0.4s ease-out;
+}
+.jjk-board:hover .jjk-board-tag {
+  color: var(--ember-hot);
+  border-color: var(--border-hot);
+}
+
+.jjk-board-icon {
+  position: relative;
+  z-index: 1;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 1.5rem;
+  color: var(--muted-foreground);
+  transition:
+    color 0.4s ease-out,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.jjk-board:hover .jjk-board-icon {
+  color: var(--ember);
+  transform: translateY(-2px);
+}
+
+.jjk-board h3 {
+  position: relative;
+  z-index: 1;
+  padding-top: 2.2rem;
+}
+
+.jjk-board-level {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.55rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  transition: color 0.4s ease-out;
+}
+.jjk-board:hover .jjk-board-level {
+  color: var(--ember-hot);
+}
+
+.jjk-board-blurb {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.9rem;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+  transition: color 0.4s ease-out;
+}
+.jjk-board:hover .jjk-board-blurb {
+  color: var(--foreground-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jjk-board,
+  .jjk-board::before,
+  .jjk-board::after,
+  .jjk-board-kanji,
+  .jjk-board-icon,
+  .jjk-board-tag,
+  .jjk-board-level,
+  .jjk-board-blurb {
+    transition: none;
+  }
+}
+
+/* =========================================================================
+   Four reasons, and the picture that answers each one
+   =========================================================================
+   components/features-3.tsx. The claims are the control, the frame is the
+   answer, and the reader is the cause — the section used to move on a timer,
+   which was the only motion on the page happening for no reason.
+
+   The claims borrow the boards' grammar (a hairline that grows, a number that
+   warms) rather than inventing a third one. The photograph borrows the
+   gallery's, to the value. Those two are deliberately different treatments,
+   and the line between them is simple: a photograph is FRAMED, a board is CUT.
+   ------------------------------------------------------------------------- */
+
+.jjk-claims {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+}
+.jjk-claims > li {
+  border-bottom: 1px solid var(--border);
+}
+
+.jjk-claim {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1.05rem 0.25rem;
+  text-align: left;
+  cursor: none;
+  background: none;
+  border: 0;
+  transition: padding-left 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* The row steps aside for its own rule. Small — a claim that jumps when the
+   pointer crosses it is a claim nobody can read the end of. */
+.jjk-claim[data-on] {
+  padding-left: 0.85rem;
+}
+.jjk-claim:focus-visible {
+  outline: none;
+}
+
+/* The filament down the left edge. Grows from the top rather than fading in,
+   the same way the boards' top rule grows from the left: a line being DRAWN
+   reads as a switch, a line fading in reads as an effect. */
+.jjk-claim-rule {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform-origin: top;
+  scale: 1 0;
+  background: linear-gradient(
+    180deg,
+    var(--accent) 0%,
+    var(--ember) 55%,
+    rgba(255, 106, 31, 0) 100%
+  );
+  transition: scale 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.jjk-claim[data-on] .jjk-claim-rule,
+.jjk-claim:focus-visible .jjk-claim-rule {
+  scale: 1 1;
+}
+
+.jjk-claim-num {
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: var(--muted-foreground);
+  transition: color 0.35s ease-out;
+}
+.jjk-claim[data-on] .jjk-claim-num {
+  color: var(--ember-hot);
+}
+
+.jjk-claim-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  color: var(--muted-foreground);
+  transition:
+    color 0.35s ease-out,
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.jjk-claim[data-on] .jjk-claim-icon {
+  color: var(--ember);
+  transform: translateX(1px);
+}
+
+.jjk-claim-text {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  transition: color 0.35s ease-out;
+}
+.jjk-claim[data-on] .jjk-claim-text {
+  color: var(--foreground);
+}
+
+/* ---- The frame ----------------------------------------------------------- */
+.jjk-shot {
+  position: relative;
+}
+
+.jjk-shot-stack {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-hot);
+}
+
+/* All four are always in the DOM and only the opacity moves. Swapping a single
+   element's background-image would decode the next photograph mid-transition,
+   which is a blank frame on the first pass through the list and nowhere else —
+   the worst kind of bug to find later. */
+.jjk-shot-img {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  scale: 1.04;
+  transition:
+    opacity 0.55s ease-out,
+    scale 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.jjk-shot-img[data-on] {
+  opacity: 1;
+  scale: 1;
+}
+
+/* Over the whole stack, not over each photograph. `mix-blend-color` on two
+   images cross-fading would recolour the blend of them rather than each, and
+   the transition would pass through a colour neither of them is. */
+.jjk-shot-ember,
+.jjk-shot-pool {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.jjk-shot-ember {
+  mix-blend-mode: color;
+  background: linear-gradient(135deg, #7a0c14 0%, #ff6a1f 100%);
+}
+.jjk-shot-pool {
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    ellipse 80% 70% at 50% 100%,
+    rgba(211, 32, 42, 0.35) 0%,
+    transparent 72%
+  );
+}
+
+.jjk-shot-cap {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 0.9rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--foreground-dim);
+}
+.jjk-shot-cap-rule {
+  height: 1px;
+  width: 1.6rem;
+  background: var(--border-hot);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jjk-claim,
+  .jjk-claim-rule,
+  .jjk-claim-num,
+  .jjk-claim-icon,
+  .jjk-claim-text,
+  .jjk-shot-img {
+    transition: none;
+  }
+  .jjk-shot-img {
+    scale: 1;
+  }
+}
+
+/* Very slow push-in so the aerial never sits perfectly still.
+
+   It starts at IDENTITY and it starts LATE, and both are about the hand-over
+   from the fly-in. The move lands on the backdrop's own picture at its own
+   size; if this is already six percent in by then — which it was, the old
+   keyframes opened at scale(1.06) — the hand-over swaps to a visibly more
+   zoomed-in version of the same map. `--jjk-drift-delay` is set from the hero
+   to the moment the move finishes, so the drift begins from nothing, from
+   there. Without a fill-mode the element simply sits untransformed until then,
+   which is exactly what is wanted. */
+@keyframes jjk-aerial-drift {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.06) translate3d(0.7%, -0.5%, 0);
+  }
+  100% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+.jjk-aerial-drift {
+  animation: jjk-aerial-drift 64s ease-in-out var(--jjk-drift-delay, 0s) infinite;
+  will-change: transform;
+}
+
+/* The lit half of the city, screened onto the unlit plate. Black adds nothing
+   under `screen`, so the JPEG's background simply disappears and only the
+   ember survives — which is why this can be a plain photo rather than a
+   transparent PNG four times the size. */
+.jjk-glow {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  filter: brightness(var(--jjk-lights, 1));
+}
+
+/* ---- Putting the lights back out --------------------------------------
+   `--jjk-lights` is driven from the hero's exit clock (components/hero.tsx).
+   The opening strikes the streetlights ON over the unlit plate; the exit runs
+   the same move backwards, so flying into the city puts them out and what you
+   are left with is the dark plate you started from.
+
+   `brightness`, not `opacity`, and that matters. These layers are `screen`, so
+   they only ever add light — brightness(0) makes them black, and screening black
+   changes nothing, which is exactly "the lights are off". Dimming a WRAPPER with
+   opacity instead would create a stacking context and isolate the blend, so the
+   glow would stop compositing against the city underneath and the whole effect
+   would come apart. A filter on the element itself is applied before blending
+   and leaves that intact. */
+
+/* ---- Twinkle plates ------------------------------------------------------
+   Only the hot cores, screened over the still. Two plates carrying different
+   districts, cross-faded on periods that do not divide evenly into each other,
+   so the pattern never visibly repeats. */
+.jjk-twinkle {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  will-change: opacity;
+  filter: brightness(var(--jjk-lights, 1));
+}
+
+@keyframes jjk-twinkle-a {
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.22;
+  }
+}
+@keyframes jjk-twinkle-b {
+  0%,
+  100% {
+    opacity: 0.24;
+  }
+  50% {
+    opacity: 0.86;
+  }
+}
+.jjk-twinkle-a {
+  animation: jjk-twinkle-a 6.5s ease-in-out infinite;
+}
+.jjk-twinkle-b {
+  animation: jjk-twinkle-b 8.3s ease-in-out infinite;
+}
+
+/* The curtain lifting after the hero has removed itself — see hero.tsx. */
+@keyframes jjk-curtain-lift {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* ---- Night break ---------------------------------------------------------
+   The unlit city lies underneath, plain and static. The GLOW sits on top and
+   gets switched on and off a few times before it stays — streetlights striking,
+   not a transition between two pictures. Nothing but the light moves.
+
+   Plain `opacity` driven by `steps(1, end)`, so every change is a hard cut with
+   nothing interpolated in between — the light is on or it is off. There was a warm flash layered on each strike; it put a red pool in
+   the middle of the frame on every cut, which is the opposite of a clean swap,
+   so it is gone. The rhythm below is deliberately uneven:
+   evenly spaced flickers read as a metronome, and a metronome reads as an
+   effect rather than as something failing to hold. */
+.jjk-night-group {
+  position: absolute;
+  inset: 0;
+}
+
+.jjk-night-group[data-break="play"] {
+  opacity: 0;
+  animation: jjk-night-break var(--break-dur, 1.4s) steps(1, end)
+    var(--break-hold, 2.4s) both;
+}
+
+/* Two slow strikes, then two fast ones, then it holds. The slow pair reads as a
+   light trying and failing; the fast pair at the end reads as it finally
+   catching. Ending on the same tempo it started at made the hold feel
+   arbitrary - an accelerando is what makes it feel like a conclusion.
+
+   Still nothing evenly spaced anywhere in here. Evenly spaced flickers read as
+   a metronome, and a metronome reads as an effect. */
+@keyframes jjk-night-break {
+  0% {
+    opacity: 0;
+  }
+  7% {
+    opacity: 1;
+  }
+  13% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 0;
+  }
+  52% {
+    opacity: 1;
+  }
+  59% {
+    opacity: 0;
+  }
+  /* the two quick ones */
+  80% {
+    opacity: 0;
+  }
+  83% {
+    opacity: 1;
+  }
+  86% {
+    opacity: 0;
+  }
+  89% {
+    opacity: 1;
+  }
+  91% {
+    opacity: 0;
+  }
+  /* catches and holds */
+  94% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jjk-night-group[data-break="play"] {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+
+
+
+/* The dark the strokes burn through. Retreats as they come up — see the two
+   curves in lit-wall.tsx. */
+
+/* The painting, alight. Screened, so it only ever adds light and is a complete
+   no-op at zero — the wall is simply unlit, with no second copy of anything.
+
+   Size, repeat, and position MUST match `.jjk-wall` exactly. Both plates come
+   out of one run of gen-wall.py with identical geometry, and the entire effect
+   rests on the glow landing on the strokes; a different `background-size` or
+   `background-position` here would slide the light off the thing it is coming
+   from. */
+.jjk-wall-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background-image: url("/img/wall-glow.webp");
+  background-size: 2000px auto;
+  background-repeat: repeat;
+  background-position: 0 var(--wall-y, 0px);
+  mix-blend-mode: screen;
+  /* No flicker. A slow breathing pulse was in here and it was wrong twice over:
+     a painting does not pulse, and a background that moves at all is a
+     background you keep noticing. The only thing that changes in this section
+     now is the one fade on the way in. */
+}
+
+/* ==========================================================================
+   THE LIT WALL — see components/lit-wall.tsx
+   ========================================================================== */
+
+/* The shared lighting rig — see components/lit-wall.tsx.
+   ==========================================================================
+   Every variable that both sections have to agree on lives here and is
+   inherited, which is the point: there is no longer a second copy of anything
+   to keep in step.
+
+     --px / --py   the pointer, in THIS element's coordinates. Each section
+                   subtracts its own --sec-y to place the pool locally, so a
+                   pool straddling a boundary is drawn by both and joins.
+     --unlit       1 while the figures are cold, 0 once they are alight. The
+                   only thing that changes between the two states.
+     --lit         whether the pointer is over the wall at all. */
+.jjk-wall-light {
+  position: relative;
+  --px: 50%;
+  --py: 40%;
+  --lit: 0;
+  --unlit: 1;
+  /* Pointer present AND figures still cold. One or the other at zero puts the
+     torch out. */
+  --torch: calc(var(--lit, 0) * var(--unlit, 1));
+  /* Covered site-wide by the rule at the top of this file; kept here so the
+     section is still right if that ever moves. */
+  cursor: none;
+}
+
+.jjk-wall-section {
+  position: relative;
+  isolation: isolate;
+}
+
+/* The painted wall. Only ever seen where the light reaches. */
+.jjk-wall {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("/img/wall.webp");
+  /* 2000px, against a plate that is 1823px wide — a tenth of upscale, which on
+     a wall this dark is nothing, and in exchange a 1920px screen sees a single
+     tile across and never a repeat. The plate is 3172px tall, so it does not
+     come round vertically inside the section either.
+     At 1100px it repeated twice per screen and read as a collage of small
+     panels rather than as one painted wall — the giveaway was the same demon
+     appearing twice side by side. Pushing the tile past 2400px instead fixes
+     that but doubles the file for detail nobody can see at 5% luminance. */
+  background-size: 2000px auto;
+  background-repeat: repeat;
+  /* background-position is driven by --wall-y (set at runtime on the parent
+     section) so that every section under one WallLight samples the same virtual
+     tile plane, anchored to the document top. Without it each section restarts
+     the tile at its own upper edge and a hard seam appears where two meet.
+     See components/lit-wall.tsx. */
+  background-position: 0 var(--wall-y, 0px);
+  /* The plate is stored 2.5x too bright and brought back down here. That factor
+     is WALL_GAIN in scripts/gen-wall.py and the two are one number — change it
+     there and this must follow, or the section gets brighter or darker.
+
+     It exists because a near-black image cannot survive a lossy codec. The wall
+     occupied roughly a seventh of the 8-bit range, and compression quantises in
+     absolute steps regardless of how small your signal is, so the 8x8 blocks
+     flattened out and their edges showed as horizontal streaking across the
+     whole section. Encoding bright and dividing here divides the error by the
+     same 2.5.
+
+     0.4 would be the exact inverse of that gain — the wall at the tone it was
+     derived at. 0.62 is 1.55x over it, and that is a deliberate exposure, not a
+     rounding error. At true tone even a fully lit patch of paper only reaches
+     about eleven of 255, because the plate is near-black by construction; the
+     figures could open the darkness completely and there would still be almost
+     nothing underneath to reveal. The lift raises what the light has to work
+     with. It costs nothing in the dark, where the veil is crushing everything
+     anyway. */
+  filter: brightness(0.62);
+  opacity: 0.85;
+}
+
+/* Positioned so they paint above the wall, but WITHOUT a z-index — `z-index:
+   auto` does not create a stacking context, and if it did, the images nested
+   inside could never climb above the veil no matter what value they carried.
+   This one missing line is the whole mechanism, and it is what puts the
+   darkness OVER the writing so that the pointer has something to uncover. */
+.jjk-wall-section > *:not(.jjk-wall):not(.jjk-veil):not(.jjk-wall-glow):not(.jjk-candle) {
+  position: relative;
+}
+
+/* …except where the content is pictures.
+   ==========================================================================
+   A paragraph you read by candlelight is the point of the first section. A
+   dozen photographs under the same darkness are just twelve dark rectangles —
+   they were meant to be looked at, not uncovered. So `lift` raises the content
+   over the veil, and the wall behind it keeps all of its lighting.
+
+   This was the one thing the merge got wrong. Both sections inherited the
+   candlelit rule, which deliberately leaves the content under the darkness, and
+   the gallery went transparent. The lighting is genuinely shared between the
+   sections; what sits above or below it depends on what the content is. */
+.jjk-wall-section[data-lift]
+  > *:not(.jjk-wall):not(.jjk-veil):not(.jjk-wall-glow):not(.jjk-candle) {
+  z-index: 4;
+}
+
+/* The darkness, with a hole punched at the pointer.
+
+   A radial gradient rather than a mask: masks and blend modes are where this
+   sort of effect usually breaks across browsers, and a background gradient is
+   just paint. `--lit` collapses the hole when the pointer leaves. */
+/* Two above the wall, and BELOW the glow and any lifted content.
+   ==========================================================================
+   It was 20, inherited from a version where this darkness was the topmost
+   thing in its section and every scrap of content sat under it on purpose.
+   That is still what unlifted content wants — the veil covers the writing and
+   the pointer uncovers it — and it works because unlifted content is at
+   `z-index: auto`, which paints below any positioned element carrying a real
+   z-index, however small.
+
+   But it left nothing able to get above the darkness. The gallery was given
+   `z-index: 4` and stayed invisible, because four is less than twenty. */
+.jjk-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  /* Two mask layers, and the default compositing between them (`add`, i.e.
+     union) is exactly the arithmetic wanted here: with A = the shade map
+     (opaque where unlit) and B = the ramp (transparent at the bottom edge,
+     opaque a spill-radius up), the union works out to 1 − light × ramp. So the
+     darkness opens where light from the section BELOW actually lands, and
+     nowhere else.
+
+     This is the half that was missing. Adding red over the top of the darkness
+     was not enough: below the line the figures both glow AND reveal the paper
+     they are lighting, above it only the glow crossed, so the two sections
+     differed in kind rather than in degree and the boundary stayed visible.
+     Light that reaches a wall shows the wall. */
+  /* Two mask layers, cross-faded by one number.
+     Mask layers composite with `add` by default — union, A + B − AB. With A the
+     shade map (opaque where no figure reaches) and B flat black at alpha
+     --unlit, the union is A + b(1 − A): all darkness at b = 1, figure-shaped
+     holes at b = 0. One variable moves the whole wall between cold and alight,
+     in every section at once, with no second copy of the plate.
+
+     Geometry must match `.jjk-wall` exactly, --wall-y included, or the light
+     lands somewhere other than on the figures casting it. */
+  -webkit-mask-image: url("/img/wall-shade.webp"),
+    linear-gradient(rgba(0, 0, 0, var(--unlit, 1)), rgba(0, 0, 0, var(--unlit, 1)));
+  mask-image: url("/img/wall-shade.webp"),
+    linear-gradient(rgba(0, 0, 0, var(--unlit, 1)), rgba(0, 0, 0, var(--unlit, 1)));
+  -webkit-mask-size: 2000px auto, 100% 100%;
+  mask-size: 2000px auto, 100% 100%;
+  -webkit-mask-repeat: repeat, no-repeat;
+  mask-repeat: repeat, no-repeat;
+  -webkit-mask-position: 0 var(--wall-y, 0px), 0 0;
+  mask-position: 0 var(--wall-y, 0px), 0 0;
+  /* --torch, not --lit: the pool is the pointer's presence TIMES how cold the
+     figures still are, so it fades out exactly as they come up.
+
+     That is the right handover rather than a preference. While the wall is
+     dark the pointer has to be the light or there is nothing to read by; once
+     the figures are alight they light more of the wall than a single pool ever
+     did, and a torch on top of them is a second sun with no source. It also
+     removes the last thing that could still be clipped at a section edge. */
+  background: radial-gradient(
+    circle var(--pool, 380px) at var(--px) calc(var(--py) - var(--sec-y, 0px)),
+    rgba(3, 3, 4, calc(0.06 + (1 - var(--torch)) * var(--dark, 0.93))) 0%,
+    rgba(3, 3, 4, calc(0.34 + (1 - var(--torch)) * (var(--dark, 0.93) - 0.34)))
+      34%,
+    rgba(3, 3, 4, calc(0.78 + (1 - var(--torch)) * (var(--dark, 0.93) - 0.78)))
+      68%,
+    rgba(3, 3, 4, var(--dark, 0.93)) 100%
+  );
+  transition: background 0.9s ease-out;
+}
+
+/* ---- Telling you there is something there ------------------------------
+   With the light off this section is an empty screen, and an empty screen reads
+   as broken rather than as an invitation to somebody seeing the page for the
+   first time. These outlines are the least that can be done about that: a
+   hairline round each image frame, warm enough that the ~7% of light the veil
+   lets through still carries it, thin enough that it is never the thing you
+   end up looking at.
+
+   Deliberately UNDER the veil rather than above it. That means the outline
+   brightens as the candle passes over it, which is the correct behaviour - the
+   light is what reveals - and it avoids depending on no ancestor creating a
+   stacking context, which the transforms inside both of these components would
+   otherwise break. */
+.jjk-wall-section .column__item-imgwrap,
+.jjk-wall-section .jjk-candle-edge {
+  border: 1px solid rgba(255, 138, 61, 0.85);
+  box-shadow:
+    0 0 0 1px rgba(255, 138, 61, 0.22),
+    0 0 26px rgba(211, 32, 42, 0.18);
+}
+
+/* The warm light itself, laid over everything so the pool reads as a flame
+   rather than as a hole cut in a black sheet. */
+
+.jjk-candle {
+  position: absolute;
+  inset: 0;
+  z-index: 35;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: var(--torch);
+  background: radial-gradient(
+    circle calc(var(--pool, 380px) * 1.15) at var(--px)
+      calc(var(--py) - var(--sec-y, 0px)),
+    rgba(255, 176, 96, 0.15) 0%,
+    rgba(255, 108, 40, 0.08) 38%,
+    rgba(211, 32, 42, 0.03) 66%,
+    transparent 100%
+  );
+  transition: opacity 1.1s ease-out;
+  animation: jjk-candle-flicker 5.5s ease-in-out infinite;
+}
+
+/* The pool is never perfectly steady — a flame is not. */
+@keyframes jjk-candle-flicker {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  22% {
+    filter: brightness(1.1);
+  }
+  41% {
+    filter: brightness(0.9);
+  }
+  63% {
+    filter: brightness(1.06);
+  }
+  84% {
+    filter: brightness(0.94);
+  }
+}
+
+/* ---- Cursed energy: rising embers ----------------------------------------
+   See components/cursed-energy.tsx. Transform and opacity only.
+
+   The three drifting wisps that lived here are gone. Any large soft blob, no
+   matter how blurred, weights one part of the frame redder than the rest, and
+   the hero has to read evenly lit. */
+.jjk-ember {
+  position: absolute;
+  bottom: -6%;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, #ffd08a 0%, #ff6a1f 45%, rgba(211, 32, 42, 0) 72%);
+  box-shadow: 0 0 8px rgba(255, 122, 45, 0.75);
+  will-change: transform, opacity;
+  animation-name: jjk-ember-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* Held back until the night has struck — see components/cursed-energy.tsx. */
+@keyframes jjk-ember-in {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes jjk-ember-rise {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.6);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate3d(var(--drift, 0), -105vh, 0) scale(1.15);
+    opacity: 0;
+  }
+}
+
+/* ---- Breathing frame -----------------------------------------------------
+   Was three warm patches drifting across the city, which read as uneven
+   blotches. Now a flat wash over the whole frame that only rises and falls in
+   strength — the picture still breathes, but it breathes uniformly. */
+.jjk-districts {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  background: rgba(255, 122, 45, 0.5);
+  animation: jjk-districts 27s ease-in-out infinite alternate;
+  /* Goes out with the streetlights — see `.jjk-glow`. A warm wash breathing over
+     a city with its lights off is the one thing that would give the gag away. */
+  filter: brightness(var(--jjk-lights, 1));
+}
+
+@keyframes jjk-districts {
+  from {
+    opacity: 0.16;
+  }
+  to {
+    opacity: 0.3;
+  }
+}
+
+/* ---- Hairline rules ----------------------------------------------------- */
+.jjk-rule {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--accent) 60%, transparent) 18%,
+    color-mix(in srgb, var(--gold) 45%, transparent) 50%,
+    color-mix(in srgb, var(--accent) 60%, transparent) 82%,
+    transparent
+  );
+}
+
+/* ---- Section seam: bleeds one section into the next --------------------- */
+.jjk-seam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 160px;
+  pointer-events: none;
+}
+
+.jjk-seam-top {
+  top: 0;
+  background: linear-gradient(to bottom, var(--background-deep), transparent);
+}
+
+.jjk-seam-bottom {
+  bottom: 0;
+  background: linear-gradient(to top, var(--background-deep), transparent);
+}
+
+/* ---- Card surface used across the page ---------------------------------- */
+.jjk-panel {
+  position: relative;
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--card-raised) 92%, transparent),
+      var(--card)
+    );
+  border: 1px solid var(--border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 24px 60px -30px rgba(0, 0, 0, 0.9);
+}
+
+.jjk-panel-hot {
+  border-color: var(--border-hot);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 1px rgba(211, 32, 42, 0.08),
+    0 30px 70px -34px rgba(211, 32, 42, 0.55);
+}
+
+/* ==========================================================================
+   MOTION
+   ========================================================================== */
+
+@keyframes jjk-rise {
+  from {
+    transform: translateY(115%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.reveal-line {
+  animation: jjk-rise 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Candle flicker — drives the hero glow and the ember accents */
+@keyframes jjk-flicker {
+  0%,
+  100% {
+    opacity: 0.92;
+    transform: scale(1);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+  34% {
+    opacity: 0.78;
+    transform: scale(0.985);
+  }
+  52% {
+    opacity: 0.97;
+    transform: scale(1.015);
+  }
+  71% {
+    opacity: 0.84;
+    transform: scale(0.995);
+  }
+}
+.jjk-flicker {
+  animation: jjk-flicker 5.5s ease-in-out infinite;
+}
+.jjk-flicker-slow {
+  animation: jjk-flicker 9s ease-in-out infinite;
+}
+
+/* Slow neon breathing for the city backdrop */
+@keyframes jjk-breathe {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.jjk-breathe {
+  animation: jjk-breathe 7s ease-in-out infinite;
+}
+
+/* ---- Marquee ------------------------------------------------------------ */
+@keyframes jjk-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: jjk-marquee 32s linear infinite;
+}
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+/* ---- Legacy grain hook (kept for components that already use it) -------- */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* ---- Accessibility ------------------------------------------------------ */
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  top: 1rem;
+  z-index: 9999;
+  padding: 0.75rem 1rem;
+  background: var(--background);
+  border: 2px solid var(--ring);
+  border-radius: 0.375rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--foreground);
+}
+.skip-to-content:focus {
+  left: 1rem;
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.focus-ring:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ---- ProfileCard (react-bits open-source) -------------------------------- */
+:root {
+  --pointer-x: 50%;
+  --pointer-y: 50%;
+  --pointer-from-center: 0;
+  --pointer-from-top: 0.5;
+  --pointer-from-left: 0.5;
+  --card-opacity: 0;
+  --rotate-x: 0deg;
+  --rotate-y: 0deg;
+  --background-x: 50%;
+  --background-y: 50%;
+  --grain: none;
+  --icon: none;
+  --behind-gradient: none;
+  --behind-glow-color: rgba(211, 32, 42, 0.6);
+  --behind-glow-size: 45%;
+  --inner-gradient: none;
+  --sunpillar-1: hsl(2, 100%, 73%);
+  --sunpillar-2: hsl(53, 100%, 69%);
+  --sunpillar-3: hsl(93, 100%, 69%);
+  --sunpillar-4: hsl(176, 100%, 76%);
+  --sunpillar-5: hsl(228, 100%, 74%);
+  --sunpillar-6: hsl(283, 100%, 73%);
+  --sunpillar-clr-1: var(--sunpillar-1);
+  --sunpillar-clr-2: var(--sunpillar-2);
+  --sunpillar-clr-3: var(--sunpillar-3);
+  --sunpillar-clr-4: var(--sunpillar-4);
+  --sunpillar-clr-5: var(--sunpillar-5);
+  --sunpillar-clr-6: var(--sunpillar-6);
+  --card-radius: 30px;
+}
+
+/* JJK-themed overrides — warm-red shimmer instead of rainbow */
+.pc-card-wrapper {
+  --sunpillar-1: hsl(0, 90%, 65%);
+  --sunpillar-2: hsl(350, 80%, 55%);
+  --sunpillar-3: hsl(5, 70%, 60%);
+  --sunpillar-4: hsl(355, 85%, 48%);
+  --sunpillar-5: hsl(15, 60%, 50%);
+  --sunpillar-6: hsl(0, 75%, 58%);
+}
+
+.pc-card-wrapper {
+  perspective: 500px;
+  transform: translate3d(0, 0, 0.1px);
+  position: relative;
+  touch-action: none;
+}
+.pc-behind {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at var(--pointer-x) var(--pointer-y),
+    var(--behind-glow-color) 0%,
+    transparent var(--behind-glow-size)
+  );
+  filter: blur(50px) saturate(1.1);
+  opacity: calc(0.8 * var(--card-opacity));
+  transition: opacity 200ms ease;
+}
+.pc-card-wrapper:hover,
+.pc-card-wrapper.active {
+  --card-opacity: 1;
+}
+.pc-card {
+  height: 80svh;
+  max-height: 420px;
+  display: grid;
+  aspect-ratio: 0.718;
+  border-radius: var(--card-radius);
+  position: relative;
+  background-blend-mode: color-dodge, normal, normal, normal;
+  animation: glow-bg 12s linear infinite;
+  box-shadow: rgba(0,0,0,0.8) calc((var(--pointer-from-left)*10px) - 3px) calc((var(--pointer-from-top)*20px) - 6px) 20px -5px;
+  transition: transform 1s ease;
+  transform: translateZ(0) rotateX(0deg) rotateY(0deg);
+  background: rgba(0,0,0,0.9);
+  backface-visibility: hidden;
+  overflow: hidden;
+}
+.pc-card:hover,
+.pc-card.active {
+  transition: none;
+  transform: translateZ(0) rotateX(var(--rotate-y)) rotateY(var(--rotate-x));
+}
+.pc-card-shell.entering .pc-card {
+  transition: transform 180ms ease-out;
+}
+.pc-card-shell {
+  position: relative;
+  z-index: 1;
+}
+.pc-card * {
+  display: grid;
+  grid-area: 1/-1;
+  border-radius: var(--card-radius);
+  pointer-events: none;
+}
+.pc-inside {
+  inset: 0;
+  position: absolute;
+  background-image: var(--inner-gradient);
+  background-color: rgba(0,0,0,0.9);
+  transform: none;
+}
+.pc-shine {
+  mask-image: var(--icon);
+  mask-mode: luminance;
+  mask-repeat: repeat;
+  mask-size: 150%;
+  mask-position: top calc(200% - (var(--background-y)*5)) left calc(100% - var(--background-x));
+  transition: filter 0.8s ease;
+  filter: brightness(0.66) contrast(1.33) saturate(0.33) opacity(0.5);
+  animation: holo-bg 18s linear infinite;
+  mix-blend-mode: color-dodge;
+}
+.pc-shine,
+.pc-shine::after {
+  --space: 5%;
+  --angle: -45deg;
+  transform: translate3d(0,0,1px);
+  overflow: hidden;
+  z-index: 3;
+  background: transparent;
+  background-size: cover;
+  background-position: center;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      var(--sunpillar-clr-1) calc(var(--space)*1),
+      var(--sunpillar-clr-2) calc(var(--space)*2),
+      var(--sunpillar-clr-3) calc(var(--space)*3),
+      var(--sunpillar-clr-4) calc(var(--space)*4),
+      var(--sunpillar-clr-5) calc(var(--space)*5),
+      var(--sunpillar-clr-6) calc(var(--space)*6),
+      var(--sunpillar-clr-1) calc(var(--space)*7)
+    ),
+    repeating-linear-gradient(
+      var(--angle),
+      #0e152e 0%,
+      hsl(180,10%,60%) 3.8%,
+      hsl(180,29%,66%) 4.5%,
+      hsl(180,10%,60%) 5.2%,
+      #0e152e 10%,
+      #0e152e 12%
+    ),
+    radial-gradient(
+      farthest-corner circle at var(--pointer-x) var(--pointer-y),
+      hsla(0,0%,0%,0.1) 12%,
+      hsla(0,0%,0%,0.15) 20%,
+      hsla(0,0%,0%,0.25) 120%
+    );
+  background-position: 0 var(--background-y), var(--background-x) var(--background-y), center;
+  background-blend-mode: color, hard-light;
+  background-size: 500% 500%, 300% 300%, 200% 200%;
+  background-repeat: repeat;
+}
+.pc-shine::before,
+.pc-shine::after {
+  content: '';
+  background-position: center;
+  background-size: cover;
+  grid-area: 1/1;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+.pc-card:hover .pc-shine,
+.pc-card.active .pc-shine {
+  filter: brightness(0.7) contrast(1.2) saturate(0.3) opacity(0.4);
+  animation-play-state: paused;
+}
+.pc-card:hover .pc-shine::before,
+.pc-card.active .pc-shine::before,
+.pc-card:hover .pc-shine::after,
+.pc-card.active .pc-shine::after {
+  opacity: 0.25;
+}
+.pc-shine::before {
+  background-image:
+    linear-gradient(45deg, var(--sunpillar-4), var(--sunpillar-5), var(--sunpillar-6), var(--sunpillar-1), var(--sunpillar-2), var(--sunpillar-3)),
+    radial-gradient(circle at var(--pointer-x) var(--pointer-y), hsl(0,0%,70%) 0%, hsla(0,0%,30%,0.2) 90%),
+    var(--grain);
+  background-size: 250% 250%, 100% 100%, 220px 220px;
+  background-position: var(--pointer-x) var(--pointer-y), center, calc(var(--pointer-x)*0.01) calc(var(--pointer-y)*0.01);
+  background-blend-mode: color-dodge;
+  filter: brightness(calc(2 - var(--pointer-from-center))) contrast(calc(var(--pointer-from-center) + 2)) saturate(calc(0.5 + var(--pointer-from-center)));
+  mix-blend-mode: luminosity;
+}
+.pc-shine::after {
+  background-position: 0 var(--background-y), calc(var(--background-x)*0.4) calc(var(--background-y)*0.5), center;
+  background-size: 200% 300%, 700% 700%, 100% 100%;
+  mix-blend-mode: difference;
+  filter: brightness(0.8) contrast(1.5);
+}
+.pc-glare {
+  transform: translate3d(0,0,1.1px);
+  overflow: hidden;
+  background-image: radial-gradient(
+    farthest-corner circle at var(--pointer-x) var(--pointer-y),
+    hsl(248,25%,80%) 12%,
+    hsla(207,40%,30%,0.8) 90%
+  );
+  mix-blend-mode: overlay;
+  filter: brightness(0.8) contrast(1.2);
+  z-index: 4;
+}
+.pc-avatar-content {
+  mix-blend-mode: luminosity;
+  overflow: visible;
+  transform: translateZ(2);
+  backface-visibility: hidden;
+}
+.pc-avatar-content .avatar {
+  width: 100%;
+  position: absolute;
+  left: 50%;
+  transform-origin: 50% 100%;
+  transform: translateX(calc(-50% + (var(--pointer-from-left) - 0.5)*6px)) translateZ(0) scaleY(calc(1 + (var(--pointer-from-top) - 0.5)*0.02)) scaleX(calc(1 + (var(--pointer-from-left) - 0.5)*0.01));
+  bottom: -1px;
+  backface-visibility: hidden;
+  will-change: transform;
+  transition: transform 120ms ease-out;
+}
+.pc-user-info {
+  position: absolute;
+  --ui-inset: 20px;
+  --ui-radius-bias: 6px;
+  bottom: var(--ui-inset);
+  left: var(--ui-inset);
+  right: var(--ui-inset);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: calc(max(0px, var(--card-radius) - var(--ui-inset) + var(--ui-radius-bias)));
+  padding: 12px 14px;
+  pointer-events: auto;
+}
+.pc-user-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pc-mini-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
+  background: rgba(211,32,42,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pc-mini-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.pc-user-text {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 4px;
+}
+.pc-handle {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.9);
+  line-height: 1;
+}
+.pc-status {
+  font-size: 11px;
+  color: rgba(255,255,255,0.55);
+  line-height: 1;
+}
+.pc-contact-btn {
+  border: 1px solid rgba(211,32,42,0.5);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  background: rgba(211,32,42,0.2);
+}
+.pc-contact-btn:hover {
+  border-color: rgba(211,32,42,0.9);
+  background: rgba(211,32,42,0.4);
+  transform: translateY(-1px);
+}
+.pc-content:not(.pc-avatar-content) {
+  max-height: 100%;
+  overflow: hidden;
+  text-align: center;
+  position: relative;
+  transform: translate3d(
+    calc(var(--pointer-from-left)*-6px + 3px),
+    calc(var(--pointer-from-top)*-6px + 3px),
+    0.1px
+  );
+  z-index: 5;
+  mix-blend-mode: luminosity;
+}
+.pc-details {
+  width: 100%;
+  position: absolute;
+  top: 2.5em;
+  display: flex;
+  flex-direction: column;
+}
+.pc-details h3 {
+  font-weight: 700;
+  margin: 0;
+  font-size: min(5svh, 2.4em);
+  font-family: var(--font-display, "Arial Narrow", sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  background-image: linear-gradient(to bottom, #ffe9c9, #d3202a);
+  background-size: 1em 1.5em;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+.pc-details p {
+  font-weight: 500;
+  position: relative;
+  top: -8px;
+  white-space: nowrap;
+  font-size: 13px;
+  margin: 0 auto;
+  width: min-content;
+  background-image: linear-gradient(to bottom, #f3efe9, #ff6a1f);
+  background-size: 1em 1.5em;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+@keyframes glow-bg {
+  0%   { --bgrotate: 0deg; }
+  100% { --bgrotate: 360deg; }
+}
+@keyframes holo-bg {
+  0%   { background-position: 0 var(--background-y), 0 0, center; }
+  100% { background-position: 0 var(--background-y), 90% 90%, center; }
+}
+@media (max-width: 768px) {
+  .pc-card { height: 70svh; max-height: 380px; }
+  .pc-details { top: 1.8em; }
+  .pc-details h3 { font-size: min(4svh, 2em); }
+  .pc-details p { font-size: 12px; }
+  .pc-user-info { --ui-inset: 14px; padding: 9px 11px; }
+  .pc-mini-avatar { width: 32px; height: 32px; }
+  .pc-handle { font-size: 12px; }
+  .pc-status { font-size: 10px; }
+  .pc-contact-btn { padding: 8px 11px; font-size: 10px; }
+}
