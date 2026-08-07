@@ -1,4 +1,6 @@
-import { Hero } from "@/components/hero";
+/* The previous opening (components/hero.tsx, the map fly-in) is unhooked, not
+   deleted: swap these two imports to bring it back. */
+import { ScrollOpening } from "@/components/scroll-opening";
 import About3 from "@/components/about-3";
 import { ImageReveal } from "@/components/image-reveal";
 import { LitWall, WallLight } from "@/components/lit-wall";
@@ -26,7 +28,7 @@ export default function HomePage(): ReactNode {
   return (
     <>
       <main id="main-content" className="relative bg-background">
-        <Hero />
+        <ScrollOpening />
 
         {/* Everything below the hero sits in the candle's light: a warm pool at
             the top of the stack, and a second one under the closing CTA. */}

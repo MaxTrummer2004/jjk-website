@@ -2831,3 +2831,244 @@ body::-webkit-scrollbar {
   .pc-status { font-size: 10px; }
   .pc-contact-btn { padding: 8px 11px; font-size: 10px; }
 }
+
+/* =========================================================================
+   THE OPENING — the scroll run
+   =========================================================================
+   components/scroll-opening.tsx. One painting does the work: the Night
+   Attack on the Sanjō Palace (13th c., PD scan), pulled past the frame like
+   a scroll unrolled too fast to read, stopped on its fire. Everything here
+   is plain CSS on two elements; the run-up's motion blur is baked into the
+   asset itself (scripts/gen-scroll-run.py), so the scrub is one translate.
+
+   The strip is 5582×1000 — 558.2 units wide per 100 of height — and the
+   centre of the blaze sits at 79.1% of its width. Both numbers are printed
+   by the generator; if the asset is re-cut, re-read them from its output.
+   Positions are written in svh because the strip is sized to the frame's
+   HEIGHT, so its width is a height-derived unit too. */
+
+.jjk-scroll-opening {
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--background);
+  isolation: isolate;
+}
+
+/* The push-in after landing rides on the frame, not the strip, so the two
+   transforms never fight over one property. */
+.jjk-scroll-frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  animation: jjk-scroll-push 2.6s ease-out 2.35s both;
+}
+
+@keyframes jjk-scroll-push {
+  from {
+    scale: 1;
+  }
+  to {
+    scale: 1.045;
+  }
+}
+
+/* The scrub. `both` keeps the 0% frame on screen during the initial hold —
+   the first visible frame is this element, static, no JS needed. The landing
+   position wants the fire's centre (79.1% × 558.2svh ≈ 441.5svh) on the
+   viewport's centreline; the max() pins the strip's right edge to the frame
+   on ultrawide screens, where centring the fire would otherwise pull the
+   strip's end past the edge and show background. */
+.jjk-scroll-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  user-select: none;
+  translate: 0 0;
+  animation: jjk-scroll-scrub 2.1s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+}
+
+@keyframes jjk-scroll-scrub {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: max(calc(50vw - 441.5svh), calc(100vw - 558.2svh)) 0;
+  }
+}
+
+/* ---- The title column ---------------------------------------------------
+   The site's own kanji treatment (.jjk-kanji), stood upright. It slams in
+   over the fire once the scrub has landed: one overshoot, no second beat. */
+.jjk-scroll-title {
+  position: absolute;
+  left: clamp(1.25rem, 6.5vw, 6.5rem);
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 3;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.9rem, 2.4svh, 1.6rem);
+  animation: jjk-scroll-slam 0.34s cubic-bezier(0.16, 1, 0.3, 1) 2.5s both;
+}
+
+@keyframes jjk-scroll-slam {
+  0% {
+    opacity: 0;
+    scale: 1.26;
+  }
+  62% {
+    opacity: 1;
+    scale: 0.985;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.jjk-scroll-title-col {
+  display: block;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  font-size: clamp(3rem, 10.5svh, 6.2rem);
+  letter-spacing: 0.1em;
+}
+
+/* The seal: the same hand-cut square the rest of the site presses. It lands
+   a beat after the title, slightly out of true, the way a hand stamps. */
+.jjk-scroll-seal {
+  display: grid;
+  place-items: center;
+  width: clamp(2.1rem, 5.2svh, 3.1rem);
+  height: clamp(2.1rem, 5.2svh, 3.1rem);
+  rotate: -4deg;
+  background: linear-gradient(150deg, #cf3226 0%, #a8231c 100%);
+  clip-path: var(--seal-edge);
+  font-family: var(--font-jp);
+  font-weight: 700;
+  font-size: clamp(1.3rem, 3.2svh, 1.9rem);
+  line-height: 1;
+  color: rgba(14, 9, 7, 0.86);
+  filter: drop-shadow(0 0 10px rgba(200, 48, 42, 0.5));
+  animation: jjk-scroll-stamp 0.26s cubic-bezier(0.16, 1, 0.3, 1) 2.95s both;
+}
+
+@keyframes jjk-scroll-stamp {
+  from {
+    opacity: 0;
+    scale: 1.6;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* ---- The gloss ---------------------------------------------------------- */
+.jjk-scroll-sub {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(2.2rem, 7svh, 4.5rem);
+  translate: -50% 0;
+  z-index: 3;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(0.58rem, 1.3vw, 0.8rem);
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  white-space: nowrap;
+  color: rgba(243, 239, 233, 0.88);
+  text-shadow: 0 0 14px rgba(8, 5, 4, 0.9);
+  animation: jjk-scroll-sub-in 0.7s ease-out 3.1s both;
+}
+
+@keyframes jjk-scroll-sub-in {
+  from {
+    opacity: 0;
+    translate: -50% 8px;
+  }
+  to {
+    opacity: 1;
+    translate: -50% 0;
+  }
+}
+
+/* ---- The handoff --------------------------------------------------------
+   Two layers. The foot is always there: the painting's bottom edge runs out
+   into the page's background, so the section below begins in the same night
+   with no seam. The settle comes late and takes the whole frame down a
+   step — the fire does not go out, the room gets darker around it. */
+.jjk-scroll-settle {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: var(--background);
+  animation: jjk-scroll-settle 1.6s ease-in-out 3.4s both;
+}
+
+@keyframes jjk-scroll-settle {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.4;
+  }
+}
+
+.jjk-scroll-foot {
+  position: absolute;
+  inset: auto 0 0;
+  height: 38%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(7, 7, 10, 0) 0%,
+    rgba(7, 7, 10, 0.45) 45%,
+    rgba(7, 7, 10, 0.86) 76%,
+    var(--background) 96%
+  );
+}
+
+/* ---- The gate -----------------------------------------------------------
+   Every animation above starts paused and is released together when the
+   strip has actually DECODED — components/scroll-opening.tsx flips
+   `data-ready` after img.decode(). Without this the scrub plays against a
+   frame the browser has not painted yet, and the reader's first two seconds
+   are a black screen with a title arriving over nothing. */
+.jjk-scroll-opening:not([data-ready]) .jjk-scroll-frame,
+.jjk-scroll-opening:not([data-ready]) .jjk-scroll-strip,
+.jjk-scroll-opening:not([data-ready]) .jjk-scroll-title,
+.jjk-scroll-opening:not([data-ready]) .jjk-scroll-seal,
+.jjk-scroll-opening:not([data-ready]) .jjk-scroll-sub,
+.jjk-scroll-opening:not([data-ready]) .jjk-scroll-settle {
+  animation-play-state: paused;
+}
+
+/* ---- Reduced motion: the landed frame, standing --------------------------
+   The global reduced-motion rule shortens durations but does not cancel
+   delays; these do, and pin every layer at its final state. */
+@media (prefers-reduced-motion: reduce) {
+  .jjk-scroll-frame,
+  .jjk-scroll-strip,
+  .jjk-scroll-title,
+  .jjk-scroll-seal,
+  .jjk-scroll-sub,
+  .jjk-scroll-settle {
+    animation: none;
+  }
+  .jjk-scroll-strip {
+    translate: max(calc(50vw - 441.5svh), calc(100vw - 558.2svh)) 0;
+  }
+  .jjk-scroll-settle {
+    opacity: 0.4;
+  }
+}
