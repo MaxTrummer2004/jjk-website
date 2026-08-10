@@ -1,6 +1,8 @@
 import { Providers } from "@/components/providers";
 import { SkipToContent } from "@/components/skip-to-content";
 import { Atmosphere } from "@/components/atmosphere";
+import { InkTransitionProvider } from "@/lib/ink-transition-context";
+import { InkCanvas } from "@/components/ink-canvas";
 import { baseMetadata } from "@/lib/metadata";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Oswald } from "next/font/google";
@@ -63,11 +65,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${oswald.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
-        <Providers>
-          <SkipToContent />
-          {children}
-          <Atmosphere />
-        </Providers>
+        <InkTransitionProvider>
+          <Providers>
+            <SkipToContent />
+            {children}
+            <Atmosphere />
+          </Providers>
+          <InkCanvas />
+        </InkTransitionProvider>
       </body>
     </html>
   );

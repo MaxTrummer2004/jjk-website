@@ -168,6 +168,12 @@ export function WallLight({
       const rect = el.getBoundingClientRect();
       tx = e.clientX - rect.left;
       ty = e.clientY - rect.top;
+      // Bewegung IST Anwesenheit. `pointerenter` feuert nur beim Ueberqueren
+      // der Kante, und wer beim Laden schon im Element steht, ueberquert sie
+      // nie — der Torch blieb dann aus, obwohl der Zeiger die ganze Zeit da
+      // war. Genau der Fall, den das Intro erzeugt: man faehrt hinein, um zu
+      // klicken, und faehrt nicht wieder heraus.
+      el.style.setProperty("--lit", "1");
       if (!seeded) {
         // First contact: start the pool under the cursor rather than sliding it
         // in from the corner.
@@ -178,16 +184,32 @@ export function WallLight({
       if (frame === null) frame = requestAnimationFrame(step);
     };
 
+    // Und ein Startpunkt, falls gar nicht bewegt wird. Ohne ihn stehen --px
+    // und --py auf 0,0 — der linken oberen Ecke des DOKUMENTS, nicht des
+    // Bildschirms — und der Lichtkegel oeffnet sich irgendwo weit oben ausserhalb
+    // des Sichtfelds. Die Mitte des Sichtfelds ist der einzige Ort, an dem er
+    // ohne Information richtig liegt.
+    const rect0 = el.getBoundingClientRect();
+    lx = tx = window.innerWidth / 2 - rect0.left;
+    ly = ty = window.innerHeight / 2 - rect0.top;
+    el.style.setProperty("--px", `${lx.toFixed(1)}px`);
+    el.style.setProperty("--py", `${ly.toFixed(1)}px`);
+
     const onEnter = (): void => el.style.setProperty("--lit", "1");
     const onLeave = (): void => el.style.setProperty("--lit", "0");
 
     el.addEventListener("pointermove", onMove, { passive: true });
+    // Auch ein Druck ohne vorherige Bewegung. Wer das Intro anklickt, ohne die
+    // Maus zu bewegen — der Zeiger stand schon auf dem Knopf —, hat sonst
+    // weder ein `enter` noch ein `move` erzeugt und steht danach im Dunkeln.
+    el.addEventListener("pointerdown", onMove, { passive: true });
     el.addEventListener("pointerenter", onEnter, { passive: true });
     el.addEventListener("pointerleave", onLeave, { passive: true });
 
     return () => {
       if (frame !== null) cancelAnimationFrame(frame);
       el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerdown", onMove);
       el.removeEventListener("pointerenter", onEnter);
       el.removeEventListener("pointerleave", onLeave);
     };
@@ -262,7 +284,13 @@ export function LitWall({
 
     const update = (): void => {
       const box = el.getBoundingClientRect();
-      const parent = el.parentElement?.getBoundingClientRect();
+      // The WallLight, not `parentElement`. `--py` arrives in the PROVIDER's
+      // coordinates, so the offset that converts it to local ones has to be
+      // measured against the same element — the moment anything is wrapped in
+      // between, a parent-relative offset is wrong by the height of whatever
+      // sits above. Identical to `parentElement` while the sections are direct
+      // children, which is why this cost nothing to make correct.
+      const parent = el.closest(".jjk-wall-light")?.getBoundingClientRect();
       el.style.setProperty("--wall-y", `-${(box.top + window.scrollY).toFixed(0)}px`);
       el.style.setProperty("--sec-y", `${(box.top - (parent?.top ?? 0)).toFixed(0)}px`);
     };
@@ -291,8 +319,11 @@ export function LitWall({
     // Written to the PARENT, not to this element. That is what makes the wall
     // above light up at the same time — one variable, inherited by every
     // section under the same WallLight.
-    const parent = ref.current?.parentElement;
-    if (!parent) return;
+    // Written to the WallLight itself, for the same reason: every section under
+    // it has to inherit the value, and only the provider is an ancestor of all
+    // of them.
+    const parent = ref.current?.closest(".jjk-wall-light");
+    if (!(parent instanceof HTMLElement)) return;
     const unlit = 1 - Math.min(1, Math.max(0, v));
     parent.style.setProperty("--unlit", unlit.toFixed(3));
   });

@@ -60,7 +60,7 @@ export default function Features6(): ReactNode {
           blur
           className="font-display jjk-aberrate max-w-2xl text-4xl leading-[0.95] text-foreground sm:text-5xl lg:text-6xl"
         />
-        <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
+        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
           Six rooms, one art. Start where you are — nobody has ever walked in
           knowing how to do this.
         </p>
@@ -94,6 +94,7 @@ function Board({
       viewport={{ once: true, amount: 0.35 }}
       transition={{ duration: 0.5, delay: 0.06 * index, ease: [0.22, 1, 0.36, 1] }}
       className="jjk-board group"
+      data-cursor=""
     >
       {/* The painted character, standing behind its own board. Aria-hidden: it
           is the same word as the title in another alphabet, and a screen reader
@@ -103,7 +104,7 @@ function Board({
       </span>
 
       <div className="jjk-board-top">
-        <span className="font-mono text-[0.6rem] tracking-[0.3em] text-muted-foreground">
+        <span className="font-mono text-[0.7rem] font-medium tracking-[0.26em] text-muted-foreground">
           {String(index + 1).padStart(2, "0")}
         </span>
         <span className="jjk-board-tag font-mono">{program.tag}</span>
@@ -111,7 +112,7 @@ function Board({
 
       <Icon className="jjk-board-icon" strokeWidth={1.4} aria-hidden="true" />
 
-      <h3 className="font-display mt-auto text-2xl uppercase leading-none tracking-[0.06em] text-foreground">
+      <h3 className="font-display mt-auto text-4xl uppercase leading-none tracking-[0.05em] text-foreground">
         {program.title}
       </h3>
       <p className="jjk-board-level font-mono">{program.level}</p>

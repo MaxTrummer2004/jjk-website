@@ -71,7 +71,7 @@ export function Features3(): ReactNode {
             blur
             className="font-display jjk-aberrate max-w-2xl text-4xl leading-[0.95] text-foreground sm:text-5xl lg:text-6xl"
           />
-          <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
+          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
             Jiu-Jitsu is problem-solving with your whole body. Every round builds
             strength, calm and confidence — and you leave each class better than
             you walked in.
@@ -85,6 +85,7 @@ export function Features3(): ReactNode {
                   <button
                     type="button"
                     className="jjk-claim"
+                    data-cursor=""
                     {...(active === i ? { "data-on": "" } : {})}
                     // Pointer, focus and tap all do the same thing. The frame is
                     // the answer to whichever claim the reader is on, however

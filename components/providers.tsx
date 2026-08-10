@@ -130,57 +130,23 @@ function DesktopCursor({ show }: { show: boolean }): ReactNode {
       circleDamping={30}
       targetPadding={8}
       mixBlendMode="normal"
-      targets={[
-        "#cursor-book",
-        "#cursor-card",
-        "#cursor-cta",
-        "#cursor-about",
-        "#cursor-prog-0",
-        "#cursor-prog-1",
-        "#cursor-prog-2",
-        "#cursor-prog-3",
-        "#cursor-price-dropin",
-        "#cursor-price-membership",
-        "#cursor-price-family",
-        "#cursor-sched-0",
-        "#cursor-sched-1",
-        "#cursor-sched-2",
-        "#cursor-sched-3",
-        "#cursor-sched-4",
-        "#cursor-sched-5",
-        "#cursor-coach-0",
-        "#cursor-coach-1",
-        "#cursor-coach-2",
-        "#cursor-coach-3",
-        // The opening's answer. The ring morphs to whatever it hovers, and this
-        // one carries `data-cursor-seal`, so over it the ring stops being a ring
-        // and becomes the same hanko the search pressed onto the map — see
-        // components/fly-in.tsx. Last in the list so the positional `images`
-        // array below needs no entry for it.
-        "#jjk-fly-target",
-      ]}
-      images={[
-        "/img/about.jpg",
-        undefined,
-        "/video/hero-poster.jpg",
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-      ]}
+      /* Ein Selektor. Alles, was der Ring fassen soll, meldet sich dort an,
+         wo es steht — `data-cursor` am Element —, statt hier als id in einer
+         Liste zu stehen, die niemand aktuell haelt. Die Liste war auf dreissig
+         Eintraege gewachsen, zwei davon zeigten auf nichts mehr, und die sechs
+         Programm-Boards standen gar nicht drin.
+
+         Ein Ziel, das beim Ueberfahren ein Bild zeigen soll, traegt es selbst
+         als `data-cursor-image`. Das war vorher ein positionsgleiches Array
+         hier unten, und es war zweimal verrutscht: der Schluss-Knopf zeigte ein
+         Video-Standbild, das mit ihm nichts zu tun hatte. */
+      targets={["[data-cursor]"]}
+      /* Liegt die Hand zwei Sekunden still, verschwindet der Ring. Er
+         zeigt an, wo der Zeiger ist; wenn sich nichts bewegt, gibt es dazu
+         nichts anzuzeigen, und ein leuchtender Ring auf einer dunklen Flaeche
+         ist dann nur noch ein Gegenstand im Bild. Bei der ersten Bewegung ist
+         er sofort wieder da. */
+      idleHideMs={2000}
     />
   );
 }
@@ -195,8 +161,6 @@ export function Providers({ children }: { children: ReactNode }): ReactNode {
   // the title card and everything above Programs, the cursor ring owns
   // everything below. They never run at the same time.
   const pastPrograms = useScrolledPast("#programs");
-  const opened = useOpeningDone();
-
 
   return (
     <ReducedMotionProvider>
@@ -205,7 +169,7 @@ export function Providers({ children }: { children: ReactNode }): ReactNode {
             while the opening is running, where hovering the reticle turns it
             into that reticle, and everywhere below Programs. In between — the
             title card standing still — the ember plume has it. */}
-        <DesktopCursor show={pastPrograms || !opened} />
+        <DesktopCursor show={pastPrograms} />
         {/* The one WebGL layer on the site — see components/ember-smoke.tsx.
             Stays mounted when inactive so the GL context survives the handover. */}
         {/* One setting for the whole stretch above Programs, where there used to

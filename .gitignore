@@ -1,41 +1,38 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
+# ── Build und Werkzeug ──────────────────────────────────────────────────────
+node_modules/
+.next/
+out/
 *.tsbuildinfo
-next-env.d.ts
+.DS_Store
+
+# ── Geheimnisse ─────────────────────────────────────────────────────────────
+# `.env` traegt REACT_BITS_KEY. Das Repo ist oeffentlich; die Regel hiess
+# vorher nur `.env*.local` und haette die Datei beim naechsten `git add -A`
+# mitgenommen. Nie committet worden — geprueft mit `git log --all -- .env`.
+.env
+.env*
+!.env.example
+
+# ── Rohmaterial, aus dem die Bilder gerechnet werden ────────────────────────
+# Die Scans in _scout/assets und emaki/ sind EINGABE fuer scripts/gen-*.py,
+# nicht Auslieferung. Sie liegen bei rund 100 MB und stecken bereits in der
+# Historie — deshalb schrumpft dieses Ignorieren das Repo nicht rueckwirkend,
+# es verhindert nur, dass es weiter waechst. Zum Zurueckholen: die Skripte in
+# scripts/ nennen in ihrem Kopfkommentar jede Quelle mit Beleg
+# (_scout/assets/SOURCES.md).
+_scout/
+emaki/
+.osm/
+
+# ── Aussortiertes ───────────────────────────────────────────────────────────
+# Verschoben, nicht geloescht — siehe CLAUDE.md, Abschnitt 6. Wer nichts davon
+# vermisst, loescht den Ordner.
+_attic/
+_to_delete/
+
+# ── Streu ───────────────────────────────────────────────────────────────────
+_tidy.py
+_tsc*.log
+
+# Arbeitskopien einzelner Dateien, kein Quellstand.
+_sync8/

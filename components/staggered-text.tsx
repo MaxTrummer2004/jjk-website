@@ -87,7 +87,19 @@ const buildKeyframes = (
 
   const keyframes: Record<string, Array<string | number>> = {};
   keys.forEach((key) => {
-    keyframes[key] = [from[key], ...steps.map((step) => step[key])];
+    // Nicht jede Stufe setzt jede Eigenschaft — `from` und `steps` sind lose
+    // Objekte, und unter `noUncheckedIndexedAccess` ist jeder Zugriff darauf
+    // moeglicherweise undefined. Eine Lueecke in einer Keyframe-Liste ist fuer
+    // motion aber kein Fehler, sondern "nimm den Wert davor"; der Ausfall auf
+    // den vorherigen Eintrag ist also genau das, was gemeint war.
+    const track: Array<string | number> = [];
+    const push = (v: string | number | undefined): void => {
+      if (v !== undefined) track.push(v);
+      else if (track.length > 0) track.push(track[track.length - 1]!);
+    };
+    push(from[key]);
+    steps.forEach((step) => push(step[key]));
+    keyframes[key] = track;
   });
 
   return keyframes;
@@ -157,6 +169,10 @@ const StaggeredText = forwardRef<StaggeredTextHandle, StaggeredTextProps>(
 
       const observer = new IntersectionObserver(
         ([entry]) => {
+          // Der Beobachter ruft immer mit mindestens einem Eintrag, aber der
+          // Typ weiss das nicht — und ein leeres Array waere hier ein stiller
+          // Absturz statt einer ausgelassenen Animation.
+          if (!entry) return;
           if (entry.isIntersecting) {
             setHasEnteredView(true);
             setIsExiting(false);
@@ -332,17 +348,22 @@ const StaggeredText = forwardRef<StaggeredTextHandle, StaggeredTextProps>(
                         : fromSnapshot
                   }
                   transition={transition}
-                  onAnimationComplete={
-                    isLast
-                      ? () => {
+                  // Als Spread und nicht als `onAnimationComplete={undefined}`:
+                  // unter `exactOptionalPropertyTypes` ist "die Eigenschaft
+                  // fehlt" etwas anderes als "die Eigenschaft ist undefined",
+                  // und motions Typ fuer diesen Callback laesst undefined nicht
+                  // zu. Ein Spread mit leerem Objekt setzt sie gar nicht erst.
+                  {...(isLast
+                    ? {
+                        onAnimationComplete: () => {
                           if (isExiting) {
                             onExitComplete?.();
                           } else {
                             onAnimationComplete?.();
                           }
-                        }
-                      : undefined
-                  }
+                        },
+                      }
+                    : {})}
                   style={{
                     display: segmentBy === "lines" ? "block" : "inline-block",
                     willChange: "transform, filter, opacity",

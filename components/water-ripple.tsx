@@ -64,7 +64,27 @@ const fragmentShader = `
   void main() {
     vec4 disp = texture2D(uDisplacement, vUv);
     float theta = disp.r * 2.0 * PI;
-    vec2 finalUv = getCoverUV(vUv, uTextureSize) + vec2(sin(theta), cos(theta)) * disp.r * 0.05;
+
+    // Eine stehende Duenung, unabhaengig vom Zeiger.
+    //
+    // Der Verdraengungspuffer wird AUSSCHLIESSLICH von Mausbewegung
+    // gefuellt — jeder Pinselstrich darin ist ein Stueck Weg des Zeigers.
+    // Ohne Bewegung ist er leer, theta ist null, und das Bild steht
+    // vollkommen still. Genau das war zu sehen: man muss mit der Maus
+    // drauffahren und ein paar Sekunden warten, denn vorher gab es
+    // buchstaeblich nichts, was sich bewegt.
+    //
+    // Zwei sich kreuzende Sinuswellen mit unrunden Perioden, also ohne
+    // hoerbaren Takt, bei 0.4 Prozent der Bildbreite: sichtbar als Leben, zu
+    // klein, um als Verzerrung gelesen zu werden. Kostet keinen zusaetzlichen
+    // Durchgang, weil uTime ohnehin schon jeden Frame gesetzt wird.
+    vec2 drift = vec2(
+      sin(vUv.y * 7.3 + uTime * 0.55),
+      cos(vUv.x * 6.1 + uTime * 0.47)
+    ) * 0.004;
+
+    vec2 finalUv = getCoverUV(vUv, uTextureSize) + drift
+                 + vec2(sin(theta), cos(theta)) * disp.r * 0.05;
     vec3 orig = texture2D(uTexture, finalUv).rgb;
     vec3 color = mix(orig, applyDuotone(orig), 1.0);
     
@@ -269,8 +289,40 @@ class CanvasErrorBoundary extends Component<
   override render() { return this.state.failed ? null : this.props.children; }
 }
 
-export function WaterRipple({ src, maskRadius }: { src: string; maskRadius: number }) {
+export function WaterRipple({
+  src,
+  maskRadius,
+  animate = true,
+}: {
+  src: string;
+  maskRadius: number;
+  /**
+   * Ob diese Leinwand rechnet.
+   *
+   * `false` heisst nicht "weg", sondern "steht": `frameloop: "demand"` haelt
+   * Kontext und Textur, zeichnet das letzte Bild und rechnet kein weiteres,
+   * bis jemand es anfordert. Der Weg zurueck nach `"always"` ist damit ein
+   * Schalter und kein Aufbau — was der ganze Punkt ist, siehe die Notiz zu
+   * `useRippleState` in components/about-3.tsx.
+   */
+  animate?: boolean;
+}) {
   const [failed, setFailed] = useState(false);
+  const attempts = useRef(0);
+
+  // Ein verlorener Kontext ist jetzt nicht mehr endgueltig.
+  //
+  // Solange die Leinwand bei jedem Vorbeikommen neu gebaut wurde, war das
+  // egal — der naechste Anlauf kam von selbst. Jetzt wird sie einmal gebaut
+  // und nie wieder abgebaut, also bliebe eine Karte, deren Kontext irgendwann
+  // verloren ging, bis zum Seitenwechsel ein Foto. Zwei weitere Versuche,
+  // jeweils in dem Moment, in dem die Karte wieder die aktive wird: das ist
+  // der einzige Zeitpunkt, an dem ein neuer Kontext auch etwas nuetzt.
+  useEffect(() => {
+    if (!animate || !failed || attempts.current >= 2) return;
+    attempts.current += 1;
+    setFailed(false);
+  }, [animate, failed]);
   const isMounted = useSyncExternalStore(
     emptySubscribe,
     () => true,
@@ -278,8 +330,12 @@ export function WaterRipple({ src, maskRadius }: { src: string; maskRadius: numb
   );
 
   if (failed) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />;
+    // Nichts. Das Foto liegt seit components/about-3.tsx ohnehin darunter, und
+    // zwar mit derselben Kreisblende — ein zweites, unmaskiertes Bild an dieser
+    // Stelle wuerde beim Ausfall das ganze Oval auf einen Schlag aufdecken und
+    // damit genau die Choreografie zerstoeren, die der Ausfall nicht anfassen
+    // soll.
+    return null;
   }
 
   return (
@@ -293,7 +349,7 @@ export function WaterRipple({ src, maskRadius }: { src: string; maskRadius: numb
             dpr={1}
             gl={{ antialias: false, alpha: true, powerPreference: "high-performance", stencil: false, depth: false }}
             style={{ width: "100%", height: "100%" }}
-            frameloop="always"
+            frameloop={animate ? "always" : "demand"}
             onCreated={({ gl }) => {
               gl.domElement.addEventListener("webglcontextlost", (e) => {
                 e.preventDefault();

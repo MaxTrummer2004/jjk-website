@@ -31,13 +31,13 @@ body *,
   --card: #0d0e13;
   --card-raised: #14151b;
   --muted: #111218;
-  --muted-foreground: #8f8880;
+  --muted-foreground: #aba49a;
   --border: #241f1f;
   --border-hot: #3d1c1c;
 
   /* --- Ink --------------------------------------------------------------- */
   --foreground: #f3efe9;
-  --foreground-dim: #b9b2a9;
+  --foreground-dim: #d6cfc5;
 
   /* --- Light sources ----------------------------------------------------- */
   --accent: #d3202a; /* neon red — the Shibuya glow */
@@ -142,6 +142,20 @@ body {
 
 body::-webkit-scrollbar {
   display: none;
+}
+
+/* ---- Flaechentext auf schwarzer Seite ------------------------------------
+   Der Untertext der Seite stand in 400 in einem gedimmten Grau und war, wie
+   gemeldet, "duenn und schwer lesbar". Drei Hebel, alle hier, damit keine
+   Komponente sich daran erinnern muss: eine Stufe Gewicht, hellere dim/muted-
+   Tokens (siehe :root) und etwas mehr Groesse in den Regeln, denen die kleine
+   Schrift gehoert. */
+p,
+.jjk-claim-text,
+.jjk-board-blurb,
+.jjk-board-level,
+.jjk-board-tag {
+  font-weight: 500;
 }
 
 ::selection {
@@ -607,7 +621,7 @@ body::-webkit-scrollbar {
   width: 200%;
   height: 200%;
   pointer-events: none;
-  opacity: 0.17;
+  opacity: 0.11;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   animation: jjk-grain-shift 0.9s steps(4) infinite;
@@ -650,7 +664,7 @@ body::-webkit-scrollbar {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  opacity: 0.09;
+  opacity: 0.055;
   background: repeating-linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0) 0px,
@@ -688,17 +702,13 @@ body::-webkit-scrollbar {
   );
 }
 
-.jjk-ember-glow-top::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse 70% 55% at 50% 0%,
-    rgba(255, 106, 31, 0.18) 0%,
-    rgba(211, 32, 42, 0.1) 38%,
-    transparent 72%
-  );
+.jjk-ember-glow-top {
+  /* Deliberately empty, and the class is no longer applied anywhere — see the
+     note in app/page.tsx. It carried a warm ellipse anchored at the top edge of
+     the stack, which after the opening was rebuilt sat exactly on the boundary
+     between the hero and the first wall section and was the only thing making
+     that boundary visible. Kept as a tombstone so the name does not get reused
+     for something that would land in the same place. */
 }
 
 /* ---- Ink-wash texture, the faded curse painting behind the candle ------- */
@@ -1500,8 +1510,8 @@ body::-webkit-scrollbar {
 }
 
 .jjk-board-tag {
-  font-size: 0.6rem;
-  letter-spacing: 0.22em;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   padding: 0.28em 0.6em;
   color: var(--foreground-dim);
@@ -1540,9 +1550,9 @@ body::-webkit-scrollbar {
 .jjk-board-level {
   position: relative;
   z-index: 1;
-  margin-top: 0.55rem;
-  font-size: 0.62rem;
-  letter-spacing: 0.24em;
+  margin-top: 0.6rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--accent);
   transition: color 0.4s ease-out;
@@ -1554,14 +1564,14 @@ body::-webkit-scrollbar {
 .jjk-board-blurb {
   position: relative;
   z-index: 1;
-  margin-top: 0.9rem;
-  font-size: 0.86rem;
-  line-height: 1.6;
-  color: var(--muted-foreground);
+  margin-top: 1rem;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--foreground-dim);
   transition: color 0.4s ease-out;
 }
 .jjk-board:hover .jjk-board-blurb {
-  color: var(--foreground-dim);
+  color: var(--foreground);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1647,8 +1657,8 @@ body::-webkit-scrollbar {
 }
 
 .jjk-claim-num {
-  font-size: 0.6rem;
-  letter-spacing: 0.3em;
+  font-size: 0.68rem;
+  letter-spacing: 0.26em;
   color: var(--muted-foreground);
   transition: color 0.35s ease-out;
 }
@@ -1670,9 +1680,9 @@ body::-webkit-scrollbar {
 }
 
 .jjk-claim-text {
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: var(--muted-foreground);
+  font-size: 1.075rem;
+  line-height: 1.55;
+  color: var(--foreground-dim);
   transition: color 0.35s ease-out;
 }
 .jjk-claim[data-on] .jjk-claim-text {
@@ -2833,19 +2843,74 @@ body::-webkit-scrollbar {
 }
 
 /* =========================================================================
-   THE OPENING — the scroll run
+   THE OPENING — the palace on fire
    =========================================================================
-   components/scroll-opening.tsx. One painting does the work: the Night
-   Attack on the Sanjō Palace (13th c., PD scan), pulled past the frame like
-   a scroll unrolled too fast to read, stopped on its fire. Everything here
-   is plain CSS on two elements; the run-up's motion blur is baked into the
-   asset itself (scripts/gen-scroll-run.py), so the scrub is one translate.
+   components/scroll-opening.tsx. One painting, standing still: the Night
+   Attack on the Sanjō Palace (Heiji monogatari emaki, 13th c., PD scan). It
+   catches, the title is written over it in cursed energy, and it waits. Then
+   the reader clicks, and the whole thing goes out — the glyphs burn away, the
+   fire dies down, and what is left is the same darkness the section below
+   starts in, with the same torch in the reader's hand.
 
-   The strip is 5582×1000 — 558.2 units wide per 100 of height — and the
-   centre of the blaze sits at 79.1% of its width. Both numbers are printed
-   by the generator; if the asset is re-cut, re-read them from its output.
-   Positions are written in svh because the strip is sized to the frame's
-   HEIGHT, so its width is a height-derived unit too. */
+   ── The one rule this section is built on ───────────────────────────────────
+   It is the SAME SURFACE as the wall downstairs, not a lookalike. Both come out
+   of the same grading function — gen-wall.py for the night parade,
+   gen-scroll-plates.py for this, constant for constant — and both are shown
+   the same way, as a pair of plates:
+
+       .jjk-wall        / .jjk-wall-glow        the sections below
+       .jjk-scroll-cold / .jjk-scroll-glow      here
+
+   cold = the painting as a wall, near-black, stored 2.5x too bright and divided
+   back down by `filter: brightness(0.62)` — WALL_GAIN in both generators, and
+   the same 0.62 the wall uses. glow = the light on black, screened, a complete
+   no-op at zero and needing no mask.
+
+   What was here before was a CSS `filter: saturate(.26) brightness(.30)` over
+   the raw scan. That is why the hero read brown while the wall read
+   black-and-ember: a filter can only scale and rotate colour that is already
+   there. The remap has to happen in the asset. It now does.
+
+   ── The handover, and why it is exact rather than close ─────────────────────
+   The section below rests at `rgba(3, 3, 4, 0.93)` over its wall, with its glow
+   plate at zero — that is `.jjk-veil` with `--unlit: 1` and `--torch: 0`. So
+   this section ends by raising THE SAME ELEMENT over its own painting. Not a
+   gradient tuned to look like it: `.jjk-veil` and `.jjk-candle`, the components'
+   own, inheriting `--px --py --pool --dark` from a `WallLight` exactly like the
+   one downstairs.
+
+   Two things follow from that and both are the point. The last frame of the
+   opening is pixel-for-pixel the first frame of what comes next, so the scroll
+   into it has no boundary to find. And the torch that lights the wall is
+   already lit before anybody has scrolled anywhere — the reader arrives holding
+   it rather than discovering it.
+
+   ── The second rule: opacity, and two registered properties ─────────────────
+   Every animation below moves `opacity`, or one of the two custom properties
+   registered at the top of this block. Nothing animates `filter`: that forces
+   the browser to re-rasterise the whole layer every frame, and on a plate this
+   wide Chrome drops to a reduced raster resolution while it runs — which is
+   what "das ganze Bild ändert sich und verschwimmt kurz" was. There is no
+   filter animation and no scale animation in this file, and there must not be
+   one added.
+
+   ── Geometry ────────────────────────────────────────────────────────────────
+   The plate is 3623×1000 — 362.3 units wide per 100 of height — and the centre
+   of the blaze sits 151.7 units in. Both numbers are printed by
+   scripts/gen-scroll-plates.py, along with the translate below; if the window
+   is re-cut, copy them from its output. Positions are in svh because the plate
+   is sized to the frame's HEIGHT, so its width is a height-derived unit too. */
+
+/* The pool's radius as a fraction of itself, so the torch can be grown from a
+   point instead of switched on. A custom property cannot be animated at all
+   until it is registered — an unregistered one steps from one value to the
+   next, and the light would appear at full size. `inherits: true` because the
+   veil and the candle are siblings that both read it. */
+@property --pool-open {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
 
 .jjk-scroll-opening {
   position: relative;
@@ -2853,33 +2918,28 @@ body::-webkit-scrollbar {
   overflow: hidden;
   background: var(--background);
   isolation: isolate;
+  /* The parent WallLight's pool radius, captured under a second name. The
+     darkness layer below redefines `--pool` in terms of THIS, which it could
+     not do in terms of `--pool` itself. */
+  --torch-radius: var(--pool, 800px);
 }
 
-/* The push-in after landing rides on the frame, not the strip, so the two
-   transforms never fight over one property. */
 .jjk-scroll-frame {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  animation: jjk-scroll-push 2.6s ease-out 2.35s both;
 }
 
-@keyframes jjk-scroll-push {
-  from {
-    scale: 1;
-  }
-  to {
-    scale: 1.045;
-  }
-}
+/* ---- The two plates -----------------------------------------------------
+   Identical geometry, because they are two halves of one image and a pixel of
+   drift shows up as the light sliding off the thing it is coming from.
 
-/* The scrub. `both` keeps the 0% frame on screen during the initial hold —
-   the first visible frame is this element, static, no JS needed. The landing
-   position wants the fire's centre (79.1% × 558.2svh ≈ 441.5svh) on the
-   viewport's centreline; the max() pins the strip's right edge to the frame
-   on ultrawide screens, where centring the fire would otherwise pull the
-   strip's end past the edge and show background. */
-.jjk-scroll-strip {
+   The blaze is placed at 42 % of the viewport width rather than centred — the
+   fire fills the left of the frame and the palace gable holds the right. The
+   clamp is not a preference but a floor and a ceiling: the plate may never be
+   pulled far enough for its own edge to come inside the frame, at any aspect
+   ratio from portrait up to 32:9. */
+.jjk-scroll-plate {
   position: absolute;
   top: 0;
   left: 0;
@@ -2887,188 +2947,2761 @@ body::-webkit-scrollbar {
   width: auto;
   max-width: none;
   user-select: none;
-  translate: 0 0;
-  animation: jjk-scroll-scrub 2.1s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+  pointer-events: none;
+  translate: clamp(calc(100vw - 362.3svh), calc(42vw - 151.7svh), 0px) 0;
 }
 
-@keyframes jjk-scroll-scrub {
+/* The painting as a wall. Cold, and it stays cold: this layer never animates
+   at all. The two numbers are the wall's own — see the long note on `.jjk-wall`
+   about why the plate is stored bright and brought down here rather than
+   encoded dark. */
+.jjk-scroll-cold {
+  filter: brightness(0.62);
+  opacity: 0.85;
+}
+
+/* The light. Screened over the cold plate, exactly as wall-glow.webp is
+   screened over wall.webp, and for the same reason: black adds nothing, so no
+   mask is involved at all.
+
+   (The mask version was the bug behind the flat yellow. A CSS mask reads the
+   ALPHA channel by default and a grayscale WebP is opaque everywhere, so it
+   masked nothing and screened the entire hot copy over the entire painting.)
+
+   The plate is rendered at the PEAK of the flare. `ignite` takes it there as the
+   fire catches and `steady` settles it back to 0.88 — an overshoot, built out of
+   the one property that is free to animate. It starts at a tenth: the palace is
+   already smouldering in the first frame and then takes.
+
+   ── `forwards` on the second one, and it is not a detail ────────────────────
+   Two animations on one property composite in list order, and an animation
+   contributes a value not only while it RUNS but also during its delay if its
+   fill includes `backwards`. `steady` was once written with `both`, so from the
+   very first frame it filled backwards with its own 0% keyframe — opacity 1 —
+   and, being later in the list, beat `ignite` outright. The fire was fully up
+   before the delay had elapsed and then moved by twelve per cent: "es startet
+   bereits rot und ändert sich nicht".
+
+   `forwards` is the whole fix: it fills only AFTER the animation has run, so
+   during its delay `steady` contributes nothing and `ignite` has the property
+   to itself. Any animation added to this list has to be thought through the
+   same way. */
+.jjk-scroll-glow {
+  mix-blend-mode: screen;
+  opacity: 0.1;
+  animation:
+    jjk-scroll-ignite 2.2s cubic-bezier(0.22, 0.61, 0.36, 1) 0.7s both,
+    jjk-scroll-steady 1.3s ease-out 2.9s forwards;
+}
+
+@keyframes jjk-scroll-ignite {
   from {
-    translate: 0 0;
+    opacity: 0.1;
   }
   to {
-    translate: max(calc(50vw - 441.5svh), calc(100vw - 558.2svh)) 0;
+    opacity: 1;
   }
 }
 
-/* ---- The title column ---------------------------------------------------
-   The site's own kanji treatment (.jjk-kanji), stood upright. It slams in
-   over the fire once the scrub has landed: one overshoot, no second beat. */
-.jjk-scroll-title {
+@keyframes jjk-scroll-steady {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.88;
+  }
+}
+
+/* Going out. Appended to the list rather than replacing it, so the two earlier
+   animations keep their hold on the property until this one's delay is up —
+   and its `from` is the value they left behind. */
+.jjk-scroll-opening[data-out] .jjk-scroll-glow {
+  animation:
+    jjk-scroll-ignite 2.2s cubic-bezier(0.22, 0.61, 0.36, 1) 0.7s both,
+    jjk-scroll-steady 1.3s ease-out 2.9s forwards,
+    jjk-scroll-embers 3.2s cubic-bezier(0.4, 0, 0.5, 1) 0.5s both;
+}
+
+@keyframes jjk-scroll-embers {
+  from {
+    opacity: 0.88;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ---- The darkness, and the torch in it ----------------------------------
+   `.jjk-veil` and `.jjk-candle` are the section-below's own elements, used
+   here unmodified. At `--unlit: 1` — which is what they inherit, because this
+   WallLight has no `ignites` child to run it down — the veil's shade-map mask
+   is a no-op and it resolves to flat `rgba(3, 3, 4, 0.93)`: the exact darkness
+   the wall starts at. That is the whole handover, and it is an identity rather
+   than a match.
+
+   Two variables are redefined here, one level below where they are declared,
+   which is legal and is not a cycle — each reads a DIFFERENT property than the
+   one it defines:
+
+     --pool    the parent's radius times `--pool-open`, so the light can be
+               grown out of a point.
+     --torch   gated by `--torch-on`, so the pointer's presence does not light
+               anything until the sequence says so. Without it the pool would
+               be open from the first frame, since the reader's cursor is
+               already over the section. */
+/* Both are DIRECT children of the section and not wrapped in anything, which
+   is a correctness point rather than a tidiness one: the candle is
+   `mix-blend-mode: screen`, and a wrapper with an animated opacity would open
+   a stacking context, so the warm light would screen against the veil instead
+   of against the painting. It has to blend with the picture or it is a grey
+   smudge over a black sheet.
+
+   Two variables are redefined on them, one level below where they are
+   declared. Legal, and not a cycle — each reads a DIFFERENT property than the
+   one it defines:
+
+     --pool    the section's captured radius times `--pool-open`, so the light
+               can be grown out of a point rather than switched on at size.
+     --torch   gated by `--torch-on`, so the pointer's presence lights nothing
+               until the sequence says so. Without it the pool would be open
+               from the first frame, since the reader's cursor is already over
+               the section. */
+.jjk-scroll-veil,
+.jjk-scroll-candle {
+  --pool: calc(var(--torch-radius) * var(--pool-open, 0));
+  --torch: calc(var(--lit, 0) * var(--torch-on, 0));
+}
+
+/* At `--pool: 0` every stop of the veil's gradient collapses onto its last
+   one, which is `rgba(3, 3, 4, var(--dark))` — flat 93 % black, the exact
+   value the wall rests at. Nothing here had to be chosen. */
+.jjk-scroll-veil {
+  opacity: 0;
+  /* A no-op made explicit. `.jjk-veil`'s mask is two layers composited by
+     union, and the second is flat black at alpha `--unlit`; at `--unlit: 1` —
+     which is what this section inherits, because its WallLight has no
+     `ignites` child to run it down — the union is opaque everywhere whatever
+     the shade map says. Dropping it changes nothing visible and keeps a 630 KB
+     plate off the opening's critical path. Delete this pair if the hero is
+     ever given an ignition of its own. */
+  -webkit-mask-image: none;
+  mask-image: none;
+  /* The veil transitions its own `background`, which here would fight the pool
+     as it grows — two curves on one gradient. The growth is the animation. */
+  transition: none;
+}
+
+.jjk-scroll-opening[data-out] .jjk-scroll-veil {
+  animation: jjk-scroll-nightfall 3.2s cubic-bezier(0.4, 0, 0.5, 1) 0.5s both;
+}
+
+@keyframes jjk-scroll-nightfall {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The torch, opening out of the cursor. `--torch-on` is a step, and it can be:
+   at the instant it flips the pool still has radius zero, so nothing appears —
+   and then it grows. The candle keeps its own 1.1s opacity transition, so the
+   warm light fades up while the hole widens. */
+.jjk-scroll-opening[data-torch] {
+  --torch-on: 1;
+  animation: jjk-scroll-torch 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes jjk-scroll-torch {
+  from {
+    --pool-open: 0;
+  }
+  to {
+    --pool-open: 1;
+  }
+}
+
+/* ---- The title ----------------------------------------------------------
+   The site's own kanji lockup at the size it had in the first opening: four
+   glyphs drawn by cursed energy across most of the frame, not a small column
+   in a corner. Mounted by the component once the fire is up, so KanjiTitle's
+   own clock starts then and needs no gate here. */
+.jjk-scroll-lockup {
   position: absolute;
-  left: clamp(1.25rem, 6.5vw, 6.5rem);
-  top: 50%;
-  translate: 0 -50%;
+  inset: 0;
   z-index: 3;
-  margin: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(0.9rem, 2.4svh, 1.6rem);
-  animation: jjk-scroll-slam 0.34s cubic-bezier(0.16, 1, 0.3, 1) 2.5s both;
+  justify-content: center;
+  padding: 0 1rem;
+  text-align: center;
+  pointer-events: none;
+  animation: jjk-scroll-fade-in 1.1s ease-out both;
 }
 
-@keyframes jjk-scroll-slam {
-  0% {
-    opacity: 0;
-    scale: 1.26;
-  }
-  62% {
-    opacity: 1;
-    scale: 0.985;
-  }
-  100% {
-    opacity: 1;
-    scale: 1;
-  }
-}
-
-.jjk-scroll-title-col {
-  display: block;
-  writing-mode: vertical-rl;
-  text-orientation: upright;
-  font-size: clamp(3rem, 10.5svh, 6.2rem);
-  letter-spacing: 0.1em;
-}
-
-/* The seal: the same hand-cut square the rest of the site presses. It lands
-   a beat after the title, slightly out of true, the way a hand stamps. */
-.jjk-scroll-seal {
-  display: grid;
-  place-items: center;
-  width: clamp(2.1rem, 5.2svh, 3.1rem);
-  height: clamp(2.1rem, 5.2svh, 3.1rem);
-  rotate: -4deg;
-  background: linear-gradient(150deg, #cf3226 0%, #a8231c 100%);
-  clip-path: var(--seal-edge);
-  font-family: var(--font-jp);
-  font-weight: 700;
-  font-size: clamp(1.3rem, 3.2svh, 1.9rem);
-  line-height: 1;
-  color: rgba(14, 9, 7, 0.86);
-  filter: drop-shadow(0 0 10px rgba(200, 48, 42, 0.5));
-  animation: jjk-scroll-stamp 0.26s cubic-bezier(0.16, 1, 0.3, 1) 2.95s both;
-}
-
-@keyframes jjk-scroll-stamp {
+@keyframes jjk-scroll-fade-in {
   from {
     opacity: 0;
-    scale: 1.6;
   }
   to {
     opacity: 1;
-    scale: 1;
   }
 }
 
-/* ---- The gloss ---------------------------------------------------------- */
-.jjk-scroll-sub {
+.jjk-scroll-furigana {
+  display: block;
+  margin-bottom: 0.4em;
+  font-family: var(--font-jp);
+  font-size: clamp(0.8rem, 1.8vw, 1.45rem);
+  letter-spacing: 0.55em;
+  text-indent: 0.55em;
+  color: rgba(243, 239, 233, 0.7);
+}
+
+/* Die vier Zeichen.
+   `KanjiTitle` setzt intern `flex w-full` und haengt die uebergebene Klasse in
+   denselben class-String dahinter. Beide setzen `width`, beide sind eine
+   einzelne Klasse — also entscheidet die Reihenfolge im erzeugten Stylesheet
+   und nicht die im Attribut, und `w-full` gewann. Zwei Runden "kleiner" haben
+   deshalb Name, GRAZ, Furigana und Linie verkleinert und den Titel darueber
+   unveraendert gelassen: gemessen 1568 px auf einem 1600er Fenster, also volle
+   Breite minus Innenabstand.
+
+   `max-width` kollidiert mit `width` nicht, sondern begrenzt sie. Deshalb ist
+   das hier eine Obergrenze und keine Breite. */
+.jjk-scroll-kanji {
+  max-width: min(92vw, 108rem);
+}
+
+.jjk-scroll-rule {
+  width: min(64vw, 52rem);
+  margin-top: 2.2rem;
+}
+
+/* ---- The name, and why it is outlined the other way round ----------------
+   This is the line that has to tell a stranger what they are looking at, and it
+   was losing to the fire: 46px of thin cream, no separation, dissolving into the
+   brightest thing on the page.
+
+   The site already owns a solution — `.jjk-kanji` puts a DARK fill inside a
+   cream stroke, which is why the four glyphs read so cleanly. Tried here, it
+   half worked: strong over the dark left of the frame, soft over the blaze,
+   because a dark letter on bright flame is the low-contrast case. So the
+   polarity is inverted. Cream core, dark stroke — the same idea, turned around
+   for a background that is bright where it matters. `paint-order` is what makes
+   either version possible: without it the stroke is painted over the fill and
+   eats half the letterform from the inside.
+
+   The dark halo underneath does the rest. It is not a glow for effect; it is
+   what gives the letters an edge over passages that are neither dark nor bright.
+
+   `jjk-aberrate` is gone from this element. A red/cyan fringe is a legibility
+   cost anywhere, and cyan is not in this page's vocabulary — the whole colour
+   idea is ember, and the wordmark was the one place a cold fringe appeared. */
+.jjk-scroll-latin {
+  display: block;
+  margin-top: 2rem;
+  font-family: var(--font-display);
+  /* 4.1vw lands near 79px on a 1920 frame — about 1.7x what it was. The cap
+     stops it running into the edges on very wide screens; the floor keeps it
+     readable on a phone. */
+  font-size: clamp(1.1rem, 4.2vw, 5rem);
+  font-weight: 700;
+  /* Loosened tracking is what made the old line elegant and unreadable. At this
+     size the letters can hold together with less air between them. */
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+  color: #f6efdf;
+  -webkit-text-stroke: 0.045em rgba(8, 7, 10, 0.92);
+  paint-order: stroke fill;
+  text-shadow:
+    0 0.04em 0.18em rgba(8, 7, 10, 0.75),
+    0 0 0.7em rgba(8, 7, 10, 0.6);
+}
+
+/* The city. Secondary, but it was 9.6px at 45 % opacity, which is not secondary,
+   it is absent. Same treatment at a quarter of the size. */
+.jjk-scroll-place {
+  display: block;
+  margin-top: 1.7rem;
+  font-family: var(--font-display);
+  font-size: clamp(0.95rem, 1.7vw, 1.75rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.46em;
+  text-indent: 0.46em;
+  color: rgba(246, 239, 223, 0.86);
+  -webkit-text-stroke: 0.05em rgba(8, 7, 10, 0.85);
+  paint-order: stroke fill;
+  text-shadow: 0 0.05em 0.2em rgba(8, 7, 10, 0.8);
+}
+
+/* ---- The two cues -------------------------------------------------------
+   A real <button>, not decoration. The whole section takes the click, but a
+   full-screen gate that only answers to a pointer cannot be passed on a
+   keyboard, and this is the only way through it. It carries the same lockup
+   the first opening used.
+
+   `cursor: none` because the real pointer is the ring — see
+   components/custom-cursor.tsx. */
+.jjk-scroll-cue,
+.jjk-scroll-onward {
   position: absolute;
   left: 50%;
-  bottom: clamp(2.2rem, 7svh, 4.5rem);
+  bottom: clamp(1.6rem, 5svh, 3rem);
   translate: -50% 0;
-  z-index: 3;
-  margin: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  border: 1px solid rgba(211, 60, 26, 0.25);
+  border-radius: 999px;
+  background: none;
+  color: rgba(211, 60, 26, 0.6);
+  cursor: none;
+  transition: color 0.3s, border-color 0.3s;
+}
+
+.jjk-scroll-cue {
+  animation: jjk-scroll-fade-in 0.9s ease-out both;
+}
+
+.jjk-scroll-cue:hover,
+.jjk-scroll-cue:focus-visible {
+  border-color: rgba(211, 60, 26, 0.6);
+  color: rgb(211, 60, 26);
+}
+
+.jjk-scroll-cue:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.jjk-scroll-cue-jp {
+  font-family: var(--font-jp);
+  font-size: 0.55rem;
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+}
+
+.jjk-scroll-cue-en {
   font-family: var(--font-display);
-  font-weight: 500;
-  font-size: clamp(0.58rem, 1.3vw, 0.8rem);
-  letter-spacing: 0.34em;
-  text-indent: 0.34em;
-  white-space: nowrap;
-  color: rgba(243, 239, 233, 0.88);
-  text-shadow: 0 0 14px rgba(8, 5, 4, 0.9);
-  animation: jjk-scroll-sub-in 0.7s ease-out 3.1s both;
+  font-size: 0.6rem;
+  letter-spacing: 0.45em;
+  text-indent: 0.45em;
 }
 
-@keyframes jjk-scroll-sub-in {
-  from {
-    opacity: 0;
-    translate: -50% 8px;
+/* Der zweite Hinweis traegt mehr als der erste. Auf KLICK wartet die Seite —
+   sie tut nichts, bis er gedrueckt wird, und ein Hinweis, ohne den es nicht
+   weitergeht, darf leise sein. SCROLL dagegen erscheint in dem Moment, in dem
+   das Bild erloschen und die Seite fast schwarz ist, und muss gegen ein
+   dunkles Vollbild gefunden werden, bevor jemand denkt, es sei zu Ende. */
+.jjk-scroll-onward-jp {
+  font-family: var(--font-jp);
+  font-size: 0.95rem;
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+}
+
+.jjk-scroll-onward-en {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+}
+
+.jjk-scroll-cue-en {
+  animation: jjk-scroll-cue-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes jjk-scroll-cue-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
   }
-  to {
+  50% {
     opacity: 1;
-    translate: -50% 0;
   }
 }
 
-/* ---- The handoff --------------------------------------------------------
-   Two layers. The foot is always there: the painting's bottom edge runs out
-   into the page's background, so the section below begins in the same night
-   with no seam. The settle comes late and takes the whole frame down a
-   step — the fire does not go out, the room gets darker around it. */
-.jjk-scroll-settle {
+/* The second cue. Quieter than the first — by the time it appears the reader
+   has already been asked for one thing and done it, and this one only has to
+   say which way. No border, because there is nothing to press. */
+.jjk-scroll-onward {
+  border-color: transparent;
+  color: rgba(243, 239, 233, 0.68);
+  gap: 0.7rem;
+  animation: jjk-scroll-fade-in 1s ease-out both;
+}
+
+.jjk-scroll-onward-arrow {
+  display: block;
+  width: 1.5px;
+  height: 2.4rem;
+  background: linear-gradient(
+    to bottom,
+    rgba(243, 239, 233, 0) 0%,
+    rgba(243, 239, 233, 0.45) 100%
+  );
+  animation: jjk-scroll-onward-drift 2.6s ease-in-out infinite;
+}
+
+@keyframes jjk-scroll-onward-drift {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(-3px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(3px);
+  }
+}
+
+/* ---- Why there is no bottom edge any more ------------------------------
+   There was a `.jjk-scroll-foot` here: a gradient over the lower 38 % that ran
+   the painting out into `var(--background)`. It belonged to the version of this
+   section that ended on a lit picture and had to be got rid of somehow.
+
+   It now does the opposite of its job. This section ends at the wall's own
+   resting darkness, and measured, the two surfaces agree to 0.1 of 255 — the
+   veiled scroll sits at 3.98 and the veiled wall at 4.06. The foot replaced the
+   last third of that matched surface with flat #07070a, which is 7.2: three
+   levels BRIGHTER than the thing it was fading into, and a visible line across
+   the boundary. The seam is invisible precisely when nothing is drawn over it.
+   ========================================================================== */
+
+/* ---- The gate -----------------------------------------------------------
+   The ignition is born paused and released when the cold plate has actually
+   DECODED — components/scroll-opening.tsx flips `data-ready` after
+   img.decode(). Without it the fire comes up over a frame the browser has not
+   painted yet. */
+.jjk-scroll-opening:not([data-ready]) .jjk-scroll-glow {
+  animation-play-state: paused;
+}
+
+/* ---- Reduced motion: the lit frame, standing ---------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .jjk-scroll-glow,
+  .jjk-scroll-lockup,
+  .jjk-scroll-veil,
+  .jjk-scroll-cue,
+  .jjk-scroll-onward {
+    animation: none;
+  }
+  .jjk-scroll-glow {
+    opacity: 0.88;
+  }
+  .jjk-scroll-lockup,
+  .jjk-scroll-cue,
+  .jjk-scroll-onward {
+    opacity: 1;
+  }
+  .jjk-scroll-cue-en,
+  .jjk-scroll-onward-arrow {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   THE LOWER HALF — panels cut from the same scroll
+   ==========================================================================
+
+   Everything above the timetable stands on a painted surface. Everything below
+   it stood on `bg-background` and `bg-card`: flat fills, rounded corners,
+   backdrop blur, pill buttons. The two halves did not disagree about taste,
+   they disagreed about what kind of object the page is.
+
+   `Room` already answers this for the night-parade wall — one tiled emaki,
+   veiled, with its own pigment screened back on top. What it cannot do is vary,
+   and a wall that runs for six more sections is a wall nobody sees any more.
+
+   So the lower half ALTERNATES. Some sections stand on the parade wall: the
+   same `Room`, the same tile, no new bytes and no new lighting. Others stand on
+   a panel cut from the Sanjō scroll — the same painting the opening burns, at
+   four other places along its thirty-four thousand pixels
+   (scripts/gen-section-plates.py).
+
+   ── Why a panel and not a second wall ─────────────────────────────────────
+   Because a wall repeats and a panel does not. The tile has to be seamless in
+   both directions and is therefore the same few square metres of paper over and
+   over; a panel is one stretch of one scroll, shown once, and can be a PICTURE:
+   the ox-carts, the palace interior, the fire, the colophon. That is what makes
+   the lower half read as further along the same handscroll rather than as more
+   of the same wallpaper.
+
+   ── The two numbers are not new numbers ───────────────────────────────────
+   `brightness(0.4)` is 1 / WALL_GAIN, the same undo `.jjk-wall` performs, for
+   the same reason set out at length there: a near-black plate cannot survive a
+   lossy codec, so it is stored 2.5x too bright and divided back down here.
+   `opacity: 0.42` on the glow is GLOW_INTENSITY out of components/lit-wall.tsx,
+   verbatim.
+
+   Measured, veil at 0.86: the Room's wall as displayed runs mean 16.5 of 255
+   with the brightest hundredth at 43.9. The four panels run 9.0 / 36.4 (carts),
+   9.4 / 33.4 (court), 18.6 / 54.8 (blaze) and 5.1 / 36.8 (sutra). The peaks
+   agree; the means are lower because these panels have far more bare silk in
+   them than the tile does — which is not a miss, it is the reason they can have
+   a price table standing on them.
+
+   ── The feather ──────────────────────────────────────────────────────────
+   Both plates and the veil carry the same vertical mask, fading out over the
+   top and bottom seventh. Without it a panel ends in a straight horizontal line
+   across the screen, which is precisely the boundary the opening had to have
+   surgery to remove. A panel that fades out at both ends is hung on the page;
+   one that stops is butted against it. */
+
+.jjk-plate {
+  position: relative;
+  /* Knapp zwei Bildschirme, und das ist dein Vorschlag: die beiden
+     Ueberblendungen nehmen zusammen etwa drei Viertel einer Fensterhoehe,
+     alles darueber hinaus ist Zeit, in der der Raum einfach dasteht. Bei
+     130svh war das noch keine anderthalb Fensterhoehen und die Sektion
+     bestand gefuehlt aus Uebergang. */
+  min-height: 175svh;
+  /* The glow is screened. Without this it would screen against the whole page
+     behind it, and a panel would quietly lighten whatever it happened to be
+     stacked on. */
+  isolation: isolate;
+}
+
+.jjk-plate-footer {
+  min-height: auto;
+}
+
+/* ---- Der Schluss: das Feuer, aber auf schwarzem Grund --------------------
+   Die Tafel "blaze" steht wieder unter dem Schlussaufruf. Was den Uebergang zu
+   ihr frueher sichtbar gemacht hat, war nie sie selbst, sondern das, woran sie
+   stiess: eine beleuchtete Wand voller Figuren. Zwei Bilder, die aneinander
+   stossen, haben eine Naht.
+
+   Hier wird stattdessen der Grund UNTER der Tafel schwarz gelegt. Das geht,
+   ohne die Tafel anzutasten: `.jjk-plate` macht mit `isolation: isolate` einen
+   eigenen Stapelkontext auf, ein Pseudoelement mit z-index -1 liegt darin also
+   unter dem Bild und ueber der Wand — genau in der Schicht, die man in den
+   ausgefederten Raendern sieht und sonst nirgends.
+
+   Damit stoesst das Feuer an nichts mehr an: es taucht aus dem Dunkeln auf und
+   geht darin wieder unter. Der Anlauf dazu beginnt schon unter den letzten
+   Fragen — siehe .jjk-close-lead. */
+.jjk-plate-close::before {
+  content: "";
+  position: absolute;
+  /* Einen Pixel ueber die eigene Oberkante hinaus: sonst bleibt an manchen
+     Zoomstufen eine Haarlinie unverdunkelten Grundes stehen. */
+  inset: -1px 0 0 0;
+  z-index: -1;
+  pointer-events: none;
+  /* Als Verlauf und nicht als Flaeche: eine Flaeche schaltet an der Oberkante
+     der Tafel von 0.44 — dem Wert, mit dem .jjk-close-lead endet — auf 0.965
+     um, und das ist eine waagrechte Linie quer ueber den Schirm. Genau die war
+     auf dem Bildschirmfoto zu sehen.
+
+     0.965 und nicht ganz dicht: die Papierstruktur der Wand bleibt als
+     Andeutung stehen. Volles Schwarz waere eine Flaeche und damit doch wieder
+     ein anderer Grund. */
+  background: linear-gradient(
+    to bottom,
+    rgba(7, 7, 10, 0.44) 0%,
+    rgba(7, 7, 10, 0.86) 12%,
+    rgba(7, 7, 10, 0.965) 24%,
+    rgba(7, 7, 10, 0.965) 100%
+  );
+}
+
+/* ---- Der Anlauf dazu -----------------------------------------------------
+   Die Verdunklung faengt nicht erst beim Schlussaufruf an, sondern schon unter
+   den letzten Fragen. Der Grund steht im Bild: dort liegen die groessten
+   Figuren der ganzen Prozession — ein Wagenrad und eine Naginata quer ueber
+   den halben Schirm. Begaenne das Abdunkeln erst darunter, stuenden sie als
+   Letztes und Groesstes da, bevor es schwarz wird.
+
+   Der Verlauf beginnt deshalb auf halber Hoehe dieser Sektion, also unter dem
+   Text und ueber den Figuren, und uebergibt am unteren Rand bei genau dem
+   Wert, mit dem die Verdunklung hinter der Tafel weitermacht. */
+.jjk-close-lead {
+  position: relative;
+}
+
+.jjk-close-lead::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 -1px 0;
+  z-index: 0;
+  pointer-events: none;
+  /* Schwaecher als zuvor: das Zudecken macht jetzt der Nebel (VeilBreak). Was
+     hier bleibt, ist nur noch ein Vorziehen der Daemmerung, damit die grossen
+     Figuren nicht in voller Staerke dastehen, wenn der Nebel einsetzt. */
+  background: linear-gradient(
+    to bottom,
+    rgba(7, 7, 10, 0) 46%,
+    rgba(7, 7, 10, 0.22) 70%,
+    rgba(7, 7, 10, 0.44) 100%
+  );
+}
+
+.jjk-close-lead > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Und der Footer schließt daran an, statt wieder aufzuhellen. Ohne das ist die
+   Naht nur um eine Sektion nach unten gewandert: der Schluss steht im
+   Dunkeln, und darunter geht das Licht noch einmal an. */
+.jjk-plate-footer {
+  --plate-dark: 0.975;
+  --plate-glow: 0.085;
+}
+
+/* ---- Die letzte Tafel vor dem Footer -------------------------------------
+   Aktuell ungenutzt: der Schlussaufruf steht seit der Verdunklung oben nicht
+   mehr auf einer Tafel. Die Regeln bleiben, weil sie fuer jede Tafel gelten,
+   die einmal als letzte vor dem Footer stehen sollte.
+
+   Die Mindesthoehe von 175svh ist fuer eine Tafel gedacht, ueber die Inhalt
+   LAEUFT — dann sind die knapp zwei Bildschirme genau die beiden Ueberblendungen
+   plus Zeit dazwischen. Der Schlussaufruf ist aber nur 712 Pixel hoch. Uebrig
+   blieben neunhundert Pixel Feuer, auf dem nichts steht, zwischen dem letzten
+   Satz der Seite und dem Footer.
+
+   Hier bestimmt deshalb der Inhalt die Hoehe. Damit die Ausfederung dabei nicht
+   zusammengedrueckt wird, bekommt der Inhalt oben und unten Luft und die Maske
+   einen laengeren Weg: 24 statt 14 Prozent. Das ist der ganze Uebergang in
+   beide Richtungen — die Tafel liegt danach WEICHER auf der Wand als die
+   laengeren, nicht haerter. */
+.jjk-plate-close {
+  min-height: auto;
+}
+
+.jjk-plate-close .jjk-plate-body {
+  /* Formatfuellend: der Schlussaufruf soll den Schirm haben, nicht einen
+     Streifen darin. Zentriert, weil eine bildschirmhohe Flaeche mit dem Text
+     am oberen Rand nach einem Fehler aussieht und nicht nach einer Seite. */
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-block: 12svh;
+}
+
+/* ---- Die Nebelschwelle davor ---------------------------------------------
+   Klebend und bildschirmhoch, ohne im Fluss Platz zu belegen — dieselbe
+   Konstruktion wie der Raum einer Tafel. Sie liegt ueber der Wand und unter
+   der Tafel: die Tafel kommt spaeter im Dokument und gewinnt damit bei
+   gleichem z-index, den beide von `[data-lift]` bekommen.
+
+   Warum ueberhaupt: zwischen zwei Bildern gibt es nichts zu ueberblenden, was
+   man nicht als Naht sehen wuerde. Es braucht ein DRITTES Ding, das fuer einen
+   Moment beide verdeckt — genau die Lehre, die der Uebergang vom Hero zur
+   ersten Sektion gekostet hat, hier ein zweites Mal angewendet. */
+/* Die Nebelschwelle vor der Schlusstafel ist ausgehaengt — auf Ansage.
+   components/veil-break.tsx liegt noch im Repo, die zugehoerigen Regeln sind
+   hier entfernt, damit kein totes CSS stehen bleibt. Was den Uebergang jetzt
+   macht, ist allein das Licht: der Grund wird unter den letzten Fragen dunkler
+   und bleibt es hinter der Tafel. */
+
+
+.jjk-plate-close .jjk-plate-room {
+  -webkit-mask-image: linear-gradient(
+    to bottom, transparent 0%, #000 24%, #000 76%, transparent 100%);
+  mask-image: linear-gradient(
+    to bottom, transparent 0%, #000 24%, #000 76%, transparent 100%);
+}
+
+@supports (animation-timeline: view()) {
+  .jjk-plate-footer .jjk-plate-room {
+    animation: jjk-plate-in linear both;
+    animation-timeline: --jjk-plate;
+    animation-range: entry-crossing 0% entry-crossing 38%;
+
+    /* Und hier NICHT klebend, anders als bei jeder anderen Tafel.
+
+       Ein klebender Raum ist bildschirmhoch. Der Footer ist niedriger als der
+       Bildschirm, und ein klebendes Element wird von seinem Behaelter nicht
+       beschnitten, wenn es hoeher ist als er — es stand also hundert Pixel
+       unter dem Seitenende heraus und hat das Dokument um genau diese hundert
+       Pixel verlaengert. Das war der leere Streifen unter dem Impressum: kein
+       Abstand, sondern ein Bild, das nicht mehr auf die Seite passte.
+
+       Ein Footer, ueber den nichts hinwegscrollt, braucht ohnehin kein
+       stehendes Bild. */
+    position: absolute;
+    inset: 0;
+    height: auto;
+    margin-bottom: 0;
+  }
+}
+
+/* Der Raum. Ohne View-Timeline liegt er einfach ueber der Sektion und traegt
+   die alte senkrechte Feder — das ist der Rueckfall, nicht die Absicht. */
+.jjk-plate-room {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(
+    to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  mask-image: linear-gradient(
+    to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
+}
+
+.jjk-plate-cold,
+.jjk-plate-glow,
+.jjk-plate-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.jjk-plate-cold,
+.jjk-plate-glow {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+
+.jjk-plate-cold {
+  filter: brightness(0.4); /* 1 / WALL_GAIN — siehe gen-section-plates.py */
+}
+
+.jjk-plate-veil {
+  background: rgba(3, 3, 4, var(--plate-dark, 0.86));
+}
+
+.jjk-plate-glow {
+  mix-blend-mode: screen;
+  /* 0.32, nicht die 0.42 der Wand, und der Unterschied ist gemessen und nicht
+     gewaehlt. An Bildschirmfotos der fertigen Sektionen abgelesen, in einem
+     schriftfreien Streifen der Kopfzone: die Wand selbst liegt je nach Stelle
+     zwischen 5.8 und 10.6 von 255, die vier Tafeln bei 0.42 dagegen bei 12.0
+     (carts), 14.3 (court), 16.2 (blaze) und 9.1 (sutra) — jede ueber der
+     Flaeche, auf der sie haengt.
+
+     Weil eine Tafel ein BILD ist, wo die Kachel eine Textur ist: ihr Licht ist
+     gebuendelt statt verteilt, dieselbe Deckkraft kauft also sichtbar mehr
+     davon. Bei 0.32 landen sie bei 9.1, 10.9, 12.3 und 6.9 — im Band der Wand,
+     mit dem Feuer als hellstem Ding der unteren Haelfte, was stimmt und
+     stimmen soll. */
+  opacity: var(--plate-glow, 0.32);
+}
+
+/* Der Leser steht vor der Tafel, nicht dahinter. Die Wandsektionen oben duerfen
+   ihren Schleier UEBER die Schrift legen, weil man dort mit der Fackel liest;
+   hier gibt es keine Fackel, und Inhalt unter der Dunkelheit waere schlicht
+   nicht lesbar. Das ist `lift`, unter anderem Namen und aus demselben Grund. */
+.jjk-plate-body {
+  position: relative;
+  z-index: 2;
+}
+
+/* ---- A surface that is not a card --------------------------------------- */
+/* Deliberately translucent. An opaque black box on a painted ground hides the
+   ground, and then the ground was pointless — the panel would be a frame around
+   nothing. At 0.72 to 0.94 down its length the paper is still there behind the
+   type, dimmest exactly where the type is densest. */
+.jjk-slab {
+  position: relative;
+  background: linear-gradient(
+    170deg,
+    rgba(13, 14, 19, 0.72) 0%,
+    rgba(7, 7, 10, 0.88) 62%,
+    rgba(5, 5, 8, 0.94) 100%
+  );
+  transition: background 0.45s ease-out;
+}
+.jjk-slab-hot:hover {
+  background: linear-gradient(
+    170deg,
+    rgba(22, 18, 20, 0.76) 0%,
+    rgba(12, 8, 9, 0.9) 62%,
+    rgba(9, 6, 7, 0.95) 100%
+  );
+}
+
+/* The rule along the top, lifted straight off `.jjk-board`: a hairline at rest,
+   a lit filament on hover, growing from the left rather than fading in. */
+.jjk-slab::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  transform-origin: left;
+  scale: 0.28 1;
+  opacity: 0.3;
+  z-index: 2;
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0%,
+    var(--ember) 55%,
+    rgba(255, 106, 31, 0) 100%
+  );
+  transition:
+    scale 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.45s ease-out;
+}
+.jjk-slab-hot:hover::before,
+.jjk-slab[data-on]::before {
+  scale: 1 1;
+  opacity: 1;
+}
+
+/* ---- The one button ----------------------------------------------------- */
+/* There were four kinds before this: a pill in accent, a pill in muted, a
+   rounded-lg in accent, and a bordered square. Four buttons is four answers to
+   the same question. */
+.jjk-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75em;
+  padding: 1em 2.1em;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+  text-transform: uppercase;
+  color: var(--foreground);
+  background: rgba(211, 32, 42, 0.09);
+  border: 1px solid var(--border-hot);
+  transition:
+    color 0.35s ease-out,
+    background 0.35s ease-out,
+    border-color 0.35s ease-out;
+}
+.jjk-btn::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  transform-origin: left;
+  scale: 0 1;
+  background: linear-gradient(90deg, var(--accent), var(--ember-hot));
+  transition: scale 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.jjk-btn:hover {
+  color: var(--accent-foreground);
+  background: rgba(211, 32, 42, 0.19);
+  border-color: var(--accent);
+}
+.jjk-btn:hover::after {
+  scale: 1 1;
+}
+.jjk-btn-quiet {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--foreground-dim);
+}
+.jjk-btn-quiet:hover {
+  color: var(--foreground);
+  background: rgba(211, 32, 42, 0.08);
+}
+
+/* ---- The week ----------------------------------------------------------- */
+/* One panel divided, not six panels placed — one-pixel gaps over a
+   border-coloured ground, exactly as the programme boards do it. Six things
+   near each other are six things; six things sharing a grid are a timetable. */
+.jjk-week {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+@media (min-width: 640px) {
+  .jjk-week {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .jjk-week {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.jjk-day {
+  display: flex;
+  flex-direction: column;
+  min-height: 15rem;
+}
+
+.jjk-day-head {
+  padding: 1.1rem 1rem 0.9rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.jjk-day-name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+  text-transform: uppercase;
+  color: var(--foreground);
+}
+.jjk-day-jp {
+  display: block;
+  margin-top: 0.15rem;
+  font-family: var(--font-jp);
+  font-size: 0.68rem;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+/* One class. The kind is carried by a single hairline down the left edge and by
+   the colour of the time — not by a pill, a badge and a bar all saying it three
+   times over. */
+.jjk-slot {
+  position: relative;
+  padding: 0.7rem 0.9rem 0.75rem 1.05rem;
+  transition: background 0.3s ease-out;
+}
+.jjk-slot + .jjk-slot {
+  border-top: 1px solid rgba(36, 31, 31, 0.6);
+}
+.jjk-slot::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.7rem;
+  bottom: 0.7rem;
+  width: 2px;
+  background: var(--slot, var(--accent));
+  opacity: 0.55;
+  transition: opacity 0.3s ease-out;
+}
+.jjk-slot:hover {
+  background: rgba(211, 32, 42, 0.06);
+}
+.jjk-slot:hover::before {
+  opacity: 1;
+}
+.jjk-slot-time {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  color: var(--slot, var(--accent));
+}
+.jjk-slot-name {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--foreground-dim);
+  transition: color 0.3s ease-out;
+}
+.jjk-slot:hover .jjk-slot-name {
+  color: var(--foreground);
+}
+
+/* ---- The name-boards ---------------------------------------------------- */
+/* No photographs. There are none of this room, the two that were here came off
+   a stock library and were pictures of strangers, and a face nobody at the gym
+   recognises is worse than no face. A dōjō names its teachers on a board; so
+   does this. */
+.jjk-name-board {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 17rem;
+  padding: 1.6rem 1.5rem 1.7rem;
+  overflow: hidden;
+  isolation: isolate;
+}
+.jjk-name-glyph {
+  position: absolute;
+  right: -0.06em;
+  bottom: -0.18em;
+  z-index: 0;
+  line-height: 0.78;
+  font-family: var(--font-jp);
+  font-size: clamp(5rem, 7vw, 7.5rem);
+  color: rgba(243, 239, 233, 0.045);
+  pointer-events: none;
+  user-select: none;
+  transition: color 0.5s ease-out;
+}
+.jjk-name-board:hover .jjk-name-glyph {
+  color: rgba(255, 106, 31, 0.1);
+}
+.jjk-name-rank {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  transition: color 0.4s ease-out;
+}
+.jjk-name-board:hover .jjk-name-rank {
+  color: var(--ember-hot);
+}
+.jjk-name-name {
+  position: relative;
+  z-index: 1;
+  padding-top: 1.5rem;
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--foreground);
+}
+.jjk-name-role {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.jjk-name-bio {
+  position: relative;
+  z-index: 1;
+  margin-top: 1rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--foreground-dim);
+}
+
+/* ---- The tiers ---------------------------------------------------------- */
+.jjk-tier {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.8rem 2rem;
+  overflow: hidden;
+  isolation: isolate;
+}
+.jjk-tier-name {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--foreground);
+}
+.jjk-tier-line {
+  margin-top: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.jjk-tier-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin-top: 1.8rem;
+  font-family: var(--font-display);
+  font-size: 3.4rem;
+  line-height: 1;
+  color: var(--foreground);
+}
+.jjk-tier-per {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  color: var(--muted-foreground);
+}
+.jjk-tier-list {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+}
+.jjk-tier-list li {
+  display: flex;
+  gap: 0.8rem;
+  padding: 0.72rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.97rem;
+  line-height: 1.4;
+  color: var(--foreground-dim);
+}
+.jjk-tier-list li::before {
+  content: "";
+  flex: none;
+  width: 0.42rem;
+  height: 1px;
+  margin-top: 0.72em;
+  background: var(--accent);
+  opacity: 0.75;
+}
+
+/* The one that is meant to be chosen. A hairline in ember all the way round
+   rather than a scale transform and a shadow: the page has no depth to cast
+   into, and a card that floats is a card from another website. */
+.jjk-tier[data-featured] {
+  border-color: var(--border-hot);
+}
+.jjk-tier[data-featured]::before {
+  scale: 1 1;
+  opacity: 1;
+}
+.jjk-tier-flag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  padding: 0.45em 0.9em;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ember-hot);
+  background: rgba(211, 32, 42, 0.14);
+  border-left: 1px solid var(--border-hot);
+  border-bottom: 1px solid var(--border-hot);
+}
+
+/* ---- Question and answer ------------------------------------------------ */
+.jjk-qa {
+  border-bottom: 1px solid var(--border);
+}
+.jjk-qa:first-child {
+  border-top: 1px solid var(--border);
+}
+.jjk-qa-q {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.5rem 0.25rem;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: none;
+  font-size: 1.12rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--foreground-dim);
+  transition:
+    color 0.35s ease-out,
+    padding-left 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.jjk-qa-q:hover,
+.jjk-qa[data-on] .jjk-qa-q {
+  color: var(--foreground);
+}
+.jjk-qa[data-on] .jjk-qa-q {
+  padding-left: 0.85rem;
+}
+/* The same filament the claims use, for the same reason: a line being drawn
+   reads as a switch being thrown. */
+.jjk-qa-rule {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform-origin: top;
+  scale: 1 0;
+  background: linear-gradient(
+    180deg,
+    var(--accent) 0%,
+    var(--ember) 55%,
+    rgba(255, 106, 31, 0) 100%
+  );
+  transition: scale 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.jjk-qa[data-on] .jjk-qa-rule {
+  scale: 1 1;
+}
+.jjk-qa-mark {
+  flex: none;
+  margin-top: 0.15em;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--muted-foreground);
+  transition:
+    color 0.35s ease-out,
+    rotate 0.35s ease-out;
+}
+.jjk-qa[data-on] .jjk-qa-mark {
+  color: var(--ember);
+  rotate: 45deg;
+}
+.jjk-qa-a {
+  padding: 0 3rem 1.6rem 0.25rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--foreground-dim);
+}
+
+/* ---- The closing panel -------------------------------------------------- */
+.jjk-close {
+  position: relative;
+  /* Generous, and it is the panel's feather that wants it rather than the
+     type. The mask fades the plate out over the top and bottom seventh of its
+     own height, so a short section gives the fire eighty pixels to go out in
+     and the boundary reads as a cut. At this height it has two hundred and the
+     fire simply ends. */
+  padding: 8rem 1.5rem 8.5rem;
+  text-align: center;
+}
+.jjk-close-line {
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 5.2vw, 4.4rem);
+  line-height: 1.02;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #f6efdf;
+  /* The same polarity the hero's wordmark ended up with, and for the same
+     reason: this one stands on the fire too, and a dark letter on flame is the
+     low-contrast case. Cream core, dark stroke, paint-order so the stroke does
+     not eat the letterform from the inside. */
+  -webkit-text-stroke: 0.028em rgba(8, 7, 10, 0.9);
+  paint-order: stroke fill;
+  text-shadow:
+    0 0.03em 0.16em rgba(8, 7, 10, 0.7),
+    0 0 0.6em rgba(8, 7, 10, 0.55);
+}
+
+/* ---- The colophon ------------------------------------------------------- */
+.jjk-mark {
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 13vw, 9rem);
+  font-weight: 700;
+  line-height: 0.86;
+  letter-spacing: 0.06em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(243, 239, 233, 0.34);
+  transition: -webkit-text-stroke-color 0.6s ease-out;
+}
+.jjk-mark:hover {
+  -webkit-text-stroke-color: rgba(255, 106, 31, 0.6);
+}
+
+.jjk-field {
+  flex: 1;
+  min-width: 0;
+  padding: 0.95rem 1.1rem;
+  font-size: 0.95rem;
+  color: var(--foreground);
+  background: rgba(7, 7, 10, 0.5);
+  border: 1px solid var(--border);
+  border-right: 0;
+  transition: border-color 0.3s ease-out;
+}
+.jjk-field::placeholder {
+  color: var(--muted-foreground);
+}
+.jjk-field:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jjk-slab,
+  .jjk-slab::before,
+  .jjk-btn,
+  .jjk-btn::after,
+  .jjk-slot,
+  .jjk-slot::before,
+  .jjk-slot-name,
+  .jjk-name-glyph,
+  .jjk-name-rank,
+  .jjk-qa-q,
+  .jjk-qa-rule,
+  .jjk-qa-mark,
+  .jjk-mark {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   THE SPOTLIGHT — a light you carry across the week
+   ==========================================================================
+
+   See components/spotlight-grid.tsx for the argument. The short version: the
+   pool sits BEHIND the columns, so what it lights is the one-pixel grid
+   between them and the top edge of each translucent slab. Nothing on top of
+   the type, so no character in the timetable changes contrast while you look
+   for Thursday.
+
+   `--sx` and `--sy` arrive in the container's coordinates. The pool is inset
+   by half a radius so it can spill past the grid's edge without being clipped
+   at it, and its own origin is shifted back by the same half radius — that is
+   the only reason those two `calc`s look the way they do. */
+
+.jjk-spot {
+  position: relative;
+  --sx: 50%;
+  --sy: -600px;
+  --son: 0;
+}
+
+.jjk-spot-pool {
+  position: absolute;
+  inset: calc(var(--spot-r, 260px) * -0.5);
+  z-index: 0;
+  pointer-events: none;
+  opacity: calc(var(--son, 0) * var(--spot-i, 1));
+  transition: opacity 0.5s ease-out;
+  background: radial-gradient(
+    var(--spot-r, 260px) circle at
+      calc(var(--sx) + var(--spot-r, 260px) * 0.5)
+      calc(var(--sy) + var(--spot-r, 260px) * 0.5),
+    rgba(255, 145, 60, 0.9) 0%,
+    rgba(211, 32, 42, 0.4) 46%,
+    rgba(211, 32, 42, 0) 74%
+  );
+}
+
+.jjk-spot > *:not(.jjk-spot-pool) {
+  position: relative;
+  z-index: 1;
+}
+
+/* The grid's own ground has to stop being opaque, or the light behind it never
+   reaches the gaps and the whole effect is invisible. Half alpha: the lines are
+   still lines when the pointer is elsewhere. */
+.jjk-spot .jjk-week {
+  background: rgba(36, 31, 31, 0.34);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jjk-spot-pool {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   THE BELTS
+   ==========================================================================
+
+   Drawn rather than described: the band, the black tab across it, and the
+   degree bars on the tab. That is how the object works, and it is a different
+   picture for every rank without anything being invented per card.
+
+   The two colours that are not in this page's night are brought INTO it rather
+   than printed raw — see the note at the top of components/coaches.tsx. Brown
+   is the ember at a fifth of its saturation; purple is --accent-deep mixed a
+   third of the way to --night-sky. Both read unmistakably as what they are.
+
+   The band bleeds off both edges of the board. A belt that fits inside its box
+   is a swatch; one that runs off the sides is a belt lying across the board. */
+
+.jjk-belt {
+  position: relative;
+  z-index: 1;
+  display: block;
+  height: 0.62rem;
+  margin: -1.6rem -1.5rem 1.45rem;
+  background: var(--band, #0a0a0c);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.55);
+}
+
+.jjk-belt-tab {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 18%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  width: 4.4rem;
+  background: var(--tab, #0a0a0c);
+  box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.4);
+}
+
+.jjk-belt-bar {
+  display: block;
+  width: 2px;
+  height: 58%;
+  background: var(--bar, var(--gold));
+  transition: box-shadow 0.45s ease-out;
+}
+.jjk-name-board:hover .jjk-belt-bar {
+  box-shadow: 0 0 7px var(--bar, var(--gold));
+}
+
+/* The board's own top rule would otherwise be drawn across the belt. The belt
+   IS the rule on these four. */
+.jjk-name-board::before {
+  display: none;
+}
+
+/* ==========================================================================
+   THE PANELS CATCH
+   ==========================================================================
+
+   "Vor allem wenn Hintergrund stark ändert" — and the strongest changes on this
+   page are the four boundaries where the tiled wall gives way to a panel.
+
+   The feather already stops those being a line. What was still missing is that
+   a panel was fully alight before the reader arrived at it, so the change
+   happened off screen and the eye met it as a fact rather than as an event.
+
+   So the glow ramps from nothing to its resting value across the panel's entry:
+   the paper is there the whole time, and the fire on it catches as you come to
+   it. That is the page's own idiom — it is exactly what `LitWall ignites` does
+   at the top, where the figures catch as the gallery arrives — and it is the
+   reason this is a light coming up rather than a cross-fade.
+
+   Scroll-driven, in CSS, with no observer and no JavaScript at all: a view
+   timeline runs on the compositor and animates one opacity, which is free. The
+   `@supports` is not decoration — where view timelines are missing the panels
+   simply sit at their resting value, which is what they did before this block
+   existed, and nothing is lost but the entrance. */
+
+/* ==========================================================================
+   DIE SCHWELLE ZWISCHEN WAND UND TAFEL
+   ==========================================================================
+
+   Das Problem, in einem Satz: die Tafel lief mit dem Inhalt mit, ihre Oberkante
+   wanderte als Linie durch das Bild, und weil darueber die Wand steht und
+   darunter die Rolle, wechselte an dieser wandernden Linie die gesamte Flaeche.
+   "Sieht aus, als waere da einfach ein neues Bild abgehakt" — genau so ist es
+   auch gewesen.
+
+   ── Was zuerst probiert wurde, und warum es nur halb ging ─────────────────
+   Der Raum klebend und bildschirmhoch, damit das Bild STEHT, und zwei dunkle
+   Baender am Anfang und Ende der Sektion, die mitscrollen. Der Eingang wurde
+   damit gut: das Band wandert nach oben weg, der Raum kommt zum Vorschein.
+
+   Der Ausgang wurde falsch, und zwar zwingend. Das Band blendet auf die
+   Seitenfarbe — also auf DECKEND —, und was unter der Tafel wieder anfaengt,
+   ist die Wand in voller Staerke. Zwischen dem letzten Pixel des deckenden
+   Bandes und dem ersten Pixel der Wand liegt nichts. Man tauscht eine sichtbare
+   Kante gegen eine andere.
+
+   ── Was es jetzt ist ─────────────────────────────────────────────────────
+   Die Wand liegt ohnehin HINTER der Tafel — die ganze untere Haelfte der Seite
+   ist ein `Room`, und die vier Tafeln haengen darin. Es braucht also gar keine
+   dritte Farbe zwischen beiden: es genuegt, die Tafel selbst durchsichtig
+   werden zu lassen, dann ist das, was durchkommt, die Wand.
+
+   Eine View-Timeline auf der Sektion, verbraucht vom Raum darin: ueber den
+   `cover`-Bereich — vom ersten Moment, in dem die Sektion ins Fenster ragt, bis
+   zu dem, in dem sie es verlassen hat — laeuft die Deckkraft 0 → 1 → 1 → 0. Die
+   ersten und letzten zwanzig Prozent davon sind je etwa vier Zehntel einer
+   Fensterhoehe Scrollweg. Kein Band, keine dritte Farbe, keine zweite Kante:
+   die Wand geht in die Tafel ueber und wieder zurueck.
+
+   Und es laeuft auf dem Compositor, ohne JavaScript, ohne Beobachter — dieselbe
+   Begruendung wie beim Aufglimmen der Tafeln, das hier vorher stand und nicht
+   mehr noetig ist: eine Timeline auf einem klebenden Element waere ohnehin
+   bedeutungslos gewesen. */
+
+@supports (animation-timeline: view()) {
+  .jjk-plate {
+    view-timeline-name: --jjk-plate;
+    view-timeline-axis: block;
+  }
+
+  .jjk-plate-room {
+    position: sticky;
+    inset: auto;
+    top: 0;
+    height: 100svh;
+    /* Genau die Hoehe, die das Element sonst im Fluss belegen wuerde. Damit
+       steht das Bild still und der Inhalt laeuft darueber. */
+    margin-bottom: -100svh;
+    /* Die Feder bleibt, und sie ist am Sichtfeld verankert statt an der
+       Sektion. Zwei Gruende: solange der Raum noch nicht klebt, liegt seine
+       Oberkante mitten im Bild und waere eine harte Linie — die Deckkraft
+       allein bekommt die nicht weg, denn eine halbdurchsichtige Flaeche hat
+       trotzdem eine Kante. Und sobald er klebt, sitzt die Feder oben und unten
+       am Bildschirmrand und ist dort schlicht eine Vignette auf dem Grund, die
+       keine Schrift beruehrt (der Inhalt liegt zwei Ebenen darueber). */
+    -webkit-mask-image: linear-gradient(
+      to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
+    mask-image: linear-gradient(
+      to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
+
+    /* ── Zwei Animationen statt einer, und das ist der Punkt ────────────────
+       Vorher lief eine einzige Kurve 0 → 1 → 1 → 0 ueber den `cover`-Bereich,
+       also ueber Sektionshoehe PLUS Fensterhoehe. Damit haengt die Laenge der
+       Ueberblendung an der Hoehe der Sektion — und beides zusammen ergab
+       gemessen: die Tafel war erst voll da, wenn die Oberkante der Sektion
+       schon 600 px ueber dem unteren Fensterrand stand, und begann wieder zu
+       verschwinden, sobald sie 600 px darueber hinaus war. Von 1170 px Sektion
+       blieben 750 auf voller Staerke, der Rest war Uebergang. "Hintergrund
+       komplett erst, sobald man zwei Drittel durch ist" — genau diese Rechnung.
+
+       `entry-crossing` und `exit-crossing` haengen NICHT an der Sektionshoehe:
+       beide laufen ueber genau eine Fensterhoehe, naemlich waehrend die Ober-
+       bzw. Unterkante der Sektion den Bildschirm durchquert. 38 Prozent davon
+       sind gut 340 px — kurz, an beiden Enden gleich lang, und unabhaengig
+       davon, wie lang die Sektion wird. Alles dazwischen steht voll da. */
+    animation:
+      jjk-plate-in linear both,
+      jjk-plate-out linear forwards;
+    animation-timeline: --jjk-plate, --jjk-plate;
+    animation-range:
+      entry-crossing 0% entry-crossing 38%,
+      exit-crossing 62% exit-crossing 100%;
+  }
+
+  @keyframes jjk-plate-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* `forwards`, nicht `both` — und das ist kein Geschmack. Die zweite
+     Animation in der Liste gewinnt bei gleicher Eigenschaft; mit `both` wuerde
+     sie schon WAEHREND ihrer Verzoegerung ihren Anfangswert setzen und das
+     Aufblenden der ersten von Bild eins an ueberschreiben. Genau dieser Fehler
+     hat die Zuendung im Intro einmal einen halben Tag gekostet und steht dort
+     ausfuehrlich angeschrieben. */
+  @keyframes jjk-plate-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .jjk-plate-room {
+      animation: none;
+    }
+  }
+}
+
+
+/* ==========================================================================
+   DIE ERÖFFNUNG — ein Blatt Papier mit vier Schnitten
+   ==========================================================================
+   Die vorherige Eröffnung (der brennende Sanjō-Palast mit einem Klick-Tor
+   davor) liegt unverändert weiter oben unter „THE OPENING — the palace on
+   fire" und in components/scroll-opening.tsx. Sie ist ausgehängt, nicht
+   gelöscht; app/page.tsx sagt, wie man zurücktauscht.
+
+   Was hier steht, ist die Bühne für components/paper-opening.tsx: ein
+   formatfüllendes Blatt, in das 柔術廻戦 GESCHNITTEN sind, und drei Ebenen
+   Licht, die beim Scrollen aus der Kerbe heraussteigen. Die Bilder kommen aus
+   scripts/gen-paper.py.
+
+   Keine einzige Animation läuft hier von selbst. Jeder Wert unten ist eine
+   Variable, die die Komponente aus der Scrollposition rechnet — wer
+   zurückscrollt, sieht das Blatt wieder kalt werden. Die Kurven stehen in der
+   Komponente, nicht hier: eine Zahl, die man in 4000 Zeilen Stylesheet suchen
+   muss, wird nicht mehr geändert.
+
+     --ember     Deckkraft der Glut im Kanal
+     --fill      wie weit die Glut im Kanal von unten hochgestiegen ist
+     --spill     Deckkraft des Lichts, das auf dem Papier landet
+     --night     wie weit der Raum weggesunken ist
+     --converge  Radius, auf den das Feuer sich am Ende zusammenzieht
+     --pool-open · --torch-on   die Übergabe an die Fackel (siehe unten)
+   ========================================================================== */
+
+.jjk-paper {
+  /* Der Scrollweg der Sektion. Er ist die Uhr: 340 svh heißt, dass die vier
+     Bewegungen sich über etwas mehr als drei Bildschirmhöhen verteilen —
+     langsam genug, dass die Glut steigt und nicht springt, kurz genug, dass
+     niemand das Gefühl hat, festzuhängen. Kürzer als 260 wird der Übergang
+     zur Fackel hektisch, länger als 400 wartet man. */
+  position: relative;
+  height: 340svh;
+  background: var(--background-deep);
+}
+
+.jjk-paper-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  /* Der Radius aus der umgebenden WallLight, unter zweitem Namen festgehalten.
+     Die Ebenen unten definieren `--pool` in Begriffen von DIESEM Wert, was sie
+     in Begriffen von `--pool` selbst nicht könnten. Zwei Regeln auf zwei
+     Elementen, nicht eine — sonst ist es ein Zyklus und der ganze Ausdruck
+     fällt auf seinen Startwert zurück. */
+  --torch-radius: var(--pool, 800px);
+}
+
+/* `<picture>` ist nur eine Auswahl und soll keine Box beitragen: die Platte
+   selbst wird absolut im Rahmen positioniert. */
+.jjk-paper-stage picture {
+  display: contents;
+}
+
+/* ---- Die drei Platten ---------------------------------------------------
+   Identische Geometrie, weil sie drei Ansichten desselben Blattes sind. Ein
+   Pixel Versatz liest sich als Licht, das neben seiner Quelle sitzt.
+
+   `cover` und nicht `contain`: das Blatt ist der Bildschirm, seine Kante darf
+   nie zu sehen sein. Was dabei beschnitten wird, ist Papierrand — die Zeichen
+   sitzen mit reichlich Luft in der Mitte, und für Hochformate wählt
+   `<picture>` ohnehin ein eigenes Layout. */
+.jjk-paper-plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Das Blatt. Die einzige Ebene, die sich nie ändert. */
+.jjk-paper-cold {
+  z-index: 0;
+}
+
+/* ---- Die Glut im Grund --------------------------------------------------
+   Der GRUND wird roeter, wenn man scrollt — nicht der Nebel. Der Nebel ist
+   die Nacht, und Nacht hat keine Farbe; was Farbe bekommt, ist die Aufnahme
+   darunter. Deshalb liegt diese Ebene AUF den Platten und UNTER dem Nebel.
+
+   `mix-blend-mode: color` und nicht `screen` oder ein Verlauf mit Deckkraft:
+   `color` uebernimmt Farbton und Saettigung und laesst die HELLIGKEIT der
+   Aufnahme unangetastet. Das Bild wird also rot, ohne heller, flauer oder
+   milchig zu werden — jede andere Mischart haette den Kontrast angegriffen,
+   den die Gradierung vorher sorgfaeltig gesetzt hat.
+
+   Unten kraeftiger als oben: das Licht kommt von dort, wo gleich die Fackel
+   aufgeht. */
+.jjk-gate-tint {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    #ff3a18 0%,
+    #d3202a 34%,
+    #a8161f 68%,
+    #7a0c14 100%
+  );
+  mix-blend-mode: color;
+  opacity: calc(var(--heat, 0) * 0.9);
+  will-change: opacity;
+}
+
+/* ---- Die Nebelwand ------------------------------------------------------
+   Vorbild ist white-desert.com: beim Scrollen schiebt sich dort eine Wand aus
+   Dunst ueber die Aufnahme und verschluckt sie, und danach ist man woanders.
+   Kein Video, keine Simulation, keine laufende Animation — ein einziges Bild
+   mit Alphakanal (scripts/gen-veil.py), das der Scroll bewegt. Deshalb kostet
+   es 16 KB und ruckelt nie.
+
+   Bei uns ist die Wand SCHWARZ, weil die Sektion darunter ohnehin schwarz ist:
+   was den Hero verschluckt, IST der Raum, in dem es weitergeht. Das ist
+   derselbe Gedanke, an dem fuenf frueherer Anlaeufe gescheitert sind — ein
+   Uebergang braucht einen Unterschied, und der Unterschied darf nicht wieder
+   dasselbe Bild sein.
+
+   Sie ist HOEHER als die Buehne (170 %) und startet unterhalb davon. Beim
+   Scrollen faehrt sie herauf, und weil ihre Oberkante ausgefranst ist, ist es
+   keine Kante, die hochgeschoben wird, sondern etwas, das kommt. */
+.jjk-gate-smoke {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 170%;
+  width: 100%;
+  object-fit: cover;
+  object-position: 50% 100%;
+  pointer-events: none;
+  user-select: none;
+  /* Zwei Werte auf einer Variablen. Nur Deckkraft liest sich als Ausblenden,
+     nur Bewegung schiebt eine sichtbare Kante ins Bild — beides zusammen ist
+     eine Wand, die naeher kommt. */
+  opacity: calc(0.15 + 0.85 * var(--veil-rise, 0));
+  translate: 0 calc((1 - var(--veil-rise, 0)) * 82%);
+  will-change: translate, opacity;
+}
+
+/* ---- Die Gegenwand -------------------------------------------------------
+   Der Nebel steigt von unten und deckt seine untere Haelfte; darueber blieb
+   flaches Schwarz vom Schleier stehen. Beide sind dieselbe Farbe und trotzdem
+   zwei Flaechen — eine hat Struktur, die andere nicht, und genau dort verlief
+   die sichtbare Kante.
+
+   Diese Ebene faellt von oben, mit einem Verlauf, der erst bei 80 % der Hoehe
+   ausgelaufen ist. Nebel und Wand ueberlappen sich damit ueber die halbe
+   Buehne, und es gibt nirgends eine Linie, an der das eine aufhoert und das
+   andere anfaengt. */
+.jjk-gate-close {
   position: absolute;
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: var(--background);
-  animation: jjk-scroll-settle 1.6s ease-in-out 3.4s both;
-}
-
-@keyframes jjk-scroll-settle {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 0.4;
-  }
-}
-
-.jjk-scroll-foot {
-  position: absolute;
-  inset: auto 0 0;
-  height: 38%;
-  z-index: 2;
-  pointer-events: none;
+  /* Die Endfarbe ist der Hintergrund der Seite und nicht mehr #010101.
+     Das war die Kante: die Buehne lief auf 1,1,1 aus, die Sektion darunter
+     steht auf 7,7,10 — sechs Stufen Unterschied, und genau dort verlief die
+     sichtbare Linie. Zwei Schwarztoene, die sich beruehren, sind eine Kante;
+     derselbe Ton ist keine. */
   background: linear-gradient(
     to bottom,
-    rgba(7, 7, 10, 0) 0%,
-    rgba(7, 7, 10, 0.45) 45%,
-    rgba(7, 7, 10, 0.86) 76%,
-    var(--background) 96%
+    var(--background) 0%,
+    var(--background) 30%,
+    color-mix(in srgb, var(--background) 72%, transparent) 54%,
+    color-mix(in srgb, var(--background) 22%, transparent) 74%,
+    transparent 88%
+  );
+  opacity: var(--veil-rise, 0);
+  will-change: opacity;
+}
+
+/* ---- Die Uebergabe ------------------------------------------------------
+   Eine einfarbige Flaeche in exakt der Farbe der Seite, die zum Schluss alles
+   deckt — Bild, Tint, Nebel, Fackel, Schrift.
+
+   Warum das noetig ist, obwohl der Nebel schon deckt: Die Buehne klebt nur,
+   solange der Trigger laeuft. Danach faehrt sie eine volle Bildschirmhoehe
+   hinaus, und ihre Unterkante wandert dabei durchs Bild. Solange in ihr noch
+   irgendetwas steht, das nicht der Hintergrund ist, ist diese Unterkante
+   sichtbar — als harte waagrechte Linie quer ueber den Schirm. Ist die Buehne
+   dagegen flaechig die Farbe der Seite, gibt es nichts, was sich abheben
+   koennte: sie faehrt unsichtbar hinaus.
+
+   z-index 60 liegt ueber allem in der Buehne, auch ueber dem Lockup (45) und
+   dem Mitglieder-Knopf (50). Das ist Absicht — gedeckt heisst gedeckt. */
+/* ---- Der Vorlauf der ersten Wandsektion ---------------------------------
+   Genau eine Bildschirmhoehe, und sie entspricht exakt dem negativen Rand am
+   Hero. Beides gehoert zusammen: der negative Rand schiebt diese Sektion unter
+   die klebende Buehne, der Vorlauf sorgt dafuer, dass dabei nur Wand darunter
+   liegt und nicht schon der Inhalt.
+
+   Ohne ihn scrollt der Leser waehrend des Hinausfahrens an "01 On The Mats"
+   vorbei, ohne es sehen zu koennen — die Sektion ist dann bereits
+   durchgelaufen, wenn die Buehne den Blick freigibt. */
+.jjk-wall-lead {
+  /* Halbiert, auf Ansage. Voll war es genau so lang wie das Hinausfahren der
+     Buehne — sauber gerechnet, aber laenger als noetig: die Buehne ist nach gut
+     einem Viertel dieses Weges schon durchsichtig (siehe `--exit` in
+     components/gate-opening.tsx), der Rest war leerer Scrollweg. Unter 50svh
+     sollte es nicht gehen, sonst kommt der Inhalt, waehrend die Buehne noch
+     deckt. */
+  padding-top: 50svh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Ohne Bewegung faehrt nichts hinaus, also gibt es auch nichts zu
+     ueberbruecken. */
+  .jjk-wall-lead {
+    padding-top: 0;
+  }
+}
+
+/* Der Nebel als Deckung. Liegt unter der flachen Uebergabe und ueber allem
+   anderen in der Buehne — auch ueber der Schrift, denn was verschluckt wird,
+   wird ganz verschluckt. Siehe components/veil-canvas.tsx. */
+.jjk-gate-luma {
+  position: absolute;
+  inset: 0;
+  z-index: 55;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.jjk-gate-blackout {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background: var(--background);
+  opacity: var(--blackout, 0);
+  will-change: opacity;
+}
+
+/* ---- Die Nacht und die Fackel darin -------------------------------------
+   `.jjk-veil` und `.jjk-candle` sind die Elemente der Wand selbst — siehe
+   components/lit-wall.tsx —, hier unverändert benutzt und mit demselben Zeiger
+   und demselben Radius aus derselben WallLight versorgt. Zwei Beleuchtungen,
+   die gleich aussehen sollen, driften auseinander; deshalb gibt es nur eine.
+
+   Beide Ableitungen sind nötig:
+     --pool    der festgehaltene Radius mal `--pool-open`, damit das Licht aus
+               einem Punkt wachsen kann statt in voller Größe zu erscheinen.
+     --torch   durch `--torch-on` gesperrt, damit die Anwesenheit des Zeigers
+               nichts beleuchtet, solange die Schrift noch der einzige Grund
+               für Licht ist. Ohne das stünde die Fackel im ersten Bild, denn
+               der Zeiger liegt ohnehin über der Sektion. */
+.jjk-paper-veil,
+.jjk-paper-candle {
+  --pool: calc(var(--torch-radius) * var(--pool-open, 0));
+  --torch: calc(var(--lit, 0) * var(--torch-on, 0));
+}
+
+.jjk-paper-veil {
+  /* Der Schleier ist die Verdunkelung selbst: bei `--pool: 0` fallen alle
+     Farbstopps seines Verlaufs auf den letzten zusammen, und der ist flach
+     rgba(3, 3, 4, --dark) — genau der Wert, auf dem die Wand darunter ruht.
+     Es war nichts zu wählen. */
+  opacity: var(--night, 0);
+  /* Die Schattenkarte der Wand wäre hier ein Nichtstun mit 630 KB Kosten: bei
+     `--unlit: 1` ist die Vereinigung der beiden Maskenlagen überall deckend,
+     was die Karte auch sagt. */
+  -webkit-mask-image: none;
+  mask-image: none;
+  /* Der Schleier überblendet seinen eigenen `background` — das wäre eine
+     zweite Kurve auf demselben Verlauf, den der Scroll gerade fährt. Das
+     Wachsen IST die Animation. */
+  transition: none;
+}
+
+/* ---- Glut und Ausstrahlung ----------------------------------------------
+   ÜBER der Nacht, nicht darunter. Am Ende der Sektion soll der Raum dunkel
+   sein und das letzte Nest trotzdem brennen; läge der Schleier darüber, ginge
+   mit dem Raum auch das Feuer aus, und die Fackel hätte nichts zu übernehmen.
+
+   Der Blendmodus sitzt auf dem Container UND auf beiden Kindern. Das ist kein
+   Versehen: eine Maske erzeugt eine Gruppe, und ohne `screen` auf der Gruppe
+   würde das fertige Feuer als deckende Fläche über das Papier gelegt statt
+   dazuaddiert. Innerhalb der Gruppe brauchen die beiden Platten es ein zweites
+   Mal, sonst verdeckt die obere die untere mit ihrem eigenen Schwarz.
+
+   Die Maske ist die letzte Bewegung: ein Kreis, der von weiter als die
+   Bildecke auf einen Fleck zusammenläuft. Die Zeichen stehen nebeneinander,
+   also erlöschen die äußeren zuerst und das mittlere zuletzt. */
+.jjk-paper-fire {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(
+    circle calc(var(--converge, 1.5) * 60vmax) at 50% 47%,
+    #000 0%,
+    #000 46%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle calc(var(--converge, 1.5) * 60vmax) at 50% 47%,
+    #000 0%,
+    #000 46%,
+    transparent 100%
   );
 }
 
-/* ---- The gate -----------------------------------------------------------
-   Every animation above starts paused and is released together when the
-   strip has actually DECODED — components/scroll-opening.tsx flips
-   `data-ready` after img.decode(). Without this the scrub plays against a
-   frame the browser has not painted yet, and the reader's first two seconds
-   are a black screen with a title arriving over nothing. */
-.jjk-scroll-opening:not([data-ready]) .jjk-scroll-frame,
-.jjk-scroll-opening:not([data-ready]) .jjk-scroll-strip,
-.jjk-scroll-opening:not([data-ready]) .jjk-scroll-title,
-.jjk-scroll-opening:not([data-ready]) .jjk-scroll-seal,
-.jjk-scroll-opening:not([data-ready]) .jjk-scroll-sub,
-.jjk-scroll-opening:not([data-ready]) .jjk-scroll-settle {
-  animation-play-state: paused;
+/* Die Glut im Kanal. Ihre Deckkraft allein erzeugt die erste Bewegung: die
+   Helligkeit im Kanal folgt der DICKE des Strichs, also erscheinen beim
+   Hochfahren zuerst nur Kreuzungen, Ecken und Pinselansätze und erst später
+   die dünnen Ausläufer. Kein zweites Bild, keine zweite Maske — siehe den
+   Kopfkommentar von scripts/gen-paper.py.
+
+   Die zweite Bewegung ist der Verlauf: eine Kante, die von unten durch die
+   Zeichen läuft. 14 % Weichzeichnung an der Kante, damit sie eine Front ist
+   und kein Schnitt. */
+.jjk-paper-glow {
+  z-index: 1;
+  mix-blend-mode: screen;
+  opacity: var(--ember, 0);
+  -webkit-mask-image: linear-gradient(
+    to top,
+    #000 0%,
+    #000 var(--fill, 34%),
+    transparent calc(var(--fill, 34%) + 14%)
+  );
+  mask-image: linear-gradient(
+    to top,
+    #000 0%,
+    #000 var(--fill, 34%),
+    transparent calc(var(--fill, 34%) + 14%)
+  );
 }
 
-/* ---- Reduced motion: the landed frame, standing --------------------------
-   The global reduced-motion rule shortens durations but does not cancel
-   delays; these do, and pin every layer at its final state. */
+/* Was das Licht auf dem Papier anrichtet. Kommt später und ohne Maske: sobald
+   die Glut über die Kante steigt, ist sie überall gleichzeitig auf dem Blatt. */
+.jjk-paper-spill {
+  z-index: 2;
+  mix-blend-mode: screen;
+  opacity: var(--spill, 0);
+}
+
+/* ---- Was neben der Gravur stehen darf -----------------------------------
+   Sehr wenig, sehr klein, an den Rand gesetzt, und mit dem Raum verblassend.
+   Die Zeichen sind das Ereignis; das hier ist die Bildunterschrift. */
+.jjk-paper-mark {
+  position: absolute;
+  z-index: 45;
+  right: 0;
+  bottom: clamp(1.5rem, 3vh, 2.6rem);
+  left: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0 clamp(1.3rem, 4vw, 4rem);
+  pointer-events: none;
+  opacity: calc(1 - var(--night, 0));
+  color: rgba(243, 239, 233, 0.44);
+}
+
+.jjk-paper-kana {
+  font-size: clamp(0.62rem, 1vw, 0.8rem);
+  letter-spacing: 0.34em;
+}
+
+.jjk-paper-name {
+  font-size: clamp(0.6rem, 0.95vw, 0.78rem);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-align: right;
+}
+
+/* Der einzige Hinweis auf die Bedienung, und er verschwindet, sobald er befolgt
+   wurde. Es gibt nichts zu klicken: die Sektion hat kein Tor mehr, nur einen
+   Verlauf. */
+.jjk-paper-cue {
+  position: absolute;
+  z-index: 45;
+  bottom: clamp(4.4rem, 9vh, 7rem);
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  translate: -50% 0;
+  pointer-events: none;
+  opacity: calc(var(--cue, 1) * 0.85);
+  color: rgba(243, 239, 233, 0.68);
+}
+
+.jjk-paper-cue-jp {
+  font-size: 0.95rem;
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+}
+
+.jjk-paper-cue-en {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+}
+
+.jjk-paper-cue-arrow {
+  width: 1.5px;
+  height: 2.4rem;
+  background: linear-gradient(
+    to bottom,
+    rgba(243, 239, 233, 0.6),
+    transparent
+  );
+  animation: jjk-paper-cue-drift 2.8s ease-in-out infinite;
+}
+
+@keyframes jjk-paper-cue-drift {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(0.35rem);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .jjk-scroll-frame,
-  .jjk-scroll-strip,
-  .jjk-scroll-title,
-  .jjk-scroll-seal,
-  .jjk-scroll-sub,
-  .jjk-scroll-settle {
+  .jjk-paper {
+    /* Ohne Ablauf braucht die Sektion keinen Scrollweg — sie ist dann ein
+       einzelnes Bild mit glühender Schrift. */
+    height: 100svh;
+  }
+
+  .jjk-paper-cue-arrow {
     animation: none;
   }
-  .jjk-scroll-strip {
-    translate: max(calc(50vw - 441.5svh), calc(100vw - 558.2svh)) 0;
+}
+
+
+/* ==========================================================================
+   DIE ERÖFFNUNG — das Tor im Nebel
+   ==========================================================================
+   Dritte Fassung, und die erste, deren Qualität nicht aus einer Formel kommt:
+   der Grund ist eine Aufnahme, kein gerechnetes Bild. Was hier steht, ist nur
+   die Bühne — das Bewegte liegt in components/fog-canvas.tsx (ein WebGL-Feld,
+   das gleichzeitig die Luft, die Schwaden und die Auflösung ist) und in
+   components/gate-opening.tsx (die vier Bewegungen am Scroll).
+
+   Die beiden Vorgänger stehen weiter oben und sind vollständig erhalten:
+   „THE OPENING — the palace on fire" (Klick-Tor) und „DIE ERÖFFNUNG — ein
+   Blatt Papier mit vier Schnitten". Ein Import in app/page.tsx tauscht zurück.
+
+     --lockup   Deckkraft des Titels
+     --night    wie weit der Raum weggesunken ist
+     --cue      der Hinweis nach unten, der verschwindet, sobald man ihn befolgt
+     --pool-open · --torch-on   die Übergabe an die Fackel
+   ========================================================================== */
+
+.jjk-gate {
+  /* Der Scrollweg ist die Uhr, und er ist genau so lang wie der Ablauf.
+     Bei 320 svh liefen die letzten zehn Prozent leer: alles war schon schwarz,
+     die Fackel schon uebergeben, und der Leser scrollte durch ein Nichts,
+     bevor die Wand anfing. Jede Kurve endet jetzt bei 1.0, und die Sektion
+     hoert dort auf, wo der letzte Wert ankommt. */
+  position: relative;
+  height: 175svh;
+  background: var(--background-deep);
+}
+
+.jjk-gate-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  /* Der Radius aus der umgebenden WallLight unter zweitem Namen. Die Ebenen
+     unten leiten `--pool` daraus ab, was sie aus `--pool` selbst nicht
+     könnten — zwei Regeln auf zwei Elementen, sonst ist es ein Zyklus. */
+  --torch-radius: var(--pool, 800px);
+}
+
+/* Das Bild. Es gibt kein <img> daneben: der Shader macht das `cover` selbst,
+   weil er die Koordinaten danach noch verschiebt und ein CSS-Beschnitt dann
+   nicht mehr stimmen würde. */
+/* ---- Das Bild -----------------------------------------------------------
+   Ein Canvas statt zweier Bilder: der Zeiger zieht Ringe hindurch, und beide
+   Haelften der Aufnahme — Struktur und Licht — muessen dieselbe Verzerrung
+   bekommen, sonst sitzt das Licht neben seiner Quelle. Siehe
+   components/ripple-canvas.tsx, auch dazu, warum das nicht der alte
+   Wassereffekt aus dem About-Abschnitt ist.
+
+   Der Zoom und die Unschaerfe laufen weiter in CSS: `scale` und nicht
+   `transform: scale()`, damit kein eigener Stacking-Kontext entsteht, und
+   `will-change`, damit die Unschaerfe auf der Grafikkarte bleibt statt bei
+   jedem Scrollschritt neu auf der CPU gerechnet zu werden. */
+.jjk-gate-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  /* 0.312 ist der Kehrwert von STORE_GAIN in scripts/gen-gate.py: die Platte
+     ist zu hell gespeichert, damit sie den vollen Wertebereich nutzt, und wird
+     erst hier heruntergezogen. Zuerst abdunkeln, dann weichzeichnen — die
+     umgekehrte Reihenfolge zieht Helligkeit aus den hellen Stellen, bevor sie
+     gedaempft sind.
+
+     `scale` und nicht `transform: scale()`: die Ebene soll keinen eigenen
+     Stacking-Kontext aufmachen. */
+  filter: brightness(0.312) blur(var(--soft, 0px));
+  scale: var(--zoom, 1);
+  will-change: scale, filter;
+
+  /* Dasselbe Motiv noch einmal als gewoehnlicher Hintergrund, hinter dem
+     Canvas. Der Canvas zeichnet sein erstes Bild erst, wenn die Textur
+     geladen UND der erste Frame gelaufen ist — bis dahin stand hier eine
+     schwarze Flaeche, und beim Entwicklungsserver dauert das lange genug,
+     dass man es sieht. Sobald WebGL zeichnet, liegt exakt dasselbe Bild
+     darueber; der Wechsel ist unsichtbar. Faellt WebGL ganz aus, bleibt der
+     Hero trotzdem stehen. */
+  background: #000 url("/img/gate-hero.webp") center / cover no-repeat;
+}
+
+.jjk-gate-tint {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    #ff3a18 0%,
+    #d3202a 34%,
+    #a8161f 68%,
+    #7a0c14 100%
+  );
+  mix-blend-mode: color;
+  opacity: calc(var(--heat, 0) * 0.9);
+  will-change: opacity;
+}
+
+/* ---- Die Nebelwand ------------------------------------------------------
+   Vorbild ist white-desert.com: beim Scrollen schiebt sich dort eine Wand aus
+   Dunst ueber die Aufnahme und verschluckt sie, und danach ist man woanders.
+   Kein Video, keine Simulation, keine laufende Animation — ein einziges Bild
+   mit Alphakanal (scripts/gen-veil.py), das der Scroll bewegt. Deshalb kostet
+   es 16 KB und ruckelt nie.
+
+   Bei uns ist die Wand SCHWARZ, weil die Sektion darunter ohnehin schwarz ist:
+   was den Hero verschluckt, IST der Raum, in dem es weitergeht. Das ist
+   derselbe Gedanke, an dem fuenf frueherer Anlaeufe gescheitert sind — ein
+   Uebergang braucht einen Unterschied, und der Unterschied darf nicht wieder
+   dasselbe Bild sein.
+
+   Sie ist HOEHER als die Buehne (170 %) und startet unterhalb davon. Beim
+   Scrollen faehrt sie herauf, und weil ihre Oberkante ausgefranst ist, ist es
+   keine Kante, die hochgeschoben wird, sondern etwas, das kommt. */
+.jjk-gate-smoke {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 170%;
+  width: 100%;
+  object-fit: cover;
+  object-position: 50% 100%;
+  pointer-events: none;
+  user-select: none;
+  /* Zwei Werte auf einer Variablen. Nur Deckkraft liest sich als Ausblenden,
+     nur Bewegung schiebt eine sichtbare Kante ins Bild — beides zusammen ist
+     eine Wand, die naeher kommt. */
+  opacity: calc(0.15 + 0.85 * var(--veil-rise, 0));
+  translate: 0 calc((1 - var(--veil-rise, 0)) * 82%);
+  will-change: translate, opacity;
+}
+
+/* ---- Die Nacht und die Fackel darin -------------------------------------
+   `.jjk-veil` und `.jjk-candle` sind die Elemente der Wand selbst — siehe
+   components/lit-wall.tsx —, hier unverändert benutzt und mit demselben Zeiger
+   und demselben Radius aus derselben WallLight versorgt. Zwei Beleuchtungen,
+   die gleich aussehen sollen, driften auseinander; deshalb gibt es nur eine.
+
+   Beide Ableitungen sind nötig:
+     --pool    der festgehaltene Radius mal `--pool-open`, damit das Licht aus
+               einem Punkt wachsen kann statt in voller Größe zu erscheinen.
+     --torch   durch `--torch-on` gesperrt, damit die Anwesenheit des Zeigers
+               nichts beleuchtet, solange die Schrift noch der einzige Grund
+               für Licht ist. Ohne das stünde die Fackel im ersten Bild, denn
+               der Zeiger liegt ohnehin über der Sektion. */
+.jjk-paper-veil,
+.jjk-paper-candle {
+  --pool: calc(var(--torch-radius) * var(--pool-open, 0));
+  --torch: calc(var(--lit, 0) * var(--torch-on, 0));
+}
+
+.jjk-paper-veil {
+  /* Der Schleier ist die Verdunkelung selbst: bei `--pool: 0` fallen alle
+     Farbstopps seines Verlaufs auf den letzten zusammen, und der ist flach
+     rgba(3, 3, 4, --dark) — genau der Wert, auf dem die Wand darunter ruht.
+     Es war nichts zu wählen. */
+  opacity: var(--night, 0);
+  /* Die Schattenkarte der Wand wäre hier ein Nichtstun mit 630 KB Kosten: bei
+     `--unlit: 1` ist die Vereinigung der beiden Maskenlagen überall deckend,
+     was die Karte auch sagt. */
+  -webkit-mask-image: none;
+  mask-image: none;
+  /* Der Schleier überblendet seinen eigenen `background` — das wäre eine
+     zweite Kurve auf demselben Verlauf, den der Scroll gerade fährt. Das
+     Wachsen IST die Animation. */
+  transition: none;
+}
+
+/* ---- Glut und Ausstrahlung ----------------------------------------------
+   ÜBER der Nacht, nicht darunter. Am Ende der Sektion soll der Raum dunkel
+   sein und das letzte Nest trotzdem brennen; läge der Schleier darüber, ginge
+   mit dem Raum auch das Feuer aus, und die Fackel hätte nichts zu übernehmen.
+
+   Der Blendmodus sitzt auf dem Container UND auf beiden Kindern. Das ist kein
+   Versehen: eine Maske erzeugt eine Gruppe, und ohne `screen` auf der Gruppe
+   würde das fertige Feuer als deckende Fläche über das Papier gelegt statt
+   dazuaddiert. Innerhalb der Gruppe brauchen die beiden Platten es ein zweites
+   Mal, sonst verdeckt die obere die untere mit ihrem eigenen Schwarz.
+
+   Die Maske ist die letzte Bewegung: ein Kreis, der von weiter als die
+   Bildecke auf einen Fleck zusammenläuft. Die Zeichen stehen nebeneinander,
+   also erlöschen die äußeren zuerst und das mittlere zuletzt. */
+.jjk-paper-fire {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(
+    circle calc(var(--converge, 1.5) * 60vmax) at 50% 47%,
+    #000 0%,
+    #000 46%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle calc(var(--converge, 1.5) * 60vmax) at 50% 47%,
+    #000 0%,
+    #000 46%,
+    transparent 100%
+  );
+}
+
+/* Die Glut im Kanal. Ihre Deckkraft allein erzeugt die erste Bewegung: die
+   Helligkeit im Kanal folgt der DICKE des Strichs, also erscheinen beim
+   Hochfahren zuerst nur Kreuzungen, Ecken und Pinselansätze und erst später
+   die dünnen Ausläufer. Kein zweites Bild, keine zweite Maske — siehe den
+   Kopfkommentar von scripts/gen-paper.py.
+
+   Die zweite Bewegung ist der Verlauf: eine Kante, die von unten durch die
+   Zeichen läuft. 14 % Weichzeichnung an der Kante, damit sie eine Front ist
+   und kein Schnitt. */
+.jjk-paper-glow {
+  z-index: 1;
+  mix-blend-mode: screen;
+  opacity: var(--ember, 0);
+  -webkit-mask-image: linear-gradient(
+    to top,
+    #000 0%,
+    #000 var(--fill, 34%),
+    transparent calc(var(--fill, 34%) + 14%)
+  );
+  mask-image: linear-gradient(
+    to top,
+    #000 0%,
+    #000 var(--fill, 34%),
+    transparent calc(var(--fill, 34%) + 14%)
+  );
+}
+
+/* Was das Licht auf dem Papier anrichtet. Kommt später und ohne Maske: sobald
+   die Glut über die Kante steigt, ist sie überall gleichzeitig auf dem Blatt. */
+.jjk-paper-spill {
+  z-index: 2;
+  mix-blend-mode: screen;
+  opacity: var(--spill, 0);
+}
+
+/* ---- Was neben der Gravur stehen darf -----------------------------------
+   Sehr wenig, sehr klein, an den Rand gesetzt, und mit dem Raum verblassend.
+   Die Zeichen sind das Ereignis; das hier ist die Bildunterschrift. */
+.jjk-paper-mark {
+  position: absolute;
+  z-index: 45;
+  right: 0;
+  bottom: clamp(1.5rem, 3vh, 2.6rem);
+  left: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0 clamp(1.3rem, 4vw, 4rem);
+  pointer-events: none;
+  opacity: calc(1 - var(--night, 0));
+  color: rgba(243, 239, 233, 0.44);
+}
+
+.jjk-paper-kana {
+  font-size: clamp(0.62rem, 1vw, 0.8rem);
+  letter-spacing: 0.34em;
+}
+
+.jjk-paper-name {
+  font-size: clamp(0.6rem, 0.95vw, 0.78rem);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-align: right;
+}
+
+/* Der einzige Hinweis auf die Bedienung, und er verschwindet, sobald er befolgt
+   wurde. Es gibt nichts zu klicken: die Sektion hat kein Tor mehr, nur einen
+   Verlauf. */
+.jjk-paper-cue {
+  position: absolute;
+  z-index: 45;
+  bottom: clamp(4.4rem, 9vh, 7rem);
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  translate: -50% 0;
+  pointer-events: none;
+  opacity: calc(var(--cue, 1) * 0.85);
+  color: rgba(243, 239, 233, 0.68);
+}
+
+.jjk-paper-cue-jp {
+  font-size: 0.95rem;
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+}
+
+.jjk-paper-cue-en {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+}
+
+.jjk-paper-cue-arrow {
+  width: 1.5px;
+  height: 2.4rem;
+  background: linear-gradient(
+    to bottom,
+    rgba(243, 239, 233, 0.6),
+    transparent
+  );
+  animation: jjk-paper-cue-drift 2.8s ease-in-out infinite;
+}
+
+@keyframes jjk-paper-cue-drift {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
   }
-  .jjk-scroll-settle {
-    opacity: 0.4;
+  50% {
+    opacity: 1;
+    transform: translateY(0.35rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jjk-paper {
+    /* Ohne Ablauf braucht die Sektion keinen Scrollweg — sie ist dann ein
+       einzelnes Bild mit glühender Schrift. */
+    height: 100svh;
+  }
+
+  .jjk-paper-cue-arrow {
+    animation: none;
+  }
+}
+
+
+/* ==========================================================================
+   DIE ERÖFFNUNG — das Tor im Nebel
+   ==========================================================================
+   Dritte Fassung, und die erste, deren Qualität nicht aus einer Formel kommt:
+   der Grund ist eine Aufnahme, kein gerechnetes Bild. Was hier steht, ist nur
+   die Bühne — das Bewegte liegt in components/fog-canvas.tsx (ein WebGL-Feld,
+   das gleichzeitig die Luft, die Schwaden und die Auflösung ist) und in
+   components/gate-opening.tsx (die vier Bewegungen am Scroll).
+
+   Die beiden Vorgänger stehen weiter oben und sind vollständig erhalten:
+   „THE OPENING — the palace on fire" (Klick-Tor) und „DIE ERÖFFNUNG — ein
+   Blatt Papier mit vier Schnitten". Ein Import in app/page.tsx tauscht zurück.
+
+     --lockup   Deckkraft des Titels
+     --night    wie weit der Raum weggesunken ist
+     --cue      der Hinweis nach unten, der verschwindet, sobald man ihn befolgt
+     --pool-open · --torch-on   die Übergabe an die Fackel
+   ========================================================================== */
+
+.jjk-gate {
+  /* Der Scrollweg ist die Uhr, und er ist genau so lang wie der Ablauf.
+     Bei 320 svh liefen die letzten zehn Prozent leer: alles war schon schwarz,
+     die Fackel schon uebergeben, und der Leser scrollte durch ein Nichts,
+     bevor die Wand anfing. Jede Kurve endet jetzt bei 1.0, und die Sektion
+     hoert dort auf, wo der letzte Wert ankommt. */
+  position: relative;
+  /* 175svh: Stage klebt 75svh (bottom-bottom), danach 100svh Herausgleiten.
+     end:"bottom top" im ScrollTrigger deckt beide Phasen ab, sodass Trigger-Ende
+     und Stage-Austritt zusammenfallen. Stage-Unterkante und #about-Oberkante
+     laufen synchron (beide = 175svh − S), keine harte Kante dazwischen. */
+  z-index: 2;
+  /* 300svh: davon sind 100 das Hinausfahren, es bleiben also 200 fuer den
+     Ablauf selbst. Mit 75 war er auf gut sechshundert Pixeln zusammengedraengt
+     — Zoom, Glut, Titel, Nebel und Fackeluebergabe in einer halben
+     Handbewegung. Der lange Teil ist dabei absichtlich der VORDERE: das Bild
+     glueht auf, die Kamera faehrt hinein, und erst auf dem letzten Drittel
+     faengt der eigentliche Uebergang an. Siehe die Kurven in
+     components/gate-opening.tsx. */
+  height: 300svh;
+
+  /* Die letzten 100svh dieser Sektion sind kein Scrollweg, sondern das
+     Hinausfahren der klebenden Buehne. Ohne diese Zeile scrollt der Leser
+     eine volle Bildschirmhoehe durch eine schwarze Flaeche, bevor die naechste
+     Sektion ueberhaupt anfaengt — das war der "Space", der hier mehrfach
+     bemaengelt wurde.
+     Mit dem negativen Rand beginnt #about genau dort, wo der Ablauf fertig
+     ist, und die Buehne schiebt sich darueber hinweg nach oben. Weil sie zu
+     diesem Zeitpunkt flaechig var(--background) ist und #about an seiner
+     Oberkante dieselbe Farbe hat, ist ihre Unterkante dabei nicht zu sehen. */
+  margin-bottom: -100svh;
+
+  /* transparent, nicht --background-deep: sonst deckt der Sektionshintergrund
+     genau das zu, was jetzt darunter liegen soll. */
+  background: transparent;
+}
+
+.jjk-gate-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  /* Wird vom zweiten ScrollTrigger in components/gate-opening.tsx auf 0
+     gefahren, waehrend die Buehne den Schirm verlaesst. Weil #about durch den
+     negativen Rand direkt dahinter liegt, kommt die Wand dabei durch die
+     Buehne hindurch zum Vorschein — eine Flaeche, die sich aufloest, hat
+     keine Unterkante, an der man sie von der naechsten unterscheiden koennte.
+     Der Stacking-Kontext, den eine Deckkraft unter 1 aufmacht, ist hier
+     unschaedlich: `isolation` macht ohnehin schon einen. */
+  opacity: var(--exit, 1);
+
+  /* Und die Unterkante selbst franst aus, statt zu schneiden.
+     Im Ruhezustand ist `--fray` null, der Verlauf laeuft also von 100% bis
+     100% und ist wirkungslos — der Hero steht randscharf. Erst waehrend des
+     Hinausfahrens wird daraus ein weicher Auslauf, und eine Kante, die es
+     nicht gibt, kann man auch nicht sehen. */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 calc(100% - var(--fray, 0px)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 calc(100% - var(--fray, 0px)),
+    transparent 100%
+  );
+
+  /* Der Radius aus der umgebenden WallLight unter zweitem Namen. Die Ebenen
+     unten leiten `--pool` daraus ab, was sie aus `--pool` selbst nicht
+     könnten — zwei Regeln auf zwei Elementen, sonst ist es ein Zyklus. */
+  --torch-radius: var(--pool, 800px);
+}
+
+/* Das Bild. Es gibt kein <img> daneben: der Shader macht das `cover` selbst,
+   weil er die Koordinaten danach noch verschiebt und ein CSS-Beschnitt dann
+   nicht mehr stimmen würde. */
+/* ---- Die Platten und der Nebel ------------------------------------------
+   Der WebGL-Shader, der hier stand, ist ausgehaengt (components/fog-canvas.tsx
+   liegt noch da). Prozedurales Rauschen kann drei Dinge nicht, und alle drei
+   zusammen sind es, was Nebel glaubhaft macht: Mikrostruktur bis ins Feinste,
+   Streulicht um jede Lichtquelle, und echte Verwirbelung statt Verschiebung.
+   Sechs Runden Konstantenschieben haben daran nichts geaendert — das Ergebnis
+   war jedes Mal ein Schleier, kein Wetter.
+
+   Was jetzt hier liegt, ist eine AUFNAHME: weisser Nebel auf schwarzem Grund,
+   im `screen`-Blend. Schwarz ist in diesem Blend das neutrale Element und
+   verschwindet vollstaendig; uebrig bleibt nur der Nebel. Deshalb braucht die
+   Datei keinen Alphakanal und kann ein gewoehnliches MP4 sein. */
+.jjk-gate-plate {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  user-select: none;
+  pointer-events: none;
+  /* Der Grund sinkt weg, der Nebel bleibt. Das IST der Uebergang. */
+  opacity: var(--plate, 1);
+  /* Die Kamera geht hinein, ab dem ersten gescrollten Pixel. `scale` und nicht
+     `transform: scale()`, weil die Platten sonst ihren eigenen Stacking-Kontext
+     aufmachen und der `screen`-Blend der Lichtplatte ins Leere blendet.
+     `will-change` hebt die Ebene auf die Grafikkarte — ohne das rechnet der
+     Browser die Unschaerfe bei jedem Scrollschritt neu auf der CPU. */
+  scale: var(--zoom, 1);
+  filter: blur(var(--soft, 0px));
+  will-change: scale, filter, opacity;
+}
+
+/* 0.312 ist der Kehrwert von STORE_GAIN in scripts/gen-gate.py. Aendert sich
+   dort etwas, aendert es sich hier mit — sonst ist der Hero eine Blendung oder
+   ein Loch. */
+.jjk-gate-cold {
+  /* Zwei Filter auf einer Eigenschaft: die Reihenfolge zaehlt. Erst
+     abdunkeln, dann weichzeichnen — umgekehrt zoege die Unschaerfe Helligkeit
+     aus den hellen Stellen heraus, bevor sie gedaempft sind. */
+  filter: brightness(0.312) blur(var(--soft, 0px));
+}
+
+.jjk-gate-glow {
+  mix-blend-mode: screen;
+  filter: brightness(0.312) blur(var(--soft, 0px));
+  /* 0.42, nicht 1: die Lichtplatte trägt ihren vollen Wertebereich, und voll
+     aufgeschlagen war der Hero eine Blendung. */
+  opacity: calc(var(--ember, 1) * 0.42 * var(--plate, 1));
+}
+
+
+/* ---- Die Nacht und die Fackel darin -------------------------------------
+   `.jjk-veil` und `.jjk-candle` sind die Elemente der Wand selbst — siehe
+   components/lit-wall.tsx. Zwei Beleuchtungen, die gleich aussehen sollen,
+   driften auseinander; deshalb gibt es nur eine, hier zum zweiten Mal
+   benutzt. */
+.jjk-gate-veil,
+.jjk-gate-candle {
+  --pool: calc(var(--torch-radius) * var(--pool-open, 0));
+  --torch: calc(var(--lit, 0) * var(--torch-on, 0));
+}
+
+.jjk-gate-veil {
+  opacity: var(--night, 0);
+  /* Die Schattenkarte der Wand wäre hier ein Nichtstun mit 630 KB Kosten. */
+  -webkit-mask-image: none;
+  mask-image: none;
+  /* Der Schleier überblendet sonst seinen eigenen `background` — eine zweite
+     Kurve auf demselben Verlauf, den der Scroll gerade fährt. */
+  transition: none;
+}
+
+/* ---- Der Titel ----------------------------------------------------------
+   Oben, nicht in der Mitte. Die Bildmitte gehört dem Durchgang, und der ist
+   das Hellste im Bild; Schrift darüber ist ein Kampf, den die Schrift
+   verliert. Über dem Dach ist Nachthimmel, und der ist fast schwarz. */
+/* ---- Der Titel ----------------------------------------------------------
+   In der Mitte. Er stand einmal oben, weil die Bildmitte damals dem hellen
+   Durchgang eines brennenden Tors gehoerte und Schrift darueber ein Kampf
+   gewesen waere, den die Schrift verliert. Das Motiv ist ein anderes: eine
+   Wolke, in der ein Pavillon steht, und ihre Mitte ist die ruhigste Flaeche
+   des Bildes. */
+.jjk-gate-lockup {
+  position: absolute;
+  z-index: 45;
+  top: 42%;
+  right: 0;
+  left: 0;
+  translate: 0 -50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0 clamp(1.3rem, 4vw, 4rem);
+  pointer-events: none;
+  opacity: var(--lockup, 1);
+  text-align: center;
+}
+
+.jjk-gate-kana {
+  font-size: clamp(0.66rem, 1.15vw, 0.95rem);
+  letter-spacing: 0.44em;
+  text-indent: 0.44em;
+  color: rgba(243, 239, 233, 0.5);
+}
+
+/* KanjiTitle setzt intern `flex w-full` und hängt die übergebene Klasse in
+   denselben class-String dahinter. Beide setzen `width`, und es entscheidet
+   die Reihenfolge im erzeugten Stylesheet, nicht die im Attribut — deshalb
+   steht die Breite hier als `max-width` und nicht als Tailwind-Klasse an der
+   Komponente. Zwei Runden „mach den Titel kleiner" sind daran verlorengegangen. */
+.jjk-gate-kanji {
+  max-width: min(88vw, 74rem);
+  filter: drop-shadow(0 0.4rem 2.2rem rgba(3, 3, 4, 0.85));
+}
+
+.jjk-gate-latin {
+  font-size: clamp(1.1rem, 2.1vw, 1.7rem);
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  color: rgba(243, 239, 233, 0.58);
+}
+
+.jjk-gate-mark {
+  position: absolute;
+  z-index: 45;
+  right: clamp(1.3rem, 4vw, 4rem);
+  bottom: clamp(1.5rem, 3vh, 2.6rem);
+  font-size: clamp(0.6rem, 0.95vw, 0.78rem);
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  pointer-events: none;
+  opacity: calc(1 - var(--night, 0));
+  color: rgba(243, 239, 233, 0.44);
+}
+
+/* Der einzige Hinweis auf die Bedienung, und er verschwindet, sobald er
+   befolgt wurde. Es gibt nichts zu klicken. */
+/* Ueber der Nebelkante, nicht darin. Der Bodennebel deckt bis etwa 58 % der
+   Hoehe, und unter dieser Linie ist der Grund mal hell und mal dunkel — ein
+   heller Text darauf ist die Haelfte der Zeit weg. Der Schatten macht den
+   Rest: er traegt auf beiden Gruenden. */
+.jjk-gate-cue {
+  position: absolute;
+  z-index: 45;
+  bottom: clamp(2rem, 5vh, 4rem);
+  text-shadow: 0 0.15rem 1.1rem rgba(3, 3, 4, 0.9);
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  translate: -50% 0;
+  pointer-events: none;
+  opacity: calc(var(--cue, 1) * 0.92);
+  color: rgba(243, 239, 233, 0.88);
+}
+
+.jjk-gate-cue-jp {
+  font-size: 0.72rem;
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+}
+
+.jjk-gate-cue-en {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+}
+
+.jjk-gate-cue-arrow {
+  width: 1.5px;
+  height: 2.4rem;
+  background: linear-gradient(to bottom, rgba(243, 239, 233, 0.6), transparent);
+  animation: jjk-gate-cue-drift 2.8s ease-in-out infinite;
+}
+
+@keyframes jjk-gate-cue-drift {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(0.35rem);
+  }
+}
+
+/* ---- Mitglieder-Button --------------------------------------------------
+   Oben rechts, z-index 50 — ueber dem Lockup (45). Blendet mit dem Lockup
+   aus (--lockup 1->0 zwischen p 0.26 und 0.50), damit er nicht im Nebel
+   steht, wenn der Hero fertig ist.
+
+   FrameBorder (React Bits Pro) liefert den animierten Rausch-Rahmen; seine
+   Kinder-Wrapper haben pointer-events:none, deshalb bekommt der Link
+   pointer-events:auto explizit gesetzt. */
+/* ---- Der Nebeneingang, als Siegel ----------------------------------------
+   Ein Hanko oben rechts. Die Zinnoberlinie ist FrameBorder aus React Bits, die
+   Siegelform kommt aus einem Turbulenzfilter — Begruendung steht bei der
+   Komponente in components/gate-opening.tsx.
+
+   Warum ueberhaupt ein Siegel: der Knopf davor war ein abgerundetes Rechteck
+   mit Rahmen, und das ist auf einer gemalten Handrolle ein Fremdkoerper, egal
+   wie dezent man ihn stellt. Ein Siegel ist die Form, die auf so einem Blatt
+   ohnehin vorkommt. */
+.jjk-gate-member {
+  position: absolute;
+  top: clamp(1rem, 2.5vh, 1.9rem);
+  right: clamp(1rem, 2.5vw, 1.9rem);
+  z-index: 50;
+  opacity: var(--lockup, 1);
+  pointer-events: none;
+  will-change: opacity;
+}
+
+.jjk-gate-member-link {
+  display: flex;
+  /* Schrift unter das Siegel, beides zueinander mittig. Nebeneinander stand
+     der Text weit in die Ecke hinein und zog den Blick nach links, waehrend
+     das Siegel rechts sass; uebereinander ist es ein Gegenstand statt zwei. */
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  text-align: center;
+  text-decoration: none;
+  pointer-events: var(--member-pe, auto);
+}
+
+.jjk-member-seal {
+  position: relative;
+  display: block;
+  width: 4.15rem;
+  height: 4.15rem;
+  flex: 0 0 auto;
+  /* Beim Druecken gibt der Stempel nach und setzt minimal schief auf. Ein
+     Knopf, der sich beim Klick nur verfaerbt, fuehlt sich an wie eine
+     Schaltflaeche; einer, der nachgibt, wie etwas, das man aufdrueckt. */
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.jjk-gate-member-link:active .jjk-member-seal {
+  transform: scale(0.955) rotate(-1.4deg);
+}
+
+/* Die gebissene Kante. Der Filter verzieht die fertige Zeichnung des Shaders,
+   also die Linie SAMT ihrem Rauschen — deshalb franst nicht nur die Kontur
+   aus, sondern auch die Staerke der Linie entlang ihres Verlaufs. */
+.jjk-member-seal-edge {
+  position: absolute;
+  inset: 0;
+  display: block;
+  filter: url("#jjk-seal-bite");
+  /* Schwarz ist hier das neutrale Element: die Flaeche, die der Shader
+     zwangslaeufig mitfuellt, verschwindet, und nur die Zinnoberlinie bleibt —
+     additiv, also wie glimmende Tusche und nicht wie ein aufgeklebter Rahmen.
+     Ohne das saesse ein deckendes Quadrat mitten im Hero-Bild.
+
+     Reihenfolge ist wichtig und stimmt so: CSS wendet erst `filter` an, dann
+     den Blend. Die Kante wird also gebissen und DANN aufgehellt, nicht
+     umgekehrt. */
+  mix-blend-mode: screen;
+}
+
+.jjk-member-seal-face {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1em;
+  font-family: "Shippori Mincho B1", serif;
+  font-size: 1.32rem;
+  font-weight: 800;
+  line-height: 1;
+  color: rgba(216, 52, 28, 0.94);
+  /* Die Zeichen sind Tusche, kein Leuchtstoff: kein Schein nach aussen,
+     sondern nur so viel Kontrast, dass sie auf der fast schwarzen Flaeche
+     stehen. */
+  text-shadow: 0 0 12px rgba(168, 22, 31, 0.35);
+  transition: color 0.25s ease;
+}
+
+.jjk-gate-member-link:hover .jjk-member-seal-face,
+.jjk-gate-member-link:focus-visible .jjk-member-seal-face {
+  color: rgba(255, 96, 66, 1);
+}
+
+.jjk-gate-member-label {
+  font-size: clamp(0.58rem, 0.85vw, 0.7rem);
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-indent: 0.26em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  /* Papierfarbe: der Zinnober gehoert dem Siegel, die Lesbarkeit der
+     Schrift. Beides in Rot war der Grund, warum die Beschriftung vorher auf
+     Schwarz nicht zu lesen war. */
+  color: rgba(232, 226, 214, 0.78);
+  transition: color 0.25s ease;
+}
+
+.jjk-gate-member-link:hover .jjk-gate-member-label,
+.jjk-gate-member-link:focus-visible .jjk-gate-member-label {
+  color: rgba(255, 246, 232, 1);
+}
+
+/* Der Filter selbst darf keinen Platz belegen und nichts anzeigen. */
+.jjk-member-seal-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jjk-gate {
+    height: 100svh;
+  }
+
+  .jjk-gate-cue-arrow {
+    animation: none;
   }
 }
