@@ -8,6 +8,17 @@
  * so everything converges on the grid at the same moment. In the original the
  * tint was a blue duotone; here it's the ember red, with the same film grain
  * and vignette the rest of the page runs under.
+ *
+ * ── The one number that decides whether any of that is visible ──────────────
+ * The template scrubbed each card from the moment it appeared at the bottom of
+ * the window until the moment it left at the top. That sounds generous and is
+ * the opposite: the card reaches its resting state exactly as it exits, so the
+ * converged grid — the entire point — is never on screen. What the reader sees
+ * is a permanent state of arrival.
+ *
+ * The animation now ENDS at `top 62%`, while the card is still comfortably in
+ * view, and the rest of its travel is spent standing still. See the note on the
+ * ScrollTrigger below.
  */
 
 import { useEffect, useRef, type ReactNode } from "react";
@@ -60,13 +71,22 @@ export function ImageReveal({
           // Outer columns arrive smeared in from the page edges; the middle
           // column simply scales up. That contrast is the whole effect.
           const outer = columnIndex !== 1;
+          // ── Warum nichts bei null anfaengt ──────────────────────────
+          // Gemessen im alten Stand: eine Kachel in der Bildschirmmitte stand
+          // bei Deckkraft 0.69 und drei Pixel Unschaerfe. Das ist genau das
+          // Bild, das ein Browser zeigt, waehrend er ein Foto laedt — und so
+          // wurde es auch gelesen: "die Bilder brauchen lange zum Laden".
+          // Sie waren laengst da; sie waren halb durchsichtig.
+          //
+          // 0.25 statt 0, und weniger Unschaerfe: der Flug bleibt ein Flug,
+          // aber in keinem Einzelbild sieht die Kachel unfertig aus.
           const from = {
             willChange: "filter, transform",
             xPercent: outer ? (columnIndex === 0 ? -400 : 400) : 0,
-            opacity: 0,
+            opacity: 0.35,
             scaleX: outer ? 6 : 0.7,
             scaleY: outer ? 0.3 : 0.7,
-            filter: outer ? "blur(10px)" : "blur(5px)",
+            filter: outer ? "blur(6px)" : "blur(3px)",
           };
 
           gsap.fromTo(wrapper, from, {
@@ -76,9 +96,47 @@ export function ImageReveal({
             },
             scrollTrigger: {
               trigger: item,
+              // ── Where the card has to be FINISHED ────────────────────────
+              // This ran to `clamp(bottom top)` — the moment the card's BOTTOM
+              // edge leaves the top of the window. The arithmetic of that is
+              // brutal once written down: the card only reached its resting
+              // state as it left the screen, so every frame anybody could
+              // actually see was a frame mid-flight. The one composition the
+              // whole effect is built to deliver — three columns converged on
+              // a grid — was never on screen at all.
+              //
+              // ── Wo die Kachel fertig sein soll ──────────────────────
+              // Dreimal verstellt, und zweimal nach einer Messung, die nichts
+              // taugte: abgelesen wurde die Oberkante von
+              // `.column__item-imgwrap` — also genau dem Element, dessen
+              // scaleY der Tween gerade von 0.3 auf 1 zieht. Dessen
+              // getBoundingClientRect().top ist waehrend des Flugs nicht die
+              // Lage, sondern das Ergebnis der Animation. Kein Wunder, dass
+              // 62 %, 75 % und 88 % dieselbe Kurve zu ergeben schienen.
+              //
+              // Gemessen wird an `.column__item`, der untransformierten Kachel
+              // — dieselbe Lage, die auch ScrollTrigger sieht. Damit stimmt
+              // die Zahl wieder mit dem ueberein, was sie behauptet: bei
+              // `top 68%` stand die Kachel bei 600 px Oberkante schon auf 0.99,
+              // war also fertig, waehrend sie noch zu zwei Dritteln unter der
+              // Falz lag. Das ist das "kommt zu frueh".
+              //
+              // `top 40%` laesst sie ankommen, wenn ihre Oberkante bei etwa
+              // 350 px steht — also dort, wo man sie tatsaechlich ansieht.
+              // Gemessen auf einem 900 hohen Fenster:
+              //
+              //   Oberkante  900   800   700   600   500   400   300
+              //   Deckkraft 0.35  0.48  0.67  0.82  0.92  0.98  1.00
+              //
+              // Der Flug laeuft ueber gut zwei Drittel einer Fensterhoehe und
+              // endet im oberen Drittel. Und er beginnt bei 0.35 statt bei 0:
+              // eine Kachel bei Deckkraft null mit zehn Pixel Unschaerfe ist
+              // exakt das Bild, das ein Browser zeigt, waehrend er ein Foto
+              // laedt, und wurde auch so gelesen — "die Bilder brauchen lange
+              // zum Laden". Sie waren laengst da.
               start: "clamp(top bottom)",
-              end: "clamp(bottom top)",
-              scrub: true,
+              end: "clamp(top 40%)",
+              scrub: 0.8,
             },
             xPercent: 0,
             opacity: 1,
@@ -118,7 +176,7 @@ export function ImageReveal({
           blur
           className="font-display jjk-aberrate max-w-2xl text-4xl leading-[0.95] text-foreground sm:text-5xl lg:text-6xl"
         />
-        <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
+        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">
           Everything that happens between the warm-up and the last slap-bump.
         </p>
       </div>

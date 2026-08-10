@@ -125,7 +125,9 @@ void main() {
   float strength = edge * n * uIntensity;
   strength = pow(max(strength, 0.0), 1.0 / uGamma);
 
-  gl_FragColor = vec4(uColor, strength * uAlpha);
+  vec3 result = mix(uBg, uColor, clamp(strength, 0.0, 1.0));
+
+  gl_FragColor = vec4(result, uAlpha);
 }
 `;
 
@@ -133,9 +135,9 @@ function parseHexColor(hex: string): [number, number, number] {
   const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   if (!match) return [0, 0, 0];
   return [
-    parseInt(match[1], 16) / 255,
-    parseInt(match[2], 16) / 255,
-    parseInt(match[3], 16) / 255,
+    parseInt(match[1]!, 16) / 255,
+    parseInt(match[2]!, 16) / 255,
+    parseInt(match[3]!, 16) / 255,
   ];
 }
 
@@ -191,22 +193,22 @@ const BorderScene: React.FC<BorderSceneProps> = ({
   useFrame((state) => {
     if (!meshRef.current) return;
     const mat = meshRef.current.material as THREE.ShaderMaterial;
-    mat.uniforms.uTime.value = state.clock.elapsedTime;
-    mat.uniforms.uRes.value.set(
+    mat.uniforms["uTime"]!.value = state.clock.elapsedTime;
+    mat.uniforms["uRes"]!.value.set(
       size.width * viewport.dpr,
       size.height * viewport.dpr,
     );
-    mat.uniforms.uSpeed.value = speed;
-    mat.uniforms.uWidth.value = borderWidth;
-    mat.uniforms.uCurve.value = falloff;
-    mat.uniforms.uNoiseScale.value = noiseScale;
-    mat.uniforms.uNoiseAmt.value = noiseStrength;
-    mat.uniforms.uOctaves.value = noiseOctaves;
-    mat.uniforms.uColor.value.set(...colorRgb);
-    mat.uniforms.uBg.value.set(...bgRgb);
-    mat.uniforms.uIntensity.value = intensity;
-    mat.uniforms.uGamma.value = gamma;
-    mat.uniforms.uAlpha.value = opacity;
+    mat.uniforms["uSpeed"]!.value = speed;
+    mat.uniforms["uWidth"]!.value = borderWidth;
+    mat.uniforms["uCurve"]!.value = falloff;
+    mat.uniforms["uNoiseScale"]!.value = noiseScale;
+    mat.uniforms["uNoiseAmt"]!.value = noiseStrength;
+    mat.uniforms["uOctaves"]!.value = noiseOctaves;
+    mat.uniforms["uColor"]!.value.set(...colorRgb);
+    mat.uniforms["uBg"]!.value.set(...bgRgb);
+    mat.uniforms["uIntensity"]!.value = intensity;
+    mat.uniforms["uGamma"]!.value = gamma;
+    mat.uniforms["uAlpha"]!.value = opacity;
   });
 
   return (
@@ -251,7 +253,7 @@ const FrameBorder: React.FC<FrameBorderProps> = ({
       style={{ width, height }}
     >
       <Canvas
-        className="absolute inset-0 z-0 h-full w-full"
+        className="absolute inset-0 h-full w-full"
         orthographic
         camera={{
           position: [0, 0, 1],
@@ -278,7 +280,7 @@ const FrameBorder: React.FC<FrameBorderProps> = ({
         />
       </Canvas>
       {children && (
-        <div className="relative z-10 h-full">{children}</div>
+        <div className="pointer-events-none relative z-1">{children}</div>
       )}
     </div>
   );

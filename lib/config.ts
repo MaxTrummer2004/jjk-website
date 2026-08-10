@@ -36,7 +36,7 @@ export const nav = {
     { label: "Pricing", href: "#pricing" },
     { label: "FAQ", href: "#faq" },
   ],
-  cta: { label: "Free trial class", href: "#pricing" },
+  cta: { label: "Book a trial class", href: "#pricing" },
 } as const;
 
 /** Rolling marquee under the hero */
@@ -107,7 +107,7 @@ export const programs = [
     kanji: "基本",
     level: "White → Blue",
     blurb:
-      "The complete beginner path. Learn the positions, escapes and submissions that everything else is built on — no experience needed.",
+      "Start here. No experience needed.",
     tag: "Beginner",
   },
   {
@@ -115,7 +115,7 @@ export const programs = [
     kanji: "上級",
     level: "Blue & up",
     blurb:
-      "Live rolling, systems and high-percentage games for experienced grapplers who want to sharpen their A-game in the kimono.",
+      "Systems, live rounds, a sharper A-game.",
     tag: "All belts",
   },
   {
@@ -123,7 +123,7 @@ export const programs = [
     kanji: "寝技",
     level: "All levels",
     blurb:
-      "Fast, sweaty and modern. Leg locks, wrestling and scrambles for MMA-style grappling without the gi.",
+      "Fast and modern. Wrestling, scrambles, leg locks.",
     tag: "All levels",
   },
   {
@@ -131,7 +131,7 @@ export const programs = [
     kanji: "試合",
     level: "By invite",
     blurb:
-      "Structured camps, sparring rounds and game-planning for athletes chasing podiums at IBJJF and ADCC events.",
+      "Camps, hard rounds, podiums.",
     tag: "Athletes",
   },
   {
@@ -139,7 +139,7 @@ export const programs = [
     kanji: "少年",
     level: "Ages 4–15",
     blurb:
-      "Confidence, discipline and anti-bullying skills in a safe, structured environment led by dedicated youth coaches.",
+      "Confidence, discipline, no bullying.",
     tag: "Youth",
   },
   {
@@ -147,7 +147,7 @@ export const programs = [
     kanji: "女子",
     level: "All levels",
     blurb:
-      "A welcoming, women-only room to build technique and confidence — with real self-defense at its core.",
+      "Women only. Self-defense at its core.",
     tag: "Women only",
   },
 ] as const;
@@ -290,44 +290,47 @@ export const testimonials = [
   },
 ] as const;
 
+/**
+ * Was es kostet, und es gibt genau zwei Dinge.
+ *
+ * Hier standen drei erfundene Stufen — 89, 129 und 169 im Monat, gestaffelt
+ * nach Trainingshaeufigkeit — und ueberall auf der Seite die Behauptung, die
+ * erste Stunde sei gratis. Beides stimmte nicht. Es gibt eine Mitgliedschaft,
+ * die alles enthaelt, und ein einzelnes Probetraining, das etwas kostet.
+ *
+ * Zwei Zeilen sind ehrlicher als drei Spalten, und sie sind auch besser: eine
+ * gestaffelte Preistabelle zwingt jeden Besucher zu einer Entscheidung, bevor
+ * er ueberhaupt weiss, ob ihm die Sache gefaellt.
+ */
 export const pricing = [
   {
-    name: "Foundation",
-    price: "89",
-    period: "/mo",
-    tagline: "Build the habit",
-    features: ["2 classes per week", "Fundamentals & Gi", "Open mat access", "Free loaner gi"],
-    cta: "Start Foundation",
+    name: "Trial class",
+    price: "20",
+    period: "one class",
+    tagline: "Come and see",
+    features: [
+      "One full class, any programme on the timetable",
+      "A gi lent for the session",
+      "Turn up fifteen minutes early",
+      "Nothing follows from it",
+    ],
+    cta: "Book a trial class",
     featured: false,
   },
   {
-    name: "Unlimited",
-    price: "129",
-    period: "/mo",
-    tagline: "The full experience",
+    name: "Membership",
+    price: "60",
+    period: "per month",
+    tagline: "Everything on the mat",
     features: [
-      "Unlimited classes",
-      "All programs — Gi & No-Gi",
-      "Open mat + seminars",
-      "Bring-a-friend passes",
-      "10% pro-shop discount",
+      "Every class on the timetable, as often as you like",
+      "Gi and No-Gi",
+      "Open mat and seminars",
+      "A loaner gi for as long as you need one",
+      "Month to month — pause or cancel any time",
     ],
-    cta: "Go Unlimited",
+    cta: "Join the academy",
     featured: true,
-  },
-  {
-    name: "Competition",
-    price: "169",
-    period: "/mo",
-    tagline: "Chase the podium",
-    features: [
-      "Everything in Unlimited",
-      "Competition team camps",
-      "Private game-planning",
-      "Priority seminar seats",
-    ],
-    cta: "Join the team",
-    featured: false,
   },
 ] as const;
 
@@ -355,7 +358,7 @@ export const faqs = [
   {
     question: "Is there a long contract?",
     answer:
-      "No lock-in. Memberships are month-to-month and you can pause or cancel any time. Start with a free trial class and see how it feels.",
+      "No lock-in. The membership is month to month and you can pause or cancel any time. Come for a single trial class first — €20, and nothing follows from it.",
   },
   {
     question: "How often should I train?",

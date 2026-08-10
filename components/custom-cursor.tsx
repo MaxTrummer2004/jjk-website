@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
   motion,
   useSpring,
@@ -54,6 +54,16 @@ import { cn } from "@/lib/utils";
  * ```
  */
 export interface CustomCursorProps {
+  /**
+   * Nach wie vielen Millisekunden ohne Mausbewegung der Zeiger verschwindet.
+   * 0 schaltet das ab.
+   *
+   * Der Ring ist eine Anzeige dafuer, wo die Hand gerade ist. Liegt die Hand
+   * still, zeigt er nichts mehr an und ist nur noch ein Objekt, das im Bild
+   * steht — besonders auf einer Seite, die aus dunklen Flaechen besteht.
+   * Sobald sich die Maus wieder bewegt, ist er sofort zurueck.
+   */
+  idleHideMs?: number;
   /** Size of the outer circle in pixels */
   circleSize?: number;
 
@@ -125,6 +135,7 @@ export interface CustomCursorProps {
 }
 
 const CustomCursor: React.FC<CustomCursorProps> = ({
+  idleHideMs = 0,
   circleSize = 40,
   dotSize = 6,
   circleColor = "rgb(0, 0, 0)",
@@ -156,6 +167,21 @@ const CustomCursor: React.FC<CustomCursorProps> = ({
     new Map(),
   );
   const [activeTarget, setActiveTarget] = useState<number | null>(null);
+  /**
+   * Die aufgeloesten Ziele — als ELEMENTE, nicht als Selektor-Strings.
+   *
+   * Vorher hielt die Komponente eine Liste von Selektoren und nahm zu jedem
+   * GENAU EIN Element, mit einem positionsgleichen `images`-Array daneben. Jede
+   * neue anklickbare Sache auf der Seite hiess: eine neue id, eine neue Zeile in
+   * der Liste und ein neues `undefined` an exakt der richtigen Stelle im
+   * Bild-Array. Bei dreissig Eintraegen waren zwei verrutscht und eine ganze
+   * Sektion hatte gar keine Ziele.
+   *
+   * Jetzt darf ein Selektor beliebig viele Elemente treffen, die Seite meldet
+   * sich mit `data-cursor` dort an, wo die Sache steht, und wer ein Bild will,
+   * traegt es als `data-cursor-image` selbst — statt dazu abgezaehlt zu werden.
+   */
+  const [elements, setElements] = useState<HTMLElement[]>([]);
 
   const cursorX = useMotionValue(
     typeof window !== "undefined" ? window.innerWidth / 2 : 0,
@@ -218,17 +244,21 @@ const CustomCursor: React.FC<CustomCursorProps> = ({
     if (activeTarget === null) return null;
 
     const rect = targetRects.get(activeTarget);
-    const element = document.querySelector(
-      targets[activeTarget],
-    ) as HTMLElement;
+    const element = elements[activeTarget];
 
     if (!rect || !element) return null;
 
-    const borderRadiusValue =
-      parseFloat(window.getComputedStyle(element).borderRadius) || 16;
+    // `|| 16` was here, and it is the reason a square target was never framed
+    // square. `parseFloat("0px")` is 0, 0 is falsy, so every element with no
+    // radius at all — which is every button on this site — was given a 16px
+    // one and the ring closed round it with soft corners. The fallback is only
+    // meant for the case where the computed value cannot be parsed (`50%`, a
+    // multi-value shorthand), so that is the only case it should fire in.
+    const parsedRadius = parseFloat(window.getComputedStyle(element).borderRadius);
+    const borderRadiusValue = Number.isFinite(parsedRadius) ? parsedRadius : 16;
 
     return { rect, borderRadiusValue, element };
-  }, [activeTarget, targetRects, targets]);
+  }, [activeTarget, targetRects, elements]);
 
   /**
    * True while locked onto a target that wants to be a SEAL rather than a ring.
@@ -252,6 +282,10 @@ const CustomCursor: React.FC<CustomCursorProps> = ({
     );
   }, [currentTargetData]);
 
+  // `undefined` on the branch that has nothing to clean up, explicitly. The
+  // other branch subscribes two motion values and must unsubscribe them, and an
+  // effect that returns a function on one path and falls off the end on another
+  // is the shape React cannot tell apart from a forgotten cleanup.
   useEffect(() => {
     if (activeTarget !== null && currentTargetData) {
       const { rect, borderRadiusValue } = currentTargetData;
@@ -270,12 +304,18 @@ const CustomCursor: React.FC<CustomCursorProps> = ({
       if (isCircle) {
         circleBorderRadiusMV.set(newWidth / 2);
       } else {
-        circleBorderRadiusMV.set(borderRadiusValue + pad);
+        // A rounded rectangle offset outwards by `pad` gains `pad` of radius —
+        // that is just the geometry. A SQUARE one offset outwards is still a
+        // square, so a target with no radius has to get none, or every button
+        // on this site ends up framed with soft corners it does not have.
+        circleBorderRadiusMV.set(borderRadiusValue > 0 ? borderRadiusValue + pad : 0);
       }
 
       circleXMV.set(rect.left + rect.width / 2);
       circleYMV.set(rect.top + rect.height / 2);
-    } else if (activeTarget === null) {
+      return undefined;
+    }
+    if (activeTarget === null) {
       circleWidthMV.set(circleSize);
       circleHeightMV.set(circleSize);
       circleBorderRadiusMV.set(circleSize / 2);
@@ -288,6 +328,7 @@ const CustomCursor: React.FC<CustomCursorProps> = ({
         unsubY();
       };
     }
+    return undefined;
   }, [
     activeTarget,
     currentTargetData,
@@ -306,22 +347,97 @@ const CustomCursor: React.FC<CustomCursorProps> = ({
 
   const updateTargetRects = useCallback(() => {
     const newRects = new Map<number, DOMRect>();
-    targets.forEach((selector, index) => {
-      const element = document.querySelector(selector) as HTMLElement;
-      if (element) {
-        newRects.set(index, element.getBoundingClientRect());
-      }
+    elements.forEach((element, index) => {
+      newRects.set(index, element.getBoundingClientRect());
     });
     setTargetRects(newRects);
-  }, [targets]);
+  }, [elements]);
+
+  // ── Die Ziele einsammeln ─────────────────────────────────────────────────
+  // `querySelectorAll` statt `querySelector`, und das ist die ganze Aenderung.
+  const selectorKey = targets.join("|");
+  useEffect(() => {
+    if (!selectorKey) return;
+
+    const resolve = (): void => {
+      const found: HTMLElement[] = [];
+      for (const selector of selectorKey.split("|")) {
+        document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+          if (!found.includes(el)) found.push(el);
+        });
+      }
+      // Gleiche Menge, gleiche Reihenfolge: dann nichts setzen. Sonst haengt
+      // jeder Beobachtungslauf eine neue Array-Identitaet an `elements`, und
+      // alles, was davon abhaengt, laeuft neu — zehnmal pro Sekunde.
+      setElements((prev) =>
+        prev.length === found.length && prev.every((el, i) => el === found[i])
+          ? prev
+          : found,
+      );
+    };
+
+    resolve();
+
+    // Die Sektionen kommen nach und nach in den Baum, die Menge steht beim
+    // Mounten also nicht fest. Entprellt, weil ein MutationObserver auf dem
+    // ganzen Body bei diesen Bibliotheken in jedem Frame etwas zu melden hat.
+    let timer: number | undefined;
+    const observer = new MutationObserver(() => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(resolve, 200);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(timer);
+    };
+  }, [selectorKey]);
 
   useEffect(() => {
-    if (targets && targets.length > 0) {
-      requestAnimationFrame(() => {
+    if (elements.length === 0) return;
+    const frame = requestAnimationFrame(updateTargetRects);
+    return () => cancelAnimationFrame(frame);
+  }, [elements, updateTargetRects]);
+
+  useEffect(() => {
+    if (elements.length === 0) return;
+
+    const cleanups: (() => void)[] = [];
+    elements.forEach((element, index) => {
+      const enter = (): void => {
+        setHoveredTargets((prev) => new Set(prev).add(index));
         updateTargetRects();
+        setActiveTarget(index);
+      };
+      const leave = (): void => {
+        setHoveredTargets((prev) => {
+          const next = new Set(prev);
+          next.delete(index);
+          return next;
+        });
+        // Nur loeschen, wenn dieses Ziel auch das aktive ist. Ziele duerfen
+        // ineinander liegen — ein Knopf in einem Kasten —, und das Verlassen des
+        // aeusseren darf den inneren nicht mitnehmen.
+        setActiveTarget((current) => (current === index ? null : current));
+      };
+      element.addEventListener("mouseenter", enter);
+      element.addEventListener("mouseleave", leave);
+      cleanups.push(() => {
+        element.removeEventListener("mouseenter", enter);
+        element.removeEventListener("mouseleave", leave);
       });
-    }
-  }, [targets, updateTargetRects]);
+    });
+
+    window.addEventListener("scroll", updateTargetRects, true);
+    window.addEventListener("resize", updateTargetRects);
+
+    return () => {
+      cleanups.forEach((c) => c());
+      window.removeEventListener("scroll", updateTargetRects, true);
+      window.removeEventListener("resize", updateTargetRects);
+    };
+  }, [elements, updateTargetRects]);
 
   useEffect(() => {
     if (!targets || targets.length === 0) return;
@@ -395,6 +511,28 @@ const CustomCursor: React.FC<CustomCursorProps> = ({
       window.removeEventListener("resize", updateTargetRects);
     };
   }, [targets, updateTargetRects]);
+
+  // ── Ruhe ────────────────────────────────────────────────────────────────
+  // Ein eigener Effekt und nicht in handleMouseMove hinein: der Effekt dort
+  // haengt an `isVisible` und wird bei jedem Wechsel neu aufgesetzt, was den
+  // Zeitgeber jedes Mal mit abraeumen wuerde. Hier haengt nichts daran ausser
+  // der Zahl selbst.
+  const idleTimer = useRef<number>(0);
+  useEffect(() => {
+    if (idleHideMs <= 0) return;
+    const onMove = (): void => {
+      window.clearTimeout(idleTimer.current);
+      idleTimer.current = window.setTimeout(
+        () => setIsVisible(false),
+        idleHideMs,
+      );
+    };
+    window.addEventListener("mousemove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.clearTimeout(idleTimer.current);
+    };
+  }, [idleHideMs]);
 
   useEffect(() => {
     const checkTouch = () => {
@@ -513,17 +651,17 @@ const CustomCursor: React.FC<CustomCursorProps> = ({
       />
 
       {/* Target image overlays */}
-      {targets.map((selector, index) => {
+      {elements.map((element, index) => {
         const isHovered = hoveredTargets.has(index);
-        const imageUrl = images?.[index];
+        // Das Bild steht am Element. Ein Ziel ohne `data-cursor-image` bekommt
+        // keins — der Ring rahmt dann einfach, was er gefasst hat, und genau
+        // das ist bei einem Knopf richtig.
+        const imageUrl = element.dataset.cursorImage ?? images?.[index];
         const rect = targetRects.get(index);
 
         if (!isHovered || !rect || !imageUrl) return null;
 
-        const element = document.querySelector(selector) as HTMLElement;
-        const targetBorderRadius = element
-          ? window.getComputedStyle(element).borderRadius
-          : "0px";
+        const targetBorderRadius = window.getComputedStyle(element).borderRadius;
         const borderRadiusValue = parseFloat(targetBorderRadius) || 0;
         const isTargetCircle =
           Math.abs(rect.width - rect.height) < 1 &&
@@ -539,7 +677,7 @@ const CustomCursor: React.FC<CustomCursorProps> = ({
           : borderRadiusValue * imageScale;
 
         return (
-          <AnimatePresence key={`${selector}-${index}`}>
+          <AnimatePresence key={index}>
             {isHovered && (
               <motion.div
                 initial={{ scale: 0, opacity: 0 }}
