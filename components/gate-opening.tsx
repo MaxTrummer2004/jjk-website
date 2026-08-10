@@ -47,7 +47,7 @@
  *    Kopf von scripts/gen-gate.py. Vor dem Livegang ersetzen.
  */
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -66,6 +66,45 @@ import { siteConfig } from "@/lib/config";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
+}
+
+/**
+ * Erst mounten, wenn der Hauptthread Luft hat.
+ *
+ * Im ersten Bild dieser Seite starteten VIER WebGL-Kontexte gleichzeitig:
+ * der Glass-Cursor mit dem Hero-Motiv, der Rahmen des Siegels, der Nebel des
+ * Uebergangs und das Tusche-Overlay des Seitenwechsels — dazu 300 ms spaeter
+ * die Glutfahne mit three.js und Bloom. Gebraucht wird in diesem Moment genau
+ * einer davon, naemlich der mit dem Bild. Die anderen drei richten ihren
+ * Kontext ein, uebersetzen ihre Shader und laden ihre Texturen, und all das
+ * passiert auf demselben Thread, der gerade das erste Bild zeichnen soll.
+ * Genau das war das kurze Schwarz mit dem Haenger danach.
+ *
+ * `requestIdleCallback` verschiebt sie in die erste Luecke NACH dem ersten
+ * Bild. Das Zeitlimit ist die Notbremse fuer Browser, die nie Leerlauf
+ * melden — und fuer Safari, das die Funktion bis heute nicht hat.
+ */
+function useIdleMount(timeoutMs = 900): boolean {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+      cancelIdleCallback?: (h: number) => void;
+    };
+
+    if (typeof w.requestIdleCallback === "function") {
+      const handle = w.requestIdleCallback(() => setReady(true), {
+        timeout: timeoutMs,
+      });
+      return () => w.cancelIdleCallback?.(handle);
+    }
+
+    const t = window.setTimeout(() => setReady(true), timeoutMs);
+    return () => window.clearTimeout(t);
+  }, [timeoutMs]);
+
+  return ready;
 }
 
 /**
@@ -94,6 +133,8 @@ export function GateOpening(): ReactNode {
   /* Der Nebel wird nicht ueber den React-Zustand gefuettert: das waere ein
      Rendering pro gescrolltem Pixel. Siehe components/veil-canvas.tsx. */
   const veil = useRef<VeilCanvasHandle>(null);
+  /* Siegelrahmen und Nebel warten auf die erste freie Luecke — siehe oben. */
+  const late = useIdleMount();
 
 
 
@@ -441,7 +482,12 @@ export function GateOpening(): ReactNode {
             }}
           >
             <span className="jjk-member-seal">
-              <span className="jjk-member-seal-edge" aria-hidden="true">
+              <span
+                className="jjk-member-seal-edge"
+                data-ready={late ? "1" : "0"}
+                aria-hidden="true"
+              >
+                {late ? (
                 <FrameBorder
                   width="4.15rem"
                   height="4.15rem"
@@ -457,6 +503,7 @@ export function GateOpening(): ReactNode {
                   gamma={2.2}
                   opacity={0.95}
                 />
+                ) : null}
               </span>
               <span className="jjk-member-seal-face" aria-hidden="true">
                 <span>会</span>
@@ -469,7 +516,7 @@ export function GateOpening(): ReactNode {
 
         {/* Der Nebel, der das Bild auffrisst — die Form der Deckung kommt aus
             einer Luma-Karte, siehe components/veil-canvas.tsx. */}
-        <VeilCanvas ref={veil} className="jjk-gate-luma" />
+        {late ? <VeilCanvas ref={veil} className="jjk-gate-luma" /> : null}
 
         {/* Die Uebergabe an die Sektion darunter. Muss das letzte Element in
             der Buehne sein und liegt auf z-index 60 — siehe .jjk-gate-blackout. */}

@@ -296,6 +296,21 @@ const GlassScene: React.FC<GlassSceneProps> = ({
   );
 
   useFrame((fstate, dt) => {
+    // ── Nichts zeichnen, solange es nichts zu zeichnen gibt ──────────────
+    // Der frühe Ausstieg unten hält nur die Berechnung an; R3F rendert die
+    // Szene trotzdem in jedem Bild. Ohne Textur bedeutet das: ein Mesh, dessen
+    // Bild-Uniform leer ist, wird als SCHWARZ gezeichnet — und weil dieser
+    // Canvas über dem CSS-Hintergrund mit demselben Motiv liegt, sah man erst
+    // das Bild, dann für ein paar Bilder Schwarz, dann wieder das Bild.
+    //
+    // Ein unsichtbares Mesh wird gar nicht erst gezeichnet. Der Canvas ist
+    // dann durchsichtig (`alpha: true`), und was durchscheint, ist genau
+    // dasselbe Motiv als CSS-Hintergrund. Der Wechsel ist damit unsichtbar,
+    // statt schwarz zu blitzen.
+    if (meshRef.current) {
+      meshRef.current.visible = textureRef.current !== null;
+    }
+
     if (!meshRef.current || !textureRef.current) return;
 
     const mat = meshRef.current.material as THREE.ShaderMaterial;
@@ -444,8 +459,15 @@ const GlassScene: React.FC<GlassSceneProps> = ({
     if (un.uAlpha) un.uAlpha.value = opacity;
   });
 
+  // `visible={false}` als Startwert: das allererste Bild wird gezeichnet,
+  // bevor useFrame je gelaufen ist. Ab dann setzt useFrame die Sichtbarkeit
+  // nach dem Ladezustand der Textur — siehe oben.
+  //
+  // Der Kommentar steht hier als JS-Kommentar und nicht als {/* … */} im JSX:
+  // ein JSX-Kommentar direkt hinter `return (` waere ein zweiter Ausdruck
+  // neben dem Element, und genau daran ist der Build gescheitert.
   return (
-    <mesh ref={meshRef}>
+    <mesh ref={meshRef} visible={false}>
       <planeGeometry args={[2, 2]} />
       <shaderMaterial
         vertexShader={vertexSource}

@@ -17,7 +17,7 @@
  * Kontextverlust -> Fallback, kein Haengenbleiben.
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useInkTransition } from "@/lib/ink-transition-context";
 
 const VERT = `
@@ -168,6 +168,25 @@ export function InkCanvas(): React.ReactNode {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glRef = useRef<GLState | null>(null);
 
+  /* Dieser Uebergang wird erst gebraucht, wenn jemand klickt — es gibt keinen
+     Grund, seinen WebGL-Kontext und seine Textur in dasselbe Bild zu legen wie
+     den Aufbau der Seite. `requestIdleCallback` schiebt beides in die erste
+     freie Luecke danach. Das Zeitlimit ist die Notbremse fuer Browser ohne
+     diese Funktion. */
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+      cancelIdleCallback?: (h: number) => void;
+    };
+    if (typeof w.requestIdleCallback === "function") {
+      const handle = w.requestIdleCallback(() => setReady(true), { timeout: 1200 });
+      return () => w.cancelIdleCallback?.(handle);
+    }
+    const t = window.setTimeout(() => setReady(true), 1200);
+    return () => window.clearTimeout(t);
+  }, []);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -200,7 +219,9 @@ export function InkCanvas(): React.ReactNode {
     return () => {
       window.removeEventListener("resize", resize);
     };
-  }, [setWebGLAvailable]); // eslint-disable-line react-hooks/exhaustive-deps
+    // `ready` gehoert in die Abhaengigkeiten: der Effekt laeuft beim ersten
+    // Mal ins Leere, weil es den Canvas noch nicht gibt.
+  }, [ready, setWebGLAvailable]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -213,6 +234,8 @@ export function InkCanvas(): React.ReactNode {
     }
     draw(glRef.current, canvas, progress);
   }, [progress]);
+
+  if (!ready) return null;
 
   return (
     <canvas

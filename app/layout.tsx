@@ -53,6 +53,19 @@ export default function RootLayout({
           Shippori Mincho B1 / Yuji Syuku that is latin only — every kanji would
           silently fall back to a system font.
         */}
+        {/* Das Hero-Motiv, so frueh wie moeglich angefordert. Es ist das
+            einzige Bild, das im ersten Bildschirm steht — und es steht dort
+            zweimal: als CSS-Hintergrund von .jjk-gate-canvas und als Textur im
+            Glass-Cursor darueber. Ohne diesen Hinweis faengt der Browser erst
+            an zu laden, wenn er die Regel im Stylesheet erreicht, und bis dahin
+            ist die Flaeche schwarz. */}
+        <link
+          rel="preload"
+          as="image"
+          href="/img/gate-hero.webp"
+          type="image/webp"
+          fetchPriority="high"
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font -- rule targets

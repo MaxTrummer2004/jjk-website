@@ -5020,7 +5020,16 @@ p,
      dass man es sieht. Sobald WebGL zeichnet, liegt exakt dasselbe Bild
      darueber; der Wechsel ist unsichtbar. Faellt WebGL ganz aus, bleibt der
      Hero trotzdem stehen. */
-  background: #000 url("/img/gate-hero.webp") center / cover no-repeat;
+  /* Zwei Ebenen: oben die Aufnahme, darunter ein 24 x 16 Pixel grosses
+     Vorschaubild derselben Aufnahme, direkt im Stylesheet. Es braucht keine
+     Anfrage und steht damit im allerersten Bild — hochgezogen auf Fenstergroesse
+     ist es unscharf, aber es hat die Grossform und die Farbstimmung, und das
+     genuegt fuer die Zehntelsekunde, bis die richtige Datei dekodiert ist.
+     Vorher stand dort `#000`, und genau diese Zehntelsekunde war das kurze
+     Schwarz beim Aufbau. 124 Byte. */
+  background:
+    url("/img/gate-hero.webp") center / cover no-repeat,
+    url("data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAADwAwCdASoYABAAPpU+mUglo6KhMAgAsBKJQBOmUABffIArP7CHp/SgAPzGj89hkPdQSOtm32f8gVslxMyvrgjVzyfI4/IlaprzfF5ZdZsOeNHpILmFSN2sSa2Cp3eZQEBIA4Ti+E9wAA==") center / cover no-repeat;
 }
 
 .jjk-gate-tint {
