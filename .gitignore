@@ -36,3 +36,6 @@ _tsc*.log
 
 # Arbeitskopien einzelner Dateien, kein Quellstand.
 _sync8/
+
+# Werkzeugordner, kein Quellstand.
+.claude/

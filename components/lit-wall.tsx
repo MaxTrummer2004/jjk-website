@@ -138,10 +138,45 @@ export function WallLight({
   useEffect(() => {
     const el = rootRef.current;
     if (!el || reduced || lit) return;
-    // Touch and pen have no hover, so there is no pool to follow them with.
-    // Those visitors get the figures' light and nothing else, which is a
-    // complete picture rather than a degraded one.
-    if (!window.matchMedia("(pointer: fine)").matches) return;
+    // ── Ohne Zeiger: das Licht folgt dem Lesen ──────────────────────────
+    // Hier stand vorher ein Ausstieg — kein Zeiger, kein Licht. Auf dem Handy
+    // hiess das: die Wand bleibt schwarz, und die Figuren darauf sieht nie
+    // jemand. Das war als "vollstaendiges Bild statt verschlechtertem"
+    // gedacht, aber ein vollstaendiges Bild ist es nur, wenn etwas darauf zu
+    // sehen ist.
+    //
+    // Was den Zeiger ersetzt, ist der Scroll. Der Lichtkegel steht dort, wo
+    // gerade gelesen wird — mittig in der Breite, auf Höhe der Bildschirmmitte
+    // — und wandert mit. Dieselbe Idee wie am Rechner: das Licht ist da, wo
+    // die Aufmerksamkeit ist. Nur die Quelle der Position ist eine andere.
+    if (!window.matchMedia("(pointer: fine)").matches) {
+      let raf: number | null = null;
+
+      const place = (): void => {
+        raf = null;
+        const rect = el.getBoundingClientRect();
+        // Etwas ueber der Mitte: gelesen wird im oberen Drittel, nicht in der
+        // geometrischen Mitte des Schirms.
+        const target = window.innerHeight * 0.42;
+        el.style.setProperty("--px", `${(rect.width * 0.5).toFixed(1)}px`);
+        el.style.setProperty("--py", `${(target - rect.top).toFixed(1)}px`);
+        el.style.setProperty("--lit", "1");
+      };
+
+      const onScroll = (): void => {
+        if (raf === null) raf = requestAnimationFrame(place);
+      };
+
+      place();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll, { passive: true });
+
+      return () => {
+        if (raf !== null) cancelAnimationFrame(raf);
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onScroll);
+      };
+    }
 
     let frame: number | null = null;
     let tx = 0;

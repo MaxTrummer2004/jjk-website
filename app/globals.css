@@ -5714,3 +5714,141 @@ p,
     animation: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HANDY
+   ═══════════════════════════════════════════════════════════════════════════
+   Alles unterhalb dieser Marke gilt AUSSCHLIESSLICH fuer Geraete ohne Zeiger.
+   `(hover: none) and (pointer: coarse)` ist die genaueste Beschreibung von
+   "Finger": kein Ueberfahren moeglich, grobe Zielgenauigkeit. Ein Rechner mit
+   Touchscreen faellt nicht darunter, weil er `hover: hover` meldet — dort
+   funktioniert die Zeigerfassung ja auch. Die Begruendung im Langen steht in
+   lib/pointer.ts, das dieselbe Abfrage fuer die Komponenten fuehrt.
+
+   Was hier drinsteht, kann den Rechner nicht beeinflussen. Das ist Absicht und
+   die Bedingung, unter der diese Fassung entstanden ist.
+   ═════════════════════════════════════════════════════════════════════════ */
+@media (hover: none) and (pointer: coarse) {
+  /* ---- Der Hero ist auf dem Handy halb so lang ---------------------------
+     Die Rechnung ist dieselbe, die Zahlen sind es nicht: ein Handy hochkant
+     hat rund 2100 Pixel Hoehe, nicht 900. Bei 300svh waren das ueber
+     sechstausend Pixel Scrollweg, davon viertausend, bevor ueberhaupt der
+     Uebergang einsetzt — man wischt und wischt, und es passiert nichts.
+
+     200svh laesst dem Ablauf 100svh, und das ist auf einem hohen Schirm
+     genauso viel BILD wie 200svh auf einem flachen. */
+  .jjk-gate {
+    height: 200svh;
+  }
+
+  /* Und der Vorlauf entsprechend: er muss so lang sein wie das Hinausfahren
+     der Buehne, nicht laenger. */
+  .jjk-wall-lead {
+    padding-top: 42svh;
+  }
+
+  /* ---- Das Siegel ist ein Ziel fuer einen Finger -------------------------
+     Kleiner darf es nicht werden: unter 44 Pixel Kantenlaenge trifft man es
+     nicht zuverlaessig, und der Knopf ist der einzige Weg in den
+     Mitgliederbereich. */
+  .jjk-gate-member {
+    top: clamp(0.9rem, 2vh, 1.4rem);
+    right: clamp(0.9rem, 3vw, 1.4rem);
+  }
+
+  .jjk-member-seal {
+    width: 3.4rem;
+    height: 3.4rem;
+  }
+
+  .jjk-member-seal-face {
+    font-size: 1.05rem;
+  }
+
+  .jjk-gate-member-label {
+    font-size: 0.56rem;
+    letter-spacing: 0.2em;
+    text-indent: 0.2em;
+  }
+
+  /* ---- Die Programmtafeln ------------------------------------------------
+     Gemessen: 21rem Mindesthoehe mal sechs Tafeln sind ueber zweitausend
+     Pixel, auf einem Handy also zweieinhalb Bildschirme, nur um die Liste der
+     Programme einmal zu sehen. Am Rechner stehen sie zu dritt nebeneinander
+     und das faellt nicht auf; hochkant gestapelt wird daraus eine Rutschbahn.
+
+     Die Tafel bleibt dieselbe Tafel — Kanji, Nummer, Titel, Stufe, Zeile —
+     nur dichter gesetzt. Aus 21rem werden 9.5rem, aus sechs Bildschirmlaengen
+     wird gut eine. */
+  .jjk-board {
+    min-height: 9.5rem;
+    padding: 1rem 1.1rem 1.15rem;
+  }
+
+  /* Der Titel ist am Rechner text-4xl, also 2.25rem. Das ist dort richtig,
+     weil die Tafel breit ist; hochkant frisst er zwei Zeilen. */
+  .jjk-board h3 {
+    font-size: 1.45rem;
+  }
+
+  .jjk-board-blurb {
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  /* Das gemalte Zeichen im Hintergrund wird zum Muster statt zum Motiv, wenn
+     die Tafel flacher ist — kleiner und blasser, sonst kaempft es mit dem
+     Titel um dieselbe Flaeche. */
+  .jjk-board-kanji {
+    font-size: 5.5rem;
+    opacity: 0.5;
+  }
+
+  .jjk-board-icon {
+    width: 1.4rem;
+    height: 1.4rem;
+  }
+
+  /* ---- Der Stundenplan ---------------------------------------------------
+     15rem Mindesthoehe mal sechs Tage sind noch einmal fast anderthalb
+     tausend Pixel. Ein Tag braucht genau so viel Hoehe, wie seine Stunden
+     brauchen — `auto` statt einer Zahl, und der Kopf wird vom Aushaengeschild
+     zur Zeile. */
+  .jjk-day {
+    min-height: 0;
+    padding: 0.9rem 0.9rem 0.8rem;
+  }
+
+  .jjk-day-name {
+    font-size: 1.05rem;
+  }
+
+  .jjk-day-jp {
+    font-size: 0.6rem;
+  }
+
+  .jjk-slot {
+    padding: 0.5rem 0.7rem 0.55rem 0.8rem;
+  }
+
+  .jjk-slot-time {
+    font-size: 0.72rem;
+  }
+
+  .jjk-slot-name {
+    font-size: 0.86rem;
+  }
+
+  /* ---- Der Rahmen mit dem Bild -------------------------------------------
+     Er steht auf dem Handy ueber der Liste, die ihn steuert (siehe
+     components/features-3.tsx). Hochformat 4:5 nimmt dort den halben Schirm;
+     4:3 zeigt dasselbe Bild und laesst die Knoepfe darunter im Blick. */
+  .jjk-shot-stack {
+    aspect-ratio: 4 / 3;
+  }
+
+  .jjk-shot {
+    margin-bottom: 2rem;
+  }
+}
+

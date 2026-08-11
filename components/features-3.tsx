@@ -41,6 +41,7 @@
  */
 
 import { useState, type ReactNode } from "react";
+import { useIsTouch } from "@/lib/pointer";
 import { motion } from "motion/react";
 import { Shield, Award, Dumbbell, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -51,10 +52,61 @@ import { reasons } from "@/lib/config";
 /** One per reason, in the order the config lists them. A drawing, not copy. */
 const ICONS: readonly LucideIcon[] = [Shield, Award, Dumbbell, Users];
 
+/**
+ * Der Rahmen mit dem Bild.
+ *
+ * Steht am Rechner rechts neben der Liste und auf dem Handy DARUEBER. Der
+ * Grund ist die Bedienung: die Liste ist eine Reihe von Knoepfen, und jeder
+ * wechselt das Bild. Am Rechner sieht man beides gleichzeitig. Auf dem Handy
+ * stapelt das Raster untereinander — und weil der Rahmen im Aufbau NACH der
+ * Liste kommt, lag er ausserhalb des Sichtfelds: man tippt einen Punkt an, das
+ * Bild wechselt, und niemand sieht es. Genau das war die Meldung.
+ *
+ * Deshalb wird er je nach Eingabeart an der einen ODER der anderen Stelle
+ * gerendert, nie an beiden. Am Rechner aendert sich dadurch nichts.
+ */
+function Shot({ active }: { active: number }): ReactNode {
+  // Ein Bild nach dem anderen, ueberblendet unter EINEM Satz Blendebenen. Die
+  // Glutrampe auf jede Aufnahme einzeln zu legen wuerde die beiden waehrend
+  // der Blende miteinander vermischen, und der Uebergang blitzte in einer
+  // dritten Farbe auf.
+  return (
+    <motion.figure
+      initial={{ opacity: 0, y: 22 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className="jjk-shot m-0"
+    >
+      <div className="jjk-shot-stack">
+        {reasons.map((r, i) => (
+          <div
+            key={r.label}
+            className="jjk-shot-img"
+            style={{ backgroundImage: `url(${r.image})` }}
+            {...(active === i ? { "data-on": "" } : {})}
+            role="img"
+            aria-label={r.label}
+          />
+        ))}
+        <div className="jjk-shot-ember" aria-hidden="true" />
+        <div className="jjk-shot-pool" aria-hidden="true" />
+      </div>
+
+      <figcaption className="jjk-shot-cap font-mono">
+        <span>{String(active + 1).padStart(2, "0")}</span>
+        <span className="jjk-shot-cap-rule" aria-hidden="true" />
+        <span>{reasons[active]?.label}</span>
+      </figcaption>
+    </motion.figure>
+  );
+}
+
 export function Features3(): ReactNode {
   // Which claim the reader is on. Never null: a frame with nothing in it is a
   // hole in the layout, and on a touch screen it would be the permanent state.
   const [active, setActive] = useState(0);
+  const isTouch = useIsTouch();
 
   return (
     <section className="w-full px-4 py-24 sm:px-6 lg:px-8 lg:py-32">
@@ -76,6 +128,9 @@ export function Features3(): ReactNode {
             strength, calm and confidence — and you leave each class better than
             you walked in.
           </p>
+
+          {/* Auf dem Handy steht das Bild ueber der Liste, die es steuert. */}
+          {isTouch ? <Shot active={active} /> : null}
 
           <ul className="jjk-claims mt-10">
             {reasons.map((r, i) => {
@@ -108,38 +163,7 @@ export function Features3(): ReactNode {
           </ul>
         </div>
 
-        {/* The frame. One picture at a time, cross-faded underneath a single set
-            of blend layers — putting the ember ramp on each photograph instead
-            would blend the two of them together mid-fade and the transition
-            would flash a different colour. */}
-        <motion.figure
-          initial={{ opacity: 0, y: 22 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="jjk-shot m-0"
-        >
-          <div className="jjk-shot-stack">
-            {reasons.map((r, i) => (
-              <div
-                key={r.label}
-                className="jjk-shot-img"
-                style={{ backgroundImage: `url(${r.image})` }}
-                {...(active === i ? { "data-on": "" } : {})}
-                role="img"
-                aria-label={r.label}
-              />
-            ))}
-            <div className="jjk-shot-ember" aria-hidden="true" />
-            <div className="jjk-shot-pool" aria-hidden="true" />
-          </div>
-
-          <figcaption className="jjk-shot-cap font-mono">
-            <span>{String(active + 1).padStart(2, "0")}</span>
-            <span className="jjk-shot-cap-rule" aria-hidden="true" />
-            <span>{reasons[active]?.label}</span>
-          </figcaption>
-        </motion.figure>
+        {!isTouch ? <Shot active={active} /> : null}
       </div>
     </section>
   );
