@@ -129,10 +129,51 @@ export function Features3(): ReactNode {
             you walked in.
           </p>
 
-          {/* Auf dem Handy steht das Bild ueber der Liste, die es steuert. */}
-          {isTouch ? <Shot active={active} /> : null}
+          {/* ── Auf dem Handy gibt es nichts zu steuern ──────────────────
+              Am Rechner sind die vier Punkte KNOEPFE und das Bild daneben ist
+              die Antwort darauf — man zeigt auf einen Grund und sieht ihn.
+              Das setzt voraus, dass beides gleichzeitig sichtbar ist.
 
-          <ul className="jjk-claims mt-10">
+              Auf einem Handy ist es das nie. Der erste Versuch hat den Rahmen
+              ueber die Liste geschoben; damit sah man zwar den Wechsel, aber
+              zwischen Aussage und Knopf lag jetzt ein halber Bildschirm Bild,
+              und man tippt unten, waehrend oben etwas passiert. Nicht besser,
+              nur anders falsch.
+
+              Was hier steht, hat gar keine Bedienung mehr: jeder Grund und
+              sein Bild stehen zusammen in einer Karte. Man scrollt, und das
+              war es. Der Zustand `active` laeuft weiter, wird auf Touch aber
+              nicht gebraucht. */}
+          {isTouch ? (
+            <ul className="jjk-claim-cards mt-9">
+              {reasons.map((r, i) => {
+                const Icon = ICONS[i] ?? Shield;
+                return (
+                  <li key={r.label} className="jjk-claim-card">
+                    <div
+                      className="jjk-claim-card-shot"
+                      style={{ backgroundImage: `url(${r.image})` }}
+                      role="img"
+                      aria-label={r.label}
+                    />
+                    <div className="jjk-claim-card-body">
+                      <span className="jjk-claim-card-num font-mono">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <Icon
+                        className="jjk-claim-card-icon"
+                        strokeWidth={1.4}
+                        aria-hidden="true"
+                      />
+                      <p className="jjk-claim-card-text">{r.claim}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+
+          <ul className="jjk-claims mt-10" hidden={isTouch}>
             {reasons.map((r, i) => {
               const Icon = ICONS[i] ?? Shield;
               return (
@@ -163,7 +204,7 @@ export function Features3(): ReactNode {
           </ul>
         </div>
 
-        {!isTouch ? <Shot active={active} /> : null}
+        {isTouch ? null : <Shot active={active} />}
       </div>
     </section>
   );

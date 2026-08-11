@@ -5850,5 +5850,117 @@ p,
   .jjk-shot {
     margin-bottom: 2rem;
   }
+
+  /* ---- Das Siegel: ruhiger und mit Luft ----------------------------------
+     Gemeldet: "Symbol schief, Schrift zu nah und nicht mittig". Alle drei
+     haengen zusammen.
+
+     Schief kam vom Turbulenzfilter: bei scale 6 auf einem 3.4rem kleinen
+     Rahmen verschiebt er die Kante um ein Sechstel ihrer eigenen Laenge, und
+     was auf 4rem als angedrueckte Kante liest, kippt bei 3.4rem sichtbar. Der
+     Filter ist auf dem Handy deshalb schwaecher — die Staerke steht als
+     Variable am Rahmen, damit die Komponente sie nicht kennen muss.
+
+     Nicht mittig kam von der Laufweite: `letter-spacing` haengt hinter dem
+     LETZTEN Buchstaben ein Leerzeichen an, das bei zentriertem Satz nach
+     rechts verschiebt. `text-indent` in gleicher Hoehe gleicht das aus — das
+     stand schon so da, war aber auf dem Handy auf 0.2em gekuerzt worden,
+     waehrend die Laufweite bei 0.2em blieb. Jetzt stimmen beide ueberein.
+
+     Zu nah war schlicht der Abstand. */
+  .jjk-member-seal-edge {
+    filter: url("#jjk-seal-bite-s");
+  }
+
+  .jjk-gate-member-link {
+    gap: 0.72rem;
+  }
+
+  .jjk-member-seal-face {
+    /* Die beiden Zeichen sitzen optisch zu tief, weil die Schrift unter der
+       Grundlinie Platz fuer Unterlaengen freihaelt, die es im Japanischen
+       nicht gibt. */
+    padding-bottom: 0.08em;
+  }
+
+  /* ---- Die vier Gruende als Karten ---------------------------------------
+     Jeder Grund steht mit seinem Bild zusammen. Kein Umschalten, keine
+     Knoepfe — siehe components/features-3.tsx. */
+  .jjk-claim-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .jjk-claim-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border-hot);
+    border-radius: 0.7rem;
+    background: rgba(9, 8, 11, 0.72);
+  }
+
+  .jjk-claim-card-shot {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    background-position: center;
+    background-size: cover;
+    /* Dieselbe Behandlung wie im Rahmen am Rechner: die Aufnahmen sind zu
+       hell fuer diese Seite und werden erst hier heruntergezogen. */
+    filter: brightness(0.62) saturate(0.85);
+  }
+
+  .jjk-claim-card-body {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 0.95rem 0.95rem;
+  }
+
+  .jjk-claim-card-num {
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    color: var(--muted-foreground);
+  }
+
+  .jjk-claim-card-icon {
+    width: 1.05rem;
+    height: 1.05rem;
+    color: var(--vermilion, #d8341c);
+  }
+
+  .jjk-claim-card-text {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    color: var(--foreground);
+  }
+
+  /* ---- Der Uebergang laeuft zu Ende ---------------------------------------
+     Gemeldet: "es sollte blockiert sein damit man den Uebergang richtig hat".
+     Ein echter Riegel waere falsch — eine Seite, die den Finger ignoriert,
+     fuehlt sich kaputt an, und genau daran ist die erste Eroeffnung dieser
+     Seite schon einmal gescheitert.
+
+     `proximity` ist das Gegenstueck dazu: es rastet ein, WENN man ohnehin in
+     der Naehe aufhoert zu wischen, und laesst jede andere Bewegung in Ruhe.
+     `mandatory` waere der Riegel, `proximity` ist der Magnet.
+
+     Nur auf Touch: am Rechner scrollt Lenis, und ein Magnet gegen eine
+     laufende Glaettung ergibt ein Zittern. */
+  html {
+    scroll-snap-type: y proximity;
+  }
+
+  .jjk-gate,
+  #about,
+  #programs {
+    scroll-snap-align: start;
+  }
 }
+
 

@@ -470,6 +470,29 @@ export function GateOpening(): ReactNode {
               yChannelSelector="G"
             />
           </filter>
+
+          {/* Dieselbe Kante, schwaecher — fuer das kleinere Siegel auf dem
+              Handy. Die Staerke muss ein ATTRIBUT sein und kann deshalb nicht
+              aus einer CSS-Variablen kommen; ein zweiter Filter ist der
+              einzige Weg. Bei 3.4rem Kantenlaenge verschiebt scale 6 die
+              Kontur um ein Sechstel ihrer eigenen Laenge, und was auf 4rem
+              als angedrueckt liest, kippt dort sichtbar schief. */}
+          <filter id="jjk-seal-bite-s">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.07"
+              numOctaves="4"
+              seed="11"
+              result="bite"
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              in2="bite"
+              scale="3"
+              xChannelSelector="R"
+              yChannelSelector="G"
+            />
+          </filter>
         </svg>
 
         <div className="jjk-gate-member">

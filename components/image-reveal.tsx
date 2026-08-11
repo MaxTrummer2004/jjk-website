@@ -62,6 +62,14 @@ export function ImageReveal({
     const root = containerRef.current;
     if (!root) return;
 
+    // Die Rechnung darunter ist auf ein 900 Pixel hohes Fenster gemessen. Ein
+    // Handy hochkant ist gut doppelt so hoch, und dieselbe Prozentzahl wird
+    // damit zur doppelten Strecke: von "top bottom" bis "top 40%" sind das
+    // ueber zwoelfhundert Pixel Scrollweg, bis eine Kachel steht. Man hat sie
+    // laengst erreicht, und sie fliegt immer noch. Auf Touch endet der Flug
+    // deshalb frueher — gemessen in derselben Einheit, nur naeher am Rand.
+    const touch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+
     const ctx = gsap.context(() => {
       root.querySelectorAll(".column").forEach((column, columnIndex) => {
         column.querySelectorAll(".column__item").forEach((item) => {
@@ -135,7 +143,7 @@ export function ImageReveal({
               // laedt, und wurde auch so gelesen — "die Bilder brauchen lange
               // zum Laden". Sie waren laengst da.
               start: "clamp(top bottom)",
-              end: "clamp(top 40%)",
+              end: touch ? "clamp(top 74%)" : "clamp(top 40%)",
               scrub: 0.8,
             },
             xPercent: 0,
