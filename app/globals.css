@@ -5771,16 +5771,6 @@ p,
     transition: opacity 0.5s ease;
   }
 
-  /* Der Riegel selbst. Solange er liegt, hat eine Wischgeste auf dieser Seite
-     keine Scrollbedeutung — der Browser vergibt sie gar nicht erst, statt sie
-     zu vergeben und von uns zurueckgenommen zu bekommen. Das erfasst auch den
-     Nachlauf eines Flings und das Ueberdehnen am oberen Rand. */
-  html.jjk-gate-locked,
-  html.jjk-gate-locked body {
-    touch-action: none;
-    overscroll-behavior: none;
-  }
-
   /* ---- Das Siegel ist ein Ziel fuer einen Finger -------------------------
      Kleiner darf es nicht werden: unter 44 Pixel Kantenlaenge trifft man es
      nicht zuverlaessig, und der Knopf ist der einzige Weg in den
@@ -5995,19 +5985,11 @@ p,
     overflow-x: hidden;
   }
 
-  /* ---- Hero: Portrait-Version des Tor-Bildes ---------------------------------
-     gate-hero.webp ist 1920 x 1200 (Querformat). cover auf einem 390 x 844
-     Schirm zeigt nur die mittleren 26 % der Breite. gate-hero-portrait.webp
-     ist ein 9:20-Ausschnitt aus der Bildmitte (540 x 1200 px, erzeugt von
-     scripts/gen-gate-portrait.py). cover zeigt damit das Motiv fast vollstaendig.
-     GlassCursor laeuft auf Touch nicht (kein Zeiger); daher kein ThreeJS-Canvas
-     als Konkurrenz — der CSS-Hintergrund ist die einzige Darstellungsebene. */
-  .jjk-gate-canvas {
-    background-image: url("/img/gate-hero-portrait.webp");
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
-  }
+  /* ---- Hero: Bild auf Touch ---------------------------------------------------
+     GlassCursor (WebGL) laeuft auf Touch nicht (kein Zeiger, kein Effekt —
+     Entscheidung in components/gate-opening.tsx). Der CSS-Hintergrund ist
+     die einzige Darstellungsebene. Kein Override noetig: desktop-Regel mit
+     gate-hero.webp bleibt unveraendert. */
 
   /* ======================================================================
      SEKTIONEN 2–8: HANDY-KORREKTUREN
