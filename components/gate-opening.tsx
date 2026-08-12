@@ -268,6 +268,110 @@ export function GateOpening(): ReactNode {
 
     apply(0);
 
+    // ══ Der Riegel auf dem Handy ═════════════════════════════════════════
+    //
+    // Gemeldet: "beim scroll im hero soll die website wissen wie lange mein
+    // handy ist und nicht weiter lassen bis uebergang war, dann darf es erst
+    // weitergehen oder ueberhaupt irgendwas sich veraendern."
+    //
+    // Am Rechner haengt der Fortschritt an der Scrollposition: die Buehne
+    // klebt, die Seite laeuft unter ihr durch, und der Weg dieser Strecke IST
+    // die Uhr des Uebergangs. Auf dem Handy geht diese Rechnung nicht auf, und
+    // zwar aus zwei Gruenden gleichzeitig:
+    //
+    //   · Ein einziger Wisch traegt leicht ueber eine ganze Bildschirmhoehe.
+    //     Der komplette Uebergang rauscht damit in einer Bewegung durch, und
+    //     was man sieht, ist nicht der Ablauf, sondern sein Endbild.
+    //   · Die sichtbare Hoehe eines Handys ist keine Zahl, sondern ein
+    //     Bereich: die Adressleiste faehrt beim Scrollen ein und aus. `svh`
+    //     ist die KLEINE dieser Hoehen und damit fest — die Buehne ist also
+    //     zeitweise niedriger als der Schirm, und unter ihr schaut das
+    //     naechste Stueck Seite hervor. Genau das ist das "alles zieht mit".
+    //
+    // Beides verschwindet, wenn der Fortschritt nicht mehr an der Position
+    // haengt. Hier zaehlt der zurueckgelegte WISCHWEG, und die Seite bewegt
+    // sich dabei ueberhaupt nicht: sie steht bei null, bis der Uebergang durch
+    // ist. Erst dann gibt der Riegel auf, die Buehne blendet ab, und dahinter
+    // steht die naechste Sektion an ihrem Anfang.
+    //
+    // Der Weg ist bewusst an `innerHeight` gebunden und nicht an eine feste
+    // Pixelzahl — das ist das "wissen, wie lang mein Handy ist". Auf einem
+    // langen Geraet wischt man weiter, der Uebergang dauert entsprechend
+    // laenger, und das Verhaeltnis von Geste zu Wirkung bleibt ueberall
+    // dasselbe.
+    const touch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+
+    if (touch) {
+      const html = document.documentElement;
+      let p = 0;
+      let lastY = 0;
+      let armed = false;
+
+      // Etwas mehr als eine Bildschirmhoehe: lang genug, dass ein einzelner
+      // Fling nicht durchreicht, kurz genug, dass niemand dreimal nachfasst.
+      const distance = (): number => Math.max(620, window.innerHeight * 1.15);
+
+      const setLock = (on: boolean): void => {
+        armed = on;
+        // Der eigentliche Riegel. `touch-action: none` nimmt der Geste die
+        // Scrollbedeutung, bevor der Browser sie vergibt — das ist wirksamer
+        // als preventDefault allein, weil es auch den Nachlauf eines Flings
+        // und das Ueberdehnen am Rand erfasst. preventDefault unten bleibt
+        // trotzdem stehen: die Klasse greift erst beim naechsten Zug.
+        html.classList.toggle("jjk-gate-locked", on);
+        stage.style.setProperty("--exit", on ? "1" : "0");
+        stage.style.setProperty("--gate-pe", on ? "auto" : "none");
+      };
+
+      const onStart = (e: TouchEvent): void => {
+        lastY = e.touches[0]?.clientY ?? 0;
+      };
+
+      const onMove = (e: TouchEvent): void => {
+        const y = e.touches[0]?.clientY ?? lastY;
+        // Positiv = Finger nach oben = "weiter", wie beim Scrollen.
+        const dy = lastY - y;
+        lastY = y;
+
+        if (!armed) {
+          // Der Rueckweg. Wer von unten bis ganz nach oben kommt und dort
+          // weiterzieht, soll den Uebergang rueckwaerts bekommen und nicht
+          // gegen eine Wand laufen. Ohne das waere der Hero einmal gesehen
+          // und danach unerreichbar.
+          if (window.scrollY <= 0 && dy < 0) setLock(true);
+          else return;
+        }
+
+        e.preventDefault();
+        const next = p + dy / distance();
+        p = next < 0 ? 0 : next > 1 ? 1 : next;
+        apply(p);
+        if (p >= 1) setLock(false);
+      };
+
+      // Nach einem Neuladen mitten auf der Seite waere ein scharfer Riegel
+      // eine Sperre ohne Anlass — der Uebergang liegt dann laengst hinter dem
+      // Leser.
+      if (window.scrollY <= 1) {
+        setLock(true);
+        apply(0);
+      } else {
+        p = 1;
+        apply(1);
+        setLock(false);
+      }
+
+      window.addEventListener("touchstart", onStart, { passive: true });
+      window.addEventListener("touchmove", onMove, { passive: false });
+
+      return () => {
+        window.removeEventListener("touchstart", onStart);
+        window.removeEventListener("touchmove", onMove);
+        html.classList.remove("jjk-gate-locked");
+        setOpeningDone(true);
+      };
+    }
+
     const trigger = ScrollTrigger.create({
       trigger: root,
       start: "top top",
@@ -511,9 +615,19 @@ export function GateOpening(): ReactNode {
                 aria-hidden="true"
               >
                 {late ? (
+                /* Der Rahmen folgt seinem Kasten und hat KEIN eigenes Mass.
+                   Feste 4.15rem waren der Fehler: auf dem Handy ist
+                   .jjk-member-seal 3.4rem gross, das Canvas blieb aber
+                   4.15rem und stand damit zwoelf Pixel ueber seinen Kasten
+                   hinaus — nach rechts unten, weil .jjk-member-seal-edge oben
+                   links verankert ist. Der Rahmen sass also nicht um die
+                   Zeichen, sondern daneben. Das ist alles, was "Symbol schief"
+                   und "Schrift nicht mittig" waren: eine Ursache, drei
+                   Symptome. Am Rechner ist 100% exakt 4.15rem, dort aendert
+                   sich rechnerisch nichts. */
                 <FrameBorder
-                  width="4.15rem"
-                  height="4.15rem"
+                  width="100%"
+                  height="100%"
                   color="#d8341c"
                   backgroundColor="#000000"
                   speed={0.04}

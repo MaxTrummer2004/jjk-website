@@ -5738,13 +5738,47 @@ p,
      200svh laesst dem Ablauf 100svh, und das ist auf einem hohen Schirm
      genauso viel BILD wie 200svh auf einem flachen. */
   .jjk-gate {
-    height: 200svh;
+    /* Netto null im Fluss: 100svh Hoehe, 100svh negativer Rand (der steht in
+       der Grundregel). Der Uebergang braucht hier keinen Scrollweg mehr, weil
+       ihn der Wischweg treibt und nicht die Position — siehe den Riegel in
+       components/gate-opening.tsx. Die naechste Sektion beginnt damit bei
+       null, und wenn die Buehne abblendet, steht sie an ihrem Anfang statt
+       hinter 100svh leerem Schwarz. */
+    height: 100svh;
   }
 
-  /* Und der Vorlauf entsprechend: er muss so lang sein wie das Hinausfahren
-     der Buehne, nicht laenger. */
+  /* Und der Vorlauf entfaellt: er war der Platz, den das Hinausfahren der
+     Buehne gebraucht hat, und die faehrt hier nicht mehr hinaus. */
   .jjk-wall-lead {
-    padding-top: 42svh;
+    padding-top: 0;
+  }
+
+  /* `fixed` statt `sticky`, und das ist die zweite Haelfte der Loesung.
+     `sticky` steht in einem Kasten von 100svh — der KLEINEN Viewporthoehe,
+     also der Hoehe bei eingefahrener Adressleiste. Solange die Leiste
+     ausgefahren ist, ist der Schirm hoeher als das, und unter der Buehne
+     schaut hervor, was danach kommt. Genau das war "alles zieht mit".
+     `fixed` mit `inset: 0` kennt diese Unterscheidung nicht: es ist der
+     Schirm, in jedem Zustand, ohne dass eine Zahl stimmen muesste. */
+  .jjk-gate-stage {
+    position: fixed;
+    inset: 0;
+    height: auto;
+    pointer-events: var(--gate-pe, auto);
+    /* Der Riegel schaltet --exit hart von 1 auf 0. Bei p = 1 ist der Schirm
+       ohnehin schon deckend schwarz, das hier blendet also kein Bild weg,
+       sondern hebt den Vorhang. */
+    transition: opacity 0.5s ease;
+  }
+
+  /* Der Riegel selbst. Solange er liegt, hat eine Wischgeste auf dieser Seite
+     keine Scrollbedeutung — der Browser vergibt sie gar nicht erst, statt sie
+     zu vergeben und von uns zurueckgenommen zu bekommen. Das erfasst auch den
+     Nachlauf eines Flings und das Ueberdehnen am oberen Rand. */
+  html.jjk-gate-locked,
+  html.jjk-gate-locked body {
+    touch-action: none;
+    overscroll-behavior: none;
   }
 
   /* ---- Das Siegel ist ein Ziel fuer einen Finger -------------------------
@@ -5940,27 +5974,15 @@ p,
     color: var(--foreground);
   }
 
-  /* ---- Der Uebergang laeuft zu Ende ---------------------------------------
-     Gemeldet: "es sollte blockiert sein damit man den Uebergang richtig hat".
-     Ein echter Riegel waere falsch — eine Seite, die den Finger ignoriert,
-     fuehlt sich kaputt an, und genau daran ist die erste Eroeffnung dieser
-     Seite schon einmal gescheitert.
+  /* ---- Der Uebergang laeuft zu Ende -------------------------------------
+     Hier stand ein `scroll-snap-type: y proximity`. Es hat nichts getan, und
+     der Grund ist einfach: ein Snap-Ziel, das hoeher ist als der Schirm,
+     rastet nur an seiner Oberkante ein — also BEVOR der Uebergang beginnt.
+     Der ganze Ablauf darin blieb unberuehrt. Ein Magnet am Rand war die
+     falsche Antwort auf eine Frage, die in der Mitte gestellt wurde.
 
-     `proximity` ist das Gegenstueck dazu: es rastet ein, WENN man ohnehin in
-     der Naehe aufhoert zu wischen, und laesst jede andere Bewegung in Ruhe.
-     `mandatory` waere der Riegel, `proximity` ist der Magnet.
-
-     Nur auf Touch: am Rechner scrollt Lenis, und ein Magnet gegen eine
-     laufende Glaettung ergibt ein Zittern. */
-  html {
-    scroll-snap-type: y proximity;
-  }
-
-  .jjk-gate,
-  #about,
-  #programs {
-    scroll-snap-align: start;
-  }
+     Was jetzt dort steht, ist der Riegel in components/gate-opening.tsx: die
+     Seite bewegt sich waehrend des Uebergangs ueberhaupt nicht. */
 }
 
 
