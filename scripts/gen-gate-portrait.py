@@ -21,7 +21,7 @@ Image.MAX_IMAGE_PIXELS = None
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.normpath(os.path.join(_HERE, ".."))
-SRC  = os.path.join(_ROOT, "_scout", "assets", "gate-source.jpg")
+SRC  = os.path.join(_ROOT, "_scout", "assets", "gate-source-v2.jpg")
 OUT  = os.path.join(_ROOT, "public", "img", "gate-hero-portrait.webp")
 
 # ── Portrait-Ziel ────────────────────────────────────────────────────────────
