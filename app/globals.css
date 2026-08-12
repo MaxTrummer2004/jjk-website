@@ -5985,23 +5985,14 @@ p,
      Seite bewegt sich waehrend des Uebergangs ueberhaupt nicht. */
 
   /* ---- Kein horizontales Verschieben der Seite ----------------------------
-     Ein unbekanntes Element ueberlaeuft den Viewport. clip statt hidden:
-     kein Scrollcontainer, position:sticky bleibt unbeeintraechtigt. */
-  html {
-    overflow-x: clip;
-  }
-
-  /* ---- Hero: Querformat-Bild auf Hochformat-Schirm ------------------------
-     cover auf 390 x 844 skaliert gate-hero.webp auf ~1 500 x 844 px und
-     schneidet es auf die mittleren 390 px — 26 % der Bildbreite. Das Tor
-     steht damit unmittelbar vor der Nase.
-     200 % zeigt 50 % des Bildes und laesst oben und unten ~200 px frei,
-     die in der Dunkelheit der Seite verschwinden.
-     GlassCursor wird auf Touch nicht gerendert (kein Zeiger, kein Effekt;
-     Entscheidung in components/gate-opening.tsx). */
-  .jjk-gate-canvas {
-    background-size: 200% auto, 200% auto;
-    background-position: center 25%, center 25%;
+     Irgendein Element ueberlaeuft den Viewport. overflow-x: hidden auf
+     BEIDEN Elementen: html allein genuegt nicht, weil Browser die Eigenschaft
+     unterschiedlich an den Viewport propagieren.
+     Kein sticky-Problem auf Touch: alle lg:sticky-Regeln greifen erst ab
+     1 024 px — also nie auf einem Handy. */
+  html,
+  body {
+    overflow-x: hidden;
   }
 
   /* ======================================================================
