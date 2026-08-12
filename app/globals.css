@@ -5983,6 +5983,65 @@ p,
 
      Was jetzt dort steht, ist der Riegel in components/gate-opening.tsx: die
      Seite bewegt sich waehrend des Uebergangs ueberhaupt nicht. */
+
+  /* ======================================================================
+     SEKTIONEN 2–8: HANDY-KORREKTUREN
+     ====================================================================== */
+
+  /* ---- Einheitlicher Seitenrand ------------------------------------------
+     features-6 bis footer haben px-4 (16 px) auf dem Handy; about-3 setzt
+     mit px-6 (24 px) den Massstab. 1.5 rem entspricht px-6 und dem sm-Wert,
+     der auf Tablets ohnehin greift — auf dem Handy wurde er erst jetzt
+     angeglichen. Innere max-w-Wrapper fuellen die Contentbox danach unveraendert. */
+  section.w-full {
+    padding-inline: 1.5rem;
+  }
+
+  /* ---- Ueberschriften: kein Waisenwort in der letzten Zeile ---------------
+     text-wrap: balance teilt Woerter so auf die Zeilen auf, dass keine
+     einzelne Zeile allein am Ende haengt. Auf dem Handy ist der Rechenaufwand
+     fuer kurze Ueberschriften vernachlaessigbar. */
+  section h2,
+  section h3,
+  .jjk-close-line {
+    text-wrap: balance;
+  }
+
+  /* ---- Trainer-Tafeln: Mindesthoehe aufgeben ------------------------------
+     17 rem x 4 Tafeln = 272 rem = ~1 088 px nur fuer die Coaches. Auf dem
+     Handy steht jede Tafel allein in einer Spalte; die Mindesthoehe erzeugt
+     nur Leerraum. Der Inhalt (Guertel, Rang, Name, Bio) bestimmt die Hoehe. */
+  .jjk-name-board {
+    min-height: 0;
+  }
+
+  /* ---- Programmtafeln: Beschreibungstext etwas groesser -------------------
+     0.82 rem (13 px) ergibt bei voller Handy-Breite Zeilen mit >50 Zeichen.
+     0.9 rem haelt die Zeilen auf ~46. */
+  .jjk-board-blurb {
+    font-size: 0.9rem;
+  }
+
+  /* ---- FAQ-Fragen: Zeilenhoehe ------------------------------------------
+     1.35 liegt unter dem Minimum von 1.45 fuer Text, der umbrechen kann. */
+  .jjk-qa-q {
+    line-height: 1.5;
+  }
+
+  /* ---- Gruende-Karten: Zeilenhoehe ------------------------------------------
+     Dieselbe Korrektur wie FAQ. */
+  .jjk-claim-card-text {
+    line-height: 1.5;
+  }
+
+  /* ---- Footer-Navigationslinks: Fingertrefferzone --------------------------
+     text-base ohne Padding ergibt ~24 px Zielhoehe. 2.75 rem = 44 px
+     sind das kleinste zuverlaessige Fingerziel (Apple HIG / WCAG 2.5.5). */
+  .jjk-plate-footer ul a {
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+  }
 }
 
 
