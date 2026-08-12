@@ -5753,22 +5753,13 @@ p,
     padding-top: 0;
   }
 
-  /* `fixed` statt `sticky`, und das ist die zweite Haelfte der Loesung.
-     `sticky` steht in einem Kasten von 100svh — der KLEINEN Viewporthoehe,
-     also der Hoehe bei eingefahrener Adressleiste. Solange die Leiste
-     ausgefahren ist, ist der Schirm hoeher als das, und unter der Buehne
-     schaut hervor, was danach kommt. Genau das war "alles zieht mit".
-     `fixed` mit `inset: 0` kennt diese Unterscheidung nicht: es ist der
-     Schirm, in jedem Zustand, ohne dass eine Zahl stimmen muesste. */
+  /* Touch-Lock entfernt → Stage wieder sticky wie auf Desktop.
+     fixed war noetig, weil der Lock scrollY auf 0 hielt und die Stage
+     den vollen Schirm brauchte; ohne Lock gilt dieselbe Logik wie Desktop. */
   .jjk-gate-stage {
-    position: fixed;
-    inset: 0;
-    height: auto;
-    pointer-events: var(--gate-pe, auto);
-    /* Der Riegel schaltet --exit hart von 1 auf 0. Bei p = 1 ist der Schirm
-       ohnehin schon deckend schwarz, das hier blendet also kein Bild weg,
-       sondern hebt den Vorhang. */
-    transition: opacity 0.5s ease;
+    position: sticky;
+    inset: unset;
+    height: 100svh;
   }
 
   /* ---- Das Siegel ist ein Ziel fuer einen Finger -------------------------
