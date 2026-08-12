@@ -6042,6 +6042,14 @@ p,
     display: flex;
     align-items: center;
   }
+
+  /* ---- E-Mail-Eingabefeld: iOS-Zoom verhindern -----------------------------
+     iOS Safari zoomt automatisch in jedes Eingabefeld, dessen font-size unter
+     16 px liegt. 0.95 rem = 15.2 px — ein halbes Pixel unter der Grenze, aber
+     das genuegt. 1 rem = 16 px stoppt den Zoom. */
+  .jjk-field {
+    font-size: 1rem;
+  }
 }
 
 
