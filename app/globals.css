@@ -5985,11 +5985,19 @@ p,
     overflow-x: hidden;
   }
 
-  /* ---- Hero: Bild auf Touch ---------------------------------------------------
-     GlassCursor (WebGL) laeuft auf Touch nicht (kein Zeiger, kein Effekt —
-     Entscheidung in components/gate-opening.tsx). Der CSS-Hintergrund ist
-     die einzige Darstellungsebene. Kein Override noetig: desktop-Regel mit
-     gate-hero.webp bleibt unveraendert. */
+  /* ---- Hero: Portrait-Ausschnitt auf Touch -----------------------------------
+     gate-hero.webp ist 1920x1200 (Querformat). cover zeigt auf einem
+     390x844-Schirm nur die mittleren 26 % der Bildbreite.
+     gate-hero-portrait.webp ist ein 9:20-Ausschnitt aus der Bildmitte,
+     erzeugt aus gate-source-v2.jpg (gloomy-landscape) von
+     scripts/gen-gate-portrait.py — identische Gradierung wie gate-hero.webp.
+     GlassCursor laeuft auf Touch nicht; CSS-Hintergrund ist alleinige Ebene. */
+  .jjk-gate-canvas {
+    background-image: url("/img/gate-hero-portrait.webp");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
 
   /* ======================================================================
      SEKTIONEN 2–8: HANDY-KORREKTUREN
