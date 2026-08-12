@@ -5995,6 +5995,20 @@ p,
     overflow-x: hidden;
   }
 
+  /* ---- Hero: Portrait-Version des Tor-Bildes ---------------------------------
+     gate-hero.webp ist 1920 x 1200 (Querformat). cover auf einem 390 x 844
+     Schirm zeigt nur die mittleren 26 % der Breite. gate-hero-portrait.webp
+     ist ein 9:20-Ausschnitt aus der Bildmitte (540 x 1200 px, erzeugt von
+     scripts/gen-gate-portrait.py). cover zeigt damit das Motiv fast vollstaendig.
+     GlassCursor laeuft auf Touch nicht (kein Zeiger); daher kein ThreeJS-Canvas
+     als Konkurrenz — der CSS-Hintergrund ist die einzige Darstellungsebene. */
+  .jjk-gate-canvas {
+    background-image: url("/img/gate-hero-portrait.webp");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+
   /* ======================================================================
      SEKTIONEN 2–8: HANDY-KORREKTUREN
      ====================================================================== */
