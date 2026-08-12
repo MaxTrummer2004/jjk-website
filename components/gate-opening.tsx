@@ -61,6 +61,7 @@ import {
 import { KanjiTitle } from "@/components/kanji-title";
 import { setOpeningDone } from "@/lib/opening";
 import { useReducedMotion } from "@/lib/motion";
+import { useIsTouch } from "@/lib/pointer";
 import { useInkTransition } from "@/lib/ink-transition-context";
 import { siteConfig } from "@/lib/config";
 
@@ -126,6 +127,7 @@ function seg(p: number, a: number, b: number): number {
 
 export function GateOpening(): ReactNode {
   const reduced = useReducedMotion();
+  const isTouch = useIsTouch();
   const { startTransition } = useInkTransition();
   const rootRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -457,7 +459,9 @@ export function GateOpening(): ReactNode {
             erzeugten Stylesheet. Das hat in diesem Projekt schon einmal zwei
             Runden gekostet. */}
         <div className="jjk-gate-canvas">
-          <GlassCursor src="/img/gate-hero.webp" width="100%" height="100%" />
+          {/* Kein Zeiger auf Touch → kein Glass-Effekt → kein WebGL-Kontext.
+              Der CSS-Hintergrund von .jjk-gate-canvas uebernimmt. */}
+          {!isTouch && <GlassCursor src="/img/gate-hero.webp" width="100%" height="100%" />}
         </div>
 
         {/* Die Glut im Grund. Liegt auf den Platten und UNTER dem Nebel: was
