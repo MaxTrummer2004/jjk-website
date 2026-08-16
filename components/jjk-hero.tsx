@@ -91,8 +91,14 @@ export function JJKHero(): ReactNode {
                 : { duration: 0 }
           }
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
+          className="pointer-events-none absolute -inset-1"
         >
+          {/* -inset-1 statt inset-0: der WebGL-Canvas (r3f/ResizeObserver)
+              hinkt der CSS-Groesse auf Mobile manchmal einen Frame hinterher,
+              wenn die Adressleiste beim Swipen ein-/ausblendet — sichtbar als
+              schwarzer/dunkler Rand rechts oder unten. 4px Ueberstand auf
+              allen Seiten (durch overflow-x:hidden auf html/body ohnehin
+              unsichtbar) puffert das ab. */}
           <Watercolor
             className="absolute inset-0"
             color1="#030304"

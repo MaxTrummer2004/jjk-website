@@ -62,6 +62,12 @@ function ShowcaseVideo({
  * sticky+Adressleiste anstellt), `absolute` am Ende, damit sie sich exakt am
  * unteren Rand der 180svh-Section loest statt daran vorbeizuschweben.
  */
+/** Ein bisschen groesser als exakt, damit ein kurz veralteter Wert (siehe
+ *  unten) nie einen schwarzen Spalt zwischen Videobox und Viewportrand
+ *  aufreissen laesst — durch overflow-x:hidden auf html/body und das
+ *  overflow-hidden der Pin-Huelle ohnehin unsichtbar. */
+const OVERSCAN = 3;
+
 export function VideoShowcase(): ReactNode {
   const prefersReducedMotion = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
@@ -69,38 +75,52 @@ export function VideoShowcase(): ReactNode {
   const [viewport, setViewport] = useState({ w: 1280, h: 800 });
   const scrollProgress = useMotionValue(0);
 
+  /**
+   * Viewport-Messung und Scroll-Fortschritt in EINEM Handler, an mehr als
+   * nur "resize" gehaengt: auf Mobile aendert die Adressleiste beim Swipen
+   * `window.innerHeight`, ohne dass "resize" zuverlaessig (oder rechtzeitig)
+   * feuert — das liess `viewport` veraltet stehen und die Videobox kurz zu
+   * klein/gross erscheinen (sichtbarer Rand). `visualViewport` bekommt genau
+   * diese Aenderungen mit, und "scroll" feuert ohnehin bei jedem Swipe-Frame,
+   * also wird hier bei jedem Tick neu gemessen statt nur bei "resize".
+   */
   useEffect(() => {
-    const update = (): void =>
-      setViewport({ w: window.innerWidth, h: window.innerHeight });
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
+    const vv = window.visualViewport;
 
-  useEffect(() => {
     const update = (): void => {
+      const w = Math.ceil(vv?.width ?? window.innerWidth);
+      const h = Math.ceil(vv?.height ?? window.innerHeight);
+      setViewport((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
+
       const el = sectionRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
-      const scrollableHeight = rect.height - window.innerHeight;
+      const scrollableHeight = rect.height - h;
       const progress =
         scrollableHeight > 0
           ? Math.min(Math.max(-rect.top / scrollableHeight, 0), 1)
           : 0;
       scrollProgress.set(progress);
     };
+
     update();
     window.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    vv?.addEventListener("resize", update);
+    vv?.addEventListener("scroll", update);
     return () => {
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+      vv?.removeEventListener("resize", update);
+      vv?.removeEventListener("scroll", update);
     };
   }, [scrollProgress]);
 
   const fullWidth =
-    Math.min(viewport.w, MAX_WIDTH) - sectionPadding(viewport.w) * 2;
-  const fullHeight = viewport.h - NAV_OFFSET - BOTTOM_GAP;
+    Math.min(viewport.w, MAX_WIDTH) - sectionPadding(viewport.w) * 2 + OVERSCAN;
+  const fullHeight = viewport.h - NAV_OFFSET - BOTTOM_GAP + OVERSCAN;
   const peekY = viewport.h - PEEK_VISIBLE - NAV_OFFSET;
 
   const width = useTransform(
