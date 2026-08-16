@@ -80,9 +80,7 @@ export function JJKHero(): ReactNode {
       >
         <motion.div
           initial={false}
-          animate={
-            revealed ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }
-          }
+          animate={{ opacity: revealed ? 1 : 0 }}
           transition={
             prefersReducedMotion
               ? { duration: 0.01 }
@@ -93,12 +91,17 @@ export function JJKHero(): ReactNode {
           aria-hidden="true"
           className="pointer-events-none absolute -inset-1"
         >
-          {/* -inset-1 statt inset-0: der WebGL-Canvas (r3f/ResizeObserver)
-              hinkt der CSS-Groesse auf Mobile manchmal einen Frame hinterher,
-              wenn die Adressleiste beim Swipen ein-/ausblendet — sichtbar als
-              schwarzer/dunkler Rand rechts oder unten. 4px Ueberstand auf
-              allen Seiten (durch overflow-x:hidden auf html/body ohnehin
-              unsichtbar) puffert das ab. */}
+          {/* Nur opacity, kein "scale: 0.96 -> 1" mehr auf diesem Layer:
+              react-three-fiber misst den Canvas seiner Groesse einmalig beim
+              Mount ueber getBoundingClientRect() dieses Elternelements — traf
+              das genau in einen Frame der Scale-Animation (z.B. 0.968 statt
+              1), blieb der Canvas fuer immer auf dieser zu kleinen Pixelgroesse
+              haengen (gemessen: 927x894 statt 958x924), sichtbar als
+              schwarzer Rand rechts/unten, der "manchmal" auftrat, je nachdem
+              in welchem Animationsframe gemessen wurde. Ohne Transform auf
+              diesem Element misst r3f immer die volle, korrekte Groesse.
+              -inset-1 bleibt als zusaetzlicher Puffer gegen mobile
+              Adressleisten-Resizes (siehe video-showcase.tsx). */}
           <Watercolor
             className="absolute inset-0"
             color1="#030304"
