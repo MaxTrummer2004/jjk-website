@@ -17,7 +17,6 @@
 
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
-import { Plate } from "@/components/plate";
 
 const COLUMNS = [
   {
@@ -64,8 +63,7 @@ const item = {
 
 export default function Footer4() {
   return (
-    <footer className="w-full bg-background">
-      <Plate name="sutra" focus="50% 40%" className="jjk-plate-footer">
+    <footer className="relative w-full" style={{ backgroundColor: "#0a0a0a", isolation: "isolate" }}>
         <motion.div
           variants={container}
           initial="hidden"
@@ -104,7 +102,6 @@ export default function Footer4() {
                     <button
                       type="button"
                       className="jjk-btn px-5"
-                      data-cursor=""
                       aria-label="Subscribe"
                     >
                       <ArrowRight className="h-5 w-5" aria-hidden="true" />
@@ -176,7 +173,6 @@ export default function Footer4() {
             </motion.div>
           </div>
         </motion.div>
-      </Plate>
     </footer>
   );
 }

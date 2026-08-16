@@ -181,7 +181,6 @@ export function Features3(): ReactNode {
                   <button
                     type="button"
                     className="jjk-claim"
-                    data-cursor=""
                     {...(active === i ? { "data-on": "" } : {})}
                     // Pointer, focus and tap all do the same thing. The frame is
                     // the answer to whichever claim the reader is on, however

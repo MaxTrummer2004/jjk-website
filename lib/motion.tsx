@@ -81,9 +81,11 @@ export const reducedMotionVariants: Variants = {
   visible: { opacity: 1 },
 };
 
+export const softEase = [0.4, 0, 0.2, 1] as const;
+
 export const defaultTransition = {
   duration: 0.3,
-  ease: [0.4, 0, 0.2, 1] as const,
+  ease: softEase,
 };
 
 export const springTransition = {

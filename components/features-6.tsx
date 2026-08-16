@@ -35,6 +35,7 @@ import type { ReactNode } from "react";
 import { KanjiLabel } from "@/components/kanji-label";
 import StaggeredText from "@/components/staggered-text";
 import { programs } from "@/lib/config";
+import ClickStack from "@/components/click-stack";
 
 /**
  * One icon per programme, in the order the config lists them.
@@ -65,16 +66,84 @@ export default function Features6(): ReactNode {
           knowing how to do this.
         </p>
 
-        {/* One-pixel gaps over a border-coloured ground, so the six boards read
-            as one panel that has been divided rather than as six things that
-            happen to be near each other. */}
-        <div className="mt-12 grid grid-cols-1 gap-px border border-border bg-border/60 sm:mt-16 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Mobile: click-through stack — one card at a time, no vertical scroll */}
+        <div className="mt-12 sm:hidden">
+          <div className="mt-10 h-[500px]">
+            <ClickStack
+              items={programs.map((p, i) => (
+                <BoardContent key={p.title} program={p} index={i} Icon={ICONS[i] ?? Shield} />
+              ))}
+              cardWidth={240}
+              cardHeight={360}
+              spreadX={22}
+              spreadY={-18}
+              shadowBlur={40}
+              borderRadius={10}
+              cardColor="#0f0e0d"
+              shadowOpacity={0.55}
+              visibleCount={4}
+              depthScale={0.06}
+              depthOpacity={0.12}
+              duration={0.4}
+              ease="power3.out"
+              tapHint
+            />
+          </div>
+          <p className="mt-4 text-center font-mono text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground/50">
+            Click to browse programs
+          </p>
+        </div>
+
+        {/* Desktop: one-pixel gaps over a border-coloured ground */}
+        <div className="mt-12 hidden gap-px border border-border bg-border/60 sm:mt-16 sm:grid sm:grid-cols-2 lg:grid-cols-3">
           {programs.map((p, i) => (
             <Board key={p.title} program={p} index={i} Icon={ICONS[i] ?? Shield} />
           ))}
         </div>
       </div>
     </section>
+  );
+}
+
+function BoardContent({
+  program,
+  index,
+}: {
+  program: (typeof programs)[number];
+  index: number;
+  Icon: LucideIcon;
+}): ReactNode {
+  return (
+    <div className="relative flex h-full flex-col overflow-hidden px-5 pt-5 pb-6">
+      {/* Kanji — decorative background, bleeds off the right edge */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute right-[-0.1em] bottom-[0.5rem] select-none leading-none text-foreground/[0.06]"
+        style={{ fontFamily: "var(--font-jp)", fontSize: "9rem" }}
+      >
+        {program.kanji}
+      </span>
+
+      {/* Top row */}
+      <div className="flex items-center justify-between pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <span className="font-mono text-[0.65rem] font-medium tracking-[0.26em] text-muted-foreground">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <span className="font-mono text-[0.6rem] uppercase tracking-widest text-accent/60">{program.tag}</span>
+      </div>
+
+      {/* Content — pushed to bottom */}
+      <div className="relative mt-auto">
+        <p className="font-mono text-[0.6rem] uppercase tracking-[0.22em] text-muted-foreground/70 mb-2">{program.level}</p>
+        <h3
+          className="text-xl font-medium leading-tight text-foreground"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          {program.title}
+        </h3>
+        <p className="mt-2.5 text-[0.75rem] leading-relaxed text-foreground/50">{program.blurb}</p>
+      </div>
+    </div>
   );
 }
 
@@ -94,7 +163,6 @@ function Board({
       viewport={{ once: true, amount: 0.35 }}
       transition={{ duration: 0.5, delay: 0.06 * index, ease: [0.22, 1, 0.36, 1] }}
       className="jjk-board group"
-      data-cursor=""
     >
       {/* The painted character, standing behind its own board. Aria-hidden: it
           is the same word as the title in another alphabet, and a screen reader

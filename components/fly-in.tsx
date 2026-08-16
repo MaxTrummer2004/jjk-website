@@ -786,7 +786,6 @@ export function FlyIn({ onLanded, hold = 0.15, className = "" }: FlyInProps): Re
         // components/custom-cursor.tsx. It is not a second stamp next to the
         // first: until the reader clicks, the seal on the map is the one the
         // MACHINE pressed, and the one under the pointer is theirs.
-        data-cursor-seal=""
         style={{ left: "50%", top: "50%", width: MARK_MIN_PX, height: MARK_MIN_PX, opacity: 0 }}
       >
         {/* Shown by CSS off the layer's `data-phase`, not from here: while the

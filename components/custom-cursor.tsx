@@ -183,22 +183,26 @@ const CustomCursor: React.FC<CustomCursorProps> = ({
    */
   const [elements, setElements] = useState<HTMLElement[]>([]);
 
-  const cursorX = useMotionValue(
-    typeof window !== "undefined" ? window.innerWidth / 2 : 0,
-  );
-  const cursorY = useMotionValue(
-    typeof window !== "undefined" ? window.innerHeight / 2 : 0,
-  );
+  // 0 on both server and the client's first render pass — window.innerWidth
+  // read directly here would differ between the two (server always sees
+  // `undefined`), which is exactly the hydration-mismatch pattern Next.js
+  // warns about. Set to the real center only after mount, client-only.
+  const cursorX = useMotionValue(0);
+  const cursorY = useMotionValue(0);
 
   const circleWidthMV = useMotionValue(circleSize);
   const circleHeightMV = useMotionValue(circleSize);
   const circleBorderRadiusMV = useMotionValue(circleSize / 2);
-  const circleXMV = useMotionValue(
-    typeof window !== "undefined" ? window.innerWidth / 2 : 0,
-  );
-  const circleYMV = useMotionValue(
-    typeof window !== "undefined" ? window.innerHeight / 2 : 0,
-  );
+  const circleXMV = useMotionValue(0);
+  const circleYMV = useMotionValue(0);
+
+  useEffect(() => {
+    cursorX.set(window.innerWidth / 2);
+    cursorY.set(window.innerHeight / 2);
+    circleXMV.set(window.innerWidth / 2);
+    circleYMV.set(window.innerHeight / 2);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const springConfig = {
     stiffness: 350,

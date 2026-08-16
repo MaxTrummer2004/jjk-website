@@ -60,7 +60,6 @@ export default function FAQ1() {
                   <button
                     type="button"
                     className="jjk-qa-q"
-                    data-cursor=""
                     onClick={() => setOpen(on ? null : i)}
                     aria-expanded={on}
                   >

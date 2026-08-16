@@ -261,6 +261,20 @@ export const coaches = [
     beltColor: "purple",
     bio: "The reason so many beginners fall in love with the art. Patient, precise, encouraging.",
   },
+  {
+    name: "Tomás Carvalho",
+    role: "Wrestling & Takedowns",
+    belt: "Black Belt",
+    beltColor: "black",
+    bio: "National freestyle wrestling champion. Closes the distance before you blink.",
+  },
+  {
+    name: "Yuki Nakamura",
+    role: "Gi & Self-Defence",
+    belt: "Brown Belt",
+    beltColor: "brown",
+    bio: "Classical Judo base, modern BJJ top-game. Makes every grip exchange a lesson.",
+  },
 ] as const;
 
 export const testimonials = [

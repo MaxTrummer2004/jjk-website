@@ -83,7 +83,6 @@ export default function Pricing2() {
 
               <a
                 href="#contact"
-                data-cursor=""
                 className={`jjk-btn mt-8 w-full ${tier.featured ? "" : "jjk-btn-quiet"}`}
               >
                 {tier.cta}

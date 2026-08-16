@@ -39,3 +39,9 @@ _sync8/
 
 # Werkzeugordner, kein Quellstand.
 .claude/
+
+# Referenz-Vorlage (eigenes Git-Repo, gehoert nicht in dieses Repo)
+hero und video danach vorlage/
+
+# Sicherungskopie vor dem Hero/Video-Rebuild, kein Quellstand
+_backup_pre_rebuild/
