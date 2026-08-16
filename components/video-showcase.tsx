@@ -212,8 +212,18 @@ export function VideoShowcase(): ReactNode {
     >
       <motion.div
         style={{ position: pinPosition, top: pinTop, bottom: pinBottom, left: 0, right: 0 }}
-        className="h-svh overflow-hidden"
+        className="h-lvh overflow-hidden"
       >
+        {/* h-lvh statt h-svh: dieser Wrapper ist waehrend des Pins `position:
+            fixed` und muss den sichtbaren Bereich IMMER voll abdecken. `svh`
+            geht von eingeblendeter Adressleiste aus (kleinstmoegliche Hoehe)
+            — blendet die Leiste auf einem echten Handy beim Scrollen aus,
+            wird der sichtbare Bereich groesser als `100svh`, und der fixierte
+            Wrapper bleibt zu kurz: schwarzer Rand unten. `lvh` geht vom
+            eingeklappten Zustand aus (groesstmoegliche Hoehe) und deckt den
+            Viewport so immer ab. Beides sind statische Werte (kein
+            Nachzittern wie bei `dvh`), Chrome-DevTools-Emulation ohne echte
+            Adressleiste zeigt den Unterschied nie. */}
         <motion.p
           style={{ x: "-50%", y: captionY, opacity: captionOpacity }}
           className="text-foreground absolute top-0 left-1/2 flex items-center gap-2.5 text-xs font-medium whitespace-nowrap"

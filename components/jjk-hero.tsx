@@ -71,7 +71,11 @@ export function JJKHero(): ReactNode {
   return (
     <section
       ref={heroRef}
-      className="bg-background-deep relative flex h-svh min-h-[640px] items-center justify-center"
+      // h-lvh statt h-svh: siehe video-showcase.tsx fuer die Begruendung —
+      // ohne das wird die Section auf einem echten Handy kuerzer als der
+      // sichtbare Bereich, sobald die Adressleiste beim Scrollen ausblendet,
+      // und am unteren Rand blitzt kurz auf, was dahinter liegt.
+      className="bg-background-deep relative flex h-lvh min-h-[640px] items-center justify-center"
       aria-label={siteConfig.fullName}
     >
       <motion.div
