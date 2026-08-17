@@ -212,8 +212,15 @@ export function VideoShowcase(): ReactNode {
     >
       <motion.div
         style={{ position: pinPosition, top: pinTop, bottom: pinBottom, left: 0, right: 0 }}
-        className="h-lvh overflow-hidden"
+        className="z-20 h-lvh overflow-hidden"
       >
+        {/* z-20 direkt hier (nicht nur auf der Section aussen): `position:
+            fixed`-Kindelemente stapeln sich zwar innerhalb des
+            Stacking-Contexts der Section, aber ein z-index direkt auf dem
+            tatsaechlich fixierten Element ist eindeutig statt sich auf diese
+            Vererbung zu verlassen — der Watercolor-Hintergrund im Hero
+            (siehe jjk-hero.tsx, dort bewusst niedriger) schien sonst
+            teilweise ueber dem Video statt darunter. */}
         {/* h-lvh statt h-svh: dieser Wrapper ist waehrend des Pins `position:
             fixed` und muss den sichtbaren Bereich IMMER voll abdecken. `svh`
             geht von eingeblendeter Adressleiste aus (kleinstmoegliche Hoehe)
