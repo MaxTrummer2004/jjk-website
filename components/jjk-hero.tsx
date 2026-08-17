@@ -71,17 +71,19 @@ export function JJKHero(): ReactNode {
   return (
     <section
       ref={heroRef}
-      // h-dvh statt h-svh/h-lvh: `lvh` (groesstmoegliche Hoehe, geht vom
-      // eingeklappten Leisten-Zustand aus) hat den Rand unten zwar behoben,
-      // aber bei sichtbarer Leiste (Normalzustand direkt beim Laden) ist die
-      // Section dann hoeher als der wirklich sichtbare Bereich — der
-      // zentrierte Titel/Buttons rutschen optisch nach unten. `dvh` (dynamic
-      // viewport height) folgt stattdessen live dem tatsaechlichen
-      // Leisten-Zustand: immer exakt so gross wie der sichtbare Bereich,
-      // weder Rand unten noch Verschiebung. Unkritisch hier, weil die
-      // Section nicht `position: fixed` ist (anders als der Video-Pin-
-      // Wrapper in video-showcase.tsx, der bewusst bei `lvh` bleibt).
-      className="bg-background-deep relative flex h-dvh min-h-[640px] items-center justify-center"
+      // h-svh, bewusst NICHT dvh/lvh: dvh folgt live der Adressleiste — genau
+      // waehrend die beim ersten Swipe einklappt, aendert sich dann live die
+      // Section-Hoehe MITTEN in der Wischgeste, was einen Teil davon
+      // "auffrisst" (ein Swipe wirkte wie keiner, das Video brauchte zwei).
+      // lvh loeste zwar den Rand unten, verschob den zentrierten Titel aber
+      // bei sichtbarer Leiste (Normalzustand beim Laden) nach unten. svh ist
+      // statisch — kein Ruckeln waehrend des Swipes, Titel/Buttons korrekt
+      // zentriert im Normalzustand. Diese Section ist (anders als der
+      // Video-Pin-Wrapper in video-showcase.tsx) kein `position: fixed`,
+      // daher kein hartes Erfordernis, den groesstmoeglichen Fall
+      // abzudecken — das eigentliche Randproblem hier war ohnehin der
+      // Canvas-Transform-Bug (siehe Watercolor-Kommentar unten).
+      className="bg-background-deep relative flex h-svh min-h-[640px] items-center justify-center"
       aria-label={siteConfig.fullName}
     >
       <motion.div
