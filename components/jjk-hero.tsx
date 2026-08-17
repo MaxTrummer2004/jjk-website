@@ -63,6 +63,34 @@ export function JJKHero(): ReactNode {
   // wirklich weg (opacity 0), nicht nur fast.
   const scrollFade = useTransform(scrollFraction, [0, 0.5], [1, 0]);
 
+  // ── Das Pinning ──────────────────────────────────────────────────────────
+  // Der Hero war bisher ein ganz normaler, mitscrollender Abschnitt: beim
+  // ersten Swipe wanderte er einfach nach oben aus dem Bild, WAEHRENDDESSEN
+  // faded er zwar, aber das Video reagierte in genau diesem Swipe kaum
+  // sichtbar mit — es fuehlte sich an, als wuerde nur der Hero wegscrollen
+  // und erst ein zweiter Swipe das Video bringen. Jetzt exakt wie die
+  // Video-Box in video-showcase.tsx gepinnt: `fixed` (haengt fest am
+  // Viewport, bewegt sich NICHT mit dem Scroll) solange scrollFraction < 1,
+  // danach `absolute` am unteren Rand der eigenen h-svh-Box verankert — zu
+  // dem Zeitpunkt ist die Opacity laengst 0, der Wechsel unsichtbar. Die
+  // Section selbst bleibt im Fluss und beansprucht weiter genau eine
+  // h-svh-Scrollstrecke, nur ihr INHALT bewegt sich nicht mehr mit.
+  const pinPosition = useTransform(scrollFraction, (v) =>
+    v >= 1 ? "absolute" : "fixed"
+  );
+  const pinTop = useTransform(scrollFraction, (v) => (v >= 1 ? "auto" : "0px"));
+  const pinBottom = useTransform(scrollFraction, (v) =>
+    v >= 1 ? "0px" : "auto"
+  );
+  // Der Inhalt (inkl. Buttons) haengt jetzt bis fraction=1 fix am Viewport,
+  // auch nachdem er bei fraction=0.5 unsichtbar geworden ist — ohne das hier
+  // blieben "Book a trial class"/"Schedule" unsichtbar, aber bildschirmfest
+  // anklickbar und wuerden Klicks/Taps abfangen, die eigentlich dem Video
+  // oder was danach kommt galten. Gleiche Schwelle wie der Opacity-Fade.
+  const pinPointerEvents = useTransform(scrollFraction, (v) =>
+    v < 0.5 ? "auto" : "none"
+  );
+
   useEffect(() => {
     if (prefersReducedMotion) {
       setRevealed(true);
@@ -90,20 +118,24 @@ export function JJKHero(): ReactNode {
       // h-svh, bewusst NICHT dvh/lvh: dvh folgt live der Adressleiste — genau
       // waehrend die beim ersten Swipe einklappt, aendert sich dann live die
       // Section-Hoehe MITTEN in der Wischgeste, was einen Teil davon
-      // "auffrisst" (ein Swipe wirkte wie keiner, das Video brauchte zwei).
-      // lvh loeste zwar den Rand unten, verschob den zentrierten Titel aber
-      // bei sichtbarer Leiste (Normalzustand beim Laden) nach unten. svh ist
-      // statisch — kein Ruckeln waehrend des Swipes, Titel/Buttons korrekt
-      // zentriert im Normalzustand. Diese Section ist (anders als der
-      // Video-Pin-Wrapper in video-showcase.tsx) kein `position: fixed`,
-      // daher kein hartes Erfordernis, den groesstmoeglichen Fall
-      // abzudecken — das eigentliche Randproblem hier war ohnehin der
-      // Canvas-Transform-Bug (siehe Watercolor-Kommentar unten).
-      className="bg-background-deep relative flex h-svh min-h-[640px] items-center justify-center"
+      // "auffrisst". lvh loeste zwar den Rand unten, verschob den
+      // zentrierten Titel aber bei sichtbarer Leiste (Normalzustand beim
+      // Laden) nach unten. svh ist statisch — kein Ruckeln, Titel/Buttons
+      // korrekt zentriert im Normalzustand. Diese Section selbst ist kein
+      // `position: fixed` (nur ihr Inhalt gleich, siehe pinPosition) — sie
+      // beansprucht nur weiterhin genau eine h-svh-Scrollstrecke im Fluss.
+      className="relative h-svh min-h-[640px]"
       aria-label={siteConfig.fullName}
     >
       <motion.div
-        style={{ opacity: prefersReducedMotion ? 1 : scrollFade }}
+        style={{ position: pinPosition, top: pinTop, bottom: pinBottom, left: 0, right: 0 }}
+        className="bg-background-deep z-0 flex h-svh min-h-[640px] items-center justify-center overflow-hidden"
+      >
+      <motion.div
+        style={{
+          opacity: prefersReducedMotion ? 1 : scrollFade,
+          pointerEvents: prefersReducedMotion ? "auto" : pinPointerEvents,
+        }}
         className="absolute inset-0 flex items-center justify-center"
       >
         <motion.div
@@ -185,6 +217,7 @@ export function JJKHero(): ReactNode {
             </a>
           </motion.div>
         </div>
+      </motion.div>
       </motion.div>
     </section>
   );
