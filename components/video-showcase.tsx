@@ -101,17 +101,6 @@ export function VideoShowcase(): ReactNode {
           ? Math.min(Math.max(-rect.top / scrollableHeight, 0), 1)
           : 0;
       scrollProgress.set(progress);
-
-      // Der globale "Warm Wash" (Atmosphere-Komponente) legt sich sonst
-      // ueber jede Sektion inkl. Video — auf dem echten Videomaterial faellt
-      // der Farbstich anders auf als auf den dunklen Sektionen, fuer die er
-      // gedacht ist. Solange die Videobox im Viewport sichtbar ist, wird er
-      // hier auf 0 gesetzt und danach wieder freigegeben.
-      const videoVisible = rect.bottom > 0 && rect.top < h;
-      document.documentElement.style.setProperty(
-        "--jjk-warm-wash-opacity",
-        videoVisible ? "0" : "0.035"
-      );
     };
 
     update();
@@ -126,7 +115,6 @@ export function VideoShowcase(): ReactNode {
       window.removeEventListener("orientationchange", update);
       vv?.removeEventListener("resize", update);
       vv?.removeEventListener("scroll", update);
-      document.documentElement.style.removeProperty("--jjk-warm-wash-opacity");
     };
   }, [scrollProgress]);
 
