@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducedMotion } from "@/lib/motion";
+import { lenisRef } from "@/lib/lenis";
 import { motion, useMotionValue, useTransform } from "motion/react";
 import { ArrowDown, Play } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
@@ -68,6 +69,16 @@ function ShowcaseVideo({
  *  overflow-hidden der Pin-Huelle ohnehin unsichtbar. */
 const OVERSCAN = 3;
 
+/** Ab welcher Lenis-Velocity ein Swipe als "zu stark" gilt und der
+ *  Sanft-Stop (siehe Effect weiter unten) eingreift. Lenis' `velocity` ist
+ *  grob px pro Frame der animierten (nicht der rohen) Scrollposition — bei
+ *  `touchMultiplier: 2` reicht ein normaler Wisch am Handy im Alltag nicht
+ *  annaehernd an diesen Wert heran, ein kraeftiger Flick schon deutlich. */
+const CATCH_VELOCITY = 25;
+
+/** Feste, kurze Dauer fuer den Sanft-Stop selbst. */
+const CATCH_DURATION = 0.5;
+
 export function VideoShowcase(): ReactNode {
   const prefersReducedMotion = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
@@ -117,6 +128,91 @@ export function VideoShowcase(): ReactNode {
       vv?.removeEventListener("scroll", update);
     };
   }, [scrollProgress]);
+
+  /**
+   * ── Sanft-Stop bei der voll ausgewachsenen Groesse (nur mobil) ──────────
+   * Nur am Handy laesst sich das Video bei einem kraeftigen Swipe komplett
+   * uebersehen: die Wachstumsanimation ist bei GROWTH_END (55%) fertig,
+   * aber die Pin-Strecke laeuft bis 100% weiter — ein starker Wisch reisst
+   * ueber die volle Strecke, und "fertig gewachsen" wird nie wirklich
+   * wahrgenommen.
+   *
+   * Der fruehere Versuch, das per manuellem preventDefault + eigenem
+   * `window.scrollTo` zu verhindern, fuehlte sich steif an — aus gutem
+   * Grund: die Seite scrollt hier ueber Lenis (components/smooth-scroll.tsx),
+   * und Lenis "besitzt" die Scrollposition und animiert bei jedem eigenen
+   * `window.scrollTo`-Aufruf von aussen dagegen an (siehe Kommentar in
+   * lib/lenis.ts). Deshalb jetzt NICHT mehr gegen Lenis ankaempfen, sondern
+   * Lenis' eigene `scrollTo`-API nutzen: sobald ein SCHNELLER Scroll (hohe
+   * `velocity`) die Zone kurz nach GROWTH_END durchquert, wird die laufende
+   * Lenis-Animation einmalig sanft auf genau den GROWTH_END-Punkt
+   * umgelenkt (kurze eigene Dauer) — kein Sperren, kein Abfangen von
+   * Touch-Events, die Seite bleibt frei scrollbar. Ein zweiter Swipe
+   * danach setzt normal fort.
+   */
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    if (!window.matchMedia("(max-width: 639px)").matches) return;
+
+    let disposed = false;
+    let hasCaught = false;
+    let unsubscribe: (() => void) | null = null;
+
+    // `any` bewusst: Lenis' eigener Event-Typ bringt hier mehr Aerger als
+    // Nutzen (die Callback-Signatur in `lenis.on` ist je nach Version
+    // uneinheitlich typisiert) - uns interessieren ohnehin nur diese zwei
+    // Felder, die laut Lenis-Doku immer vorhanden sind.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const onLenisScroll = (e: any): void => {
+      const el = sectionRef.current;
+      const lenis = lenisRef.current;
+      if (!el || !lenis) return;
+
+      const vh = window.visualViewport?.height ?? window.innerHeight;
+      const rect = el.getBoundingClientRect();
+      const scrollableHeight = rect.height - vh;
+      if (scrollableHeight <= 0) return;
+
+      // Ungeklemmt, um zu erkennen, dass wir GENAU jetzt durch die Zone
+      // knapp nach GROWTH_END fliegen (die geklemmte scrollProgress bliebe
+      // ab 1 einfach bei 1 stehen und wuerde das "gerade durchquert" nicht
+      // mehr hergeben).
+      const rawProgress = -rect.top / scrollableHeight;
+      const inCatchZone = rawProgress > GROWTH_END && rawProgress < 0.95;
+
+      if (!inCatchZone) {
+        hasCaught = false;
+        return;
+      }
+      if (hasCaught) return;
+      if (Math.abs(e.velocity) < CATCH_VELOCITY) return;
+
+      hasCaught = true;
+      const documentTop = rect.top + e.animatedScroll;
+      const targetY = documentTop + GROWTH_END * scrollableHeight;
+      lenis.scrollTo(targetY, { duration: CATCH_DURATION });
+    };
+
+    // lenisRef.current ist evtl. noch null, wenn dieser Effect vor dem
+    // Effect von SmoothScroll laeuft (Kind-Effects feuern vor denen der
+    // Eltern) — deshalb kurz per rAF pollen statt direkt zu subscriben.
+    const trySubscribe = (): void => {
+      if (disposed) return;
+      const lenis = lenisRef.current;
+      if (!lenis) {
+        requestAnimationFrame(trySubscribe);
+        return;
+      }
+      lenis.on("scroll", onLenisScroll);
+      unsubscribe = () => lenis.off("scroll", onLenisScroll);
+    };
+    trySubscribe();
+
+    return () => {
+      disposed = true;
+      unsubscribe?.();
+    };
+  }, [prefersReducedMotion]);
 
   const fullWidth =
     Math.min(viewport.w, MAX_WIDTH) - sectionPadding(viewport.w) * 2 + OVERSCAN;
