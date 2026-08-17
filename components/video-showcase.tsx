@@ -68,6 +68,11 @@ function ShowcaseVideo({
  *  overflow-hidden der Pin-Huelle ohnehin unsichtbar. */
 const OVERSCAN = 3;
 
+/** Feste Dauer (ms) fuer einen Durchlauf der Pin-and-Grow-Strecke (Richtung
+ *  0->1 oder 1->0), egal wie kraeftig geswiped/gescrollt wird — siehe die
+ *  ausfuehrliche Erklaerung beim Scroll-Lock-Effect weiter unten. */
+const ANIMATION_DURATION = 650;
+
 export function VideoShowcase(): ReactNode {
   const prefersReducedMotion = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
@@ -117,6 +122,144 @@ export function VideoShowcase(): ReactNode {
       vv?.removeEventListener("scroll", update);
     };
   }, [scrollProgress]);
+
+  /**
+   * ── Scroll-Lock waehrend Pin-and-Grow ───────────────────────────────────
+   * Bisher hing scrollProgress 1:1 an der echten Scrollposition. Bei einem
+   * kraeftigen Swipe/Flick am Handy — inklusive der nativen
+   * Momentum-Animation NACH dem Loslassen, die JS gar nicht mehr sieht,
+   * sobald sie einmal laeuft — konnte die komplette Wachstumsstrecke in
+   * einem einzigen, kaum wahrnehmbaren Sprung durchlaufen werden ("laeuft
+   * ueber Video hinweg"). Jetzt wird genau in dieser Strecke (rect.top
+   * zwischen 0 und -scrollableHeight, also waehrend die Box tatsaechlich
+   * gepinnt ist) jedes wheel-/touchmove-Event abgefangen: preventDefault
+   * verhindert, dass der Browser ueberhaupt erst eigene
+   * Momentum-Physik startet, und nur die RICHTUNG des Inputs zaehlt — die
+   * Staerke/Geschwindigkeit wird bewusst ignoriert. Stattdessen laeuft
+   * scrollProgress per rAF immer ueber exakt ANIMATION_DURATION zum Ziel
+   * (0 oder 1) und schreibt synchron per `window.scrollTo` die echte
+   * Scrollposition mit, damit rect.top danach wieder zur Realitaet passt.
+   * Sobald das Ziel erreicht ist UND der Input weiter in dieselbe Richtung
+   * geht, wird die Kontrolle wieder an den nativen Scroll uebergeben.
+   *
+   * Ausserhalb dieser Strecke (Box noch nicht erreicht oder schon ganz
+   * durchgescrollt) greift nichts davon — normales, freies Scrollen bleibt
+   * ueberall sonst unveraendert.
+   */
+  const lockedRef = useRef(false);
+  const animatingRef = useRef(false);
+  const animatingTargetRef = useRef<0 | 1 | null>(null);
+  const rafIdRef = useRef<number | null>(null);
+  const touchYRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+
+    const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+
+    const stopAnimation = (): void => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+      animatingRef.current = false;
+      animatingTargetRef.current = null;
+    };
+
+    const animateTo = (target: 0 | 1, rect: DOMRect, viewportH: number): void => {
+      const scrollableHeight = rect.height - viewportH;
+      if (scrollableHeight <= 0) return;
+      // documentTop/scrollableHeight bleiben fuer die Dauer der Animation
+      // konstant: waehrend gesperrt ist, aendert nur UNSER window.scrollTo
+      // unten die echte Position, nie ein natives Scroll-Event.
+      const documentTop = rect.top + window.scrollY;
+      const startProgress = scrollProgress.get();
+      const startTime = performance.now();
+
+      animatingRef.current = true;
+      animatingTargetRef.current = target;
+
+      const tick = (now: number): void => {
+        const t = Math.min((now - startTime) / ANIMATION_DURATION, 1);
+        const eased = easeOutCubic(t);
+        const value = startProgress + (target - startProgress) * eased;
+        scrollProgress.set(value);
+        window.scrollTo(0, documentTop + value * scrollableHeight);
+
+        if (t < 1) {
+          rafIdRef.current = requestAnimationFrame(tick);
+        } else {
+          stopAnimation();
+          lockedRef.current = false;
+        }
+      };
+      rafIdRef.current = requestAnimationFrame(tick);
+    };
+
+    const handleDirectionalInput = (deltaY: number, event: Event): void => {
+      // Kleines Deadzone gegen Zittern/Rauschen einzelner touchmove-Events.
+      if (Math.abs(deltaY) < 2) return;
+
+      const el = sectionRef.current;
+      if (!el) return;
+      const viewportH = window.visualViewport?.height ?? window.innerHeight;
+      const rect = el.getBoundingClientRect();
+      const scrollableHeight = rect.height - viewportH;
+      if (scrollableHeight <= 0) return;
+
+      const wantsForward = deltaY > 0;
+      const inPinRange = rect.top <= 0.5 && rect.top >= -(scrollableHeight + 0.5);
+
+      // Ausserhalb der gepinnten Strecke (und nicht schon mitten in einer
+      // gesperrten Animation) ist das hier nicht unsere Zustaendigkeit —
+      // normal weiterscrollen lassen.
+      if (!inPinRange && !lockedRef.current) return;
+
+      const currentProgress = scrollProgress.get();
+      const exitingTop = currentProgress <= 0.001 && !wantsForward;
+      const exitingBottom = currentProgress >= 0.999 && wantsForward;
+      if (exitingTop || exitingBottom) {
+        // Rand der Strecke erreicht und weiter in dieselbe Richtung
+        // unterwegs — dem nativen Scroll wieder das Feld ueberlassen.
+        lockedRef.current = false;
+        stopAnimation();
+        return;
+      }
+
+      event.preventDefault();
+      lockedRef.current = true;
+
+      const target: 0 | 1 = wantsForward ? 1 : 0;
+      if (animatingRef.current && animatingTargetRef.current === target) return; // schon unterwegs dorthin
+
+      stopAnimation();
+      animateTo(target, rect, viewportH);
+    };
+
+    const onWheel = (e: WheelEvent): void => handleDirectionalInput(e.deltaY, e);
+
+    const onTouchStart = (e: TouchEvent): void => {
+      touchYRef.current = e.touches[0]?.clientY ?? null;
+    };
+
+    const onTouchMove = (e: TouchEvent): void => {
+      const currentY = e.touches[0]?.clientY;
+      if (currentY === undefined || touchYRef.current === null) return;
+      const delta = touchYRef.current - currentY; // Finger nach oben = nach unten scrollen
+      touchYRef.current = currentY;
+      handleDirectionalInput(delta, e);
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      stopAnimation();
+    };
+  }, [prefersReducedMotion, scrollProgress]);
 
   const fullWidth =
     Math.min(viewport.w, MAX_WIDTH) - sectionPadding(viewport.w) * 2 + OVERSCAN;
