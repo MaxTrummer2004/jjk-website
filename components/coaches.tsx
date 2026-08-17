@@ -16,15 +16,15 @@ const MOBILE_QUERY = "(max-width: 639px)";
  * ── Coach-Avatare ────────────────────────────────────────────────────────
  * Neutraler Platzhalter (Kopf + Schultern als Silhouette), bis es echte
  * Fotos gibt — keine echten Fotos, und keine tatsaechlichen Jujutsu-Kaisen-
- * Figuren (urheberrechtlich geschuetzt). Gegenueber der urspruenglichen
- * Version (#2e2b27 auf #1c1a17 — auf dunklen Screens kaum zu erkennen)
- * jetzt deutlich hellerer Kontrast, damit die Form klar sichtbar bleibt.
+ * Figuren (urheberrechtlich geschuetzt). Kraeftiger Kontrast (helle Form
+ * + duennes helleres Outline auf dunklem Grund), damit die Form auch klein
+ * (siehe mobile Groesse unten) klar erkennbar bleibt.
  */
 function avatarDataUrl(): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 520" width="380" height="520">
-  <rect width="380" height="520" fill="#2a2723"/>
-  <circle cx="190" cy="185" r="78" fill="#5a5349"/>
-  <ellipse cx="190" cy="560" rx="155" ry="135" fill="#5a5349"/>
+  <rect width="380" height="520" fill="#201d19"/>
+  <circle cx="190" cy="185" r="78" fill="#9c9182" stroke="#c9bfae" stroke-width="2"/>
+  <ellipse cx="190" cy="560" rx="155" ry="135" fill="#9c9182" stroke="#c9bfae" stroke-width="2"/>
 </svg>`;
 
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
@@ -43,11 +43,11 @@ export function Coaches(): ReactNode {
     return () => mq.removeEventListener("change", update);
   }, []);
 
-  // Am Handy etwas weniger hoch (390 statt 520) — Breite etwas mitreduziert,
-  // damit das Seitenverhaeltnis nicht zu sehr von den 380x520 der Platzhalter
-  // abweicht und der Crop nicht unnoetig viel wegschneidet.
-  const imageWidth = isMobile ? 300 : 380;
-  const imageHeight = isMobile ? 390 : 520;
+  // Am Handy deutlich kleiner (240x300 statt 380x520) — Breite anteilig
+  // mitreduziert, damit das Seitenverhaeltnis nicht zu sehr abweicht und
+  // der Crop nicht unnoetig viel wegschneidet.
+  const imageWidth = isMobile ? 240 : 380;
+  const imageHeight = isMobile ? 300 : 520;
 
   return (
     <section id="coaches" className="w-full">
@@ -81,7 +81,7 @@ export function Coaches(): ReactNode {
           loop
           autoplaySpeed={0}
           showProgress={false}
-          className="h-[390px] sm:h-[520px]"
+          className="h-[300px] sm:h-[520px]"
         />
       </div>
     </section>
