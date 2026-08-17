@@ -121,24 +121,40 @@ export function VideoShowcase(): ReactNode {
   const fullWidth =
     Math.min(viewport.w, MAX_WIDTH) - sectionPadding(viewport.w) * 2 + OVERSCAN;
   const fullHeight = viewport.h - NAV_OFFSET - BOTTOM_GAP + OVERSCAN;
+
+  // PEEK_WIDTH (400) ist auf Mobile fast so breit wie der Screen oder
+  // breiter (ein 390px-Handy hat nur ~350px fullWidth) — der "Peek" war also
+  // schon vor jedem Scroll fast die volle Breite, nicht der kleine Teaser,
+  // der er sein soll. Auf max. 60% von fullWidth gedeckelt, Seitenverhaeltnis
+  // dabei erhalten.
+  const PEEK_ASPECT = PEEK_WIDTH / PEEK_HEIGHT;
+  const peekWidth = Math.min(PEEK_WIDTH, fullWidth * 0.6);
+  const peekHeight = peekWidth / PEEK_ASPECT;
   const peekY = viewport.h - PEEK_VISIBLE - NAV_OFFSET;
+
+  // Auf schmalen Screens braucht ein einzelner Swipe sonst nicht genug
+  // Strecke, um die volle Groesse zu erreichen (GROWTH_END=0.55 der
+  // Pin-Sektion) — man scrollt kurz, das Video reagiert kaum sichtbar, und
+  // erst ein zweiter Swipe bringt es fertig. Auf Mobile frueher fertig
+  // gewachsen, damit ein Swipe reicht.
+  const growthEnd = viewport.w < 640 ? 0.4 : GROWTH_END;
 
   const width = useTransform(
     scrollProgress,
-    [0, GROWTH_END],
-    [PEEK_WIDTH, fullWidth]
+    [0, growthEnd],
+    [peekWidth, fullWidth]
   );
   const height = useTransform(
     scrollProgress,
-    [0, GROWTH_END],
-    [PEEK_HEIGHT, fullHeight]
+    [0, growthEnd],
+    [peekHeight, fullHeight]
   );
-  const y = useTransform(scrollProgress, [0, GROWTH_END], [peekY, 0]);
+  const y = useTransform(scrollProgress, [0, growthEnd], [peekY, 0]);
   const captionOpacity = useTransform(scrollProgress, [0, 0.1], [1, 0]);
   const captionY = useTransform(y, (value) => NAV_OFFSET + value - 44);
   const scrollHintOpacity = useTransform(
     scrollProgress,
-    [GROWTH_END, GROWTH_END + 0.1, 0.9, 0.98],
+    [growthEnd, growthEnd + 0.1, 0.9, 0.98],
     [0, 1, 1, 0]
   );
 
