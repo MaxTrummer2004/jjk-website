@@ -71,11 +71,17 @@ export function JJKHero(): ReactNode {
   return (
     <section
       ref={heroRef}
-      // h-lvh statt h-svh: siehe video-showcase.tsx fuer die Begruendung —
-      // ohne das wird die Section auf einem echten Handy kuerzer als der
-      // sichtbare Bereich, sobald die Adressleiste beim Scrollen ausblendet,
-      // und am unteren Rand blitzt kurz auf, was dahinter liegt.
-      className="bg-background-deep relative flex h-lvh min-h-[640px] items-center justify-center"
+      // h-dvh statt h-svh/h-lvh: `lvh` (groesstmoegliche Hoehe, geht vom
+      // eingeklappten Leisten-Zustand aus) hat den Rand unten zwar behoben,
+      // aber bei sichtbarer Leiste (Normalzustand direkt beim Laden) ist die
+      // Section dann hoeher als der wirklich sichtbare Bereich — der
+      // zentrierte Titel/Buttons rutschen optisch nach unten. `dvh` (dynamic
+      // viewport height) folgt stattdessen live dem tatsaechlichen
+      // Leisten-Zustand: immer exakt so gross wie der sichtbare Bereich,
+      // weder Rand unten noch Verschiebung. Unkritisch hier, weil die
+      // Section nicht `position: fixed` ist (anders als der Video-Pin-
+      // Wrapper in video-showcase.tsx, der bewusst bei `lvh` bleibt).
+      className="bg-background-deep relative flex h-dvh min-h-[640px] items-center justify-center"
       aria-label={siteConfig.fullName}
     >
       <motion.div
