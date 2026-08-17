@@ -17,10 +17,14 @@ export function Atmosphere(): ReactNode {
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[80]">
       {/* Warm wash over the whole page. Flat on purpose — the radial version
-          this replaces pooled the red at the bottom centre of every viewport. */}
+          this replaces pooled the red at the bottom centre of every viewport.
+          Opacity ueber eine CSS-Variable statt hart codiert: video-showcase.tsx
+          setzt sie auf 0, solange die Video-Box im Viewport sichtbar ist — auf
+          echtem Videomaterial (statt den dunklen Sektionen sonst) faellt der
+          Farbstich sichtbar auf. */}
       <div
-        className="pointer-events-none fixed inset-0"
-        style={{ background: "rgba(255,106,31,0.035)" }}
+        className="pointer-events-none fixed inset-0 transition-[background-color] duration-300"
+        style={{ background: "rgba(255,106,31,var(--jjk-warm-wash-opacity, 0.035))" }}
       />
       <div className="jjk-vignette" />
       <div className="jjk-scanline" />
