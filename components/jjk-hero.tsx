@@ -24,6 +24,14 @@ export function JJKHero(): ReactNode {
   const [revealed, setRevealed] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const scrollFraction = useMotionValue(0);
+  // Ab hier ist die Opacity (siehe scrollFade unten) schon laengst bei 0 —
+  // der Canvas rendert bis dahin aber trotzdem jeden Frame weiter (r3f hat
+  // keine "ist eh unsichtbar"-Erkennung). Genau in dem Moment, wenn man vom
+  // Hero weiter zum Video scrollt, konkurriert dieses unsichtbare Rendern
+  // mit der Scroll-getriebenen Berechnung der Video-Box um den Hauptthread
+  // und laesst den Swipe ruckeln/haengenbleiben ("ein Swipe reicht nicht").
+  // Etwas Puffer (0.6 statt exakt 0.5) gegen Flackern an der Fade-Grenze.
+  const [showBackground, setShowBackground] = useState(true);
 
   useEffect(() => {
     const update = (): void => {
@@ -41,6 +49,14 @@ export function JJKHero(): ReactNode {
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
     };
+  }, [scrollFraction]);
+
+  useEffect(() => {
+    const unsubscribe = scrollFraction.on("change", (fraction) => {
+      const shouldShow = fraction < 0.6;
+      setShowBackground((prev) => (prev === shouldShow ? prev : shouldShow));
+    });
+    return unsubscribe;
   }, [scrollFraction]);
 
   // Bei 50% der eigenen Hoehe komplett verblasst — danach ist der Hero
@@ -114,18 +130,20 @@ export function JJKHero(): ReactNode {
               diesem Element misst r3f immer die volle, korrekte Groesse.
               -inset-1 bleibt als zusaetzlicher Puffer gegen mobile
               Adressleisten-Resizes (siehe video-showcase.tsx). */}
-          <Watercolor
-            className="absolute inset-0"
-            color1="#030304"
-            color2="#7a1a08"
-            saturation={0.65}
-            brightness={0.04}
-            opacity={1}
-            speed={0.3}
-            scale={0.8}
-            driftSpeed={0.025}
-            warpSpeed={0.05}
-          />
+          {showBackground && (
+            <Watercolor
+              className="absolute inset-0"
+              color1="#030304"
+              color2="#7a1a08"
+              saturation={0.65}
+              brightness={0.04}
+              opacity={1}
+              speed={0.3}
+              scale={0.8}
+              driftSpeed={0.025}
+              warpSpeed={0.05}
+            />
+          )}
         </motion.div>
 
         <div className="relative z-10 flex max-w-3xl flex-col items-center px-6 text-center">
