@@ -73,6 +73,11 @@ const OVERSCAN = 3;
  *  ausfuehrliche Erklaerung beim Scroll-Lock-Effect weiter unten. */
 const ANIMATION_DURATION = 650;
 
+/** Deckel fuer einzelne wheel-/touchmove-Deltas AUSSERHALB der Pin-Range
+ *  (siehe Scroll-Lock-Effect) — verhindert, dass ein einzelner riesiger
+ *  Event-Ausreisser die ganze Strecke in einem Schritt ueberspringt. */
+const MAX_FREE_STEP = 120;
+
 export function VideoShowcase(): ReactNode {
   const prefersReducedMotion = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
@@ -125,32 +130,52 @@ export function VideoShowcase(): ReactNode {
 
   /**
    * ── Scroll-Lock waehrend Pin-and-Grow ───────────────────────────────────
-   * Bisher hing scrollProgress 1:1 an der echten Scrollposition. Bei einem
-   * kraeftigen Swipe/Flick am Handy — inklusive der nativen
-   * Momentum-Animation NACH dem Loslassen, die JS gar nicht mehr sieht,
-   * sobald sie einmal laeuft — konnte die komplette Wachstumsstrecke in
-   * einem einzigen, kaum wahrnehmbaren Sprung durchlaufen werden ("laeuft
-   * ueber Video hinweg"). Jetzt wird genau in dieser Strecke (rect.top
-   * zwischen 0 und -scrollableHeight, also waehrend die Box tatsaechlich
-   * gepinnt ist) jedes wheel-/touchmove-Event abgefangen: preventDefault
-   * verhindert, dass der Browser ueberhaupt erst eigene
-   * Momentum-Physik startet, und nur die RICHTUNG des Inputs zaehlt — die
-   * Staerke/Geschwindigkeit wird bewusst ignoriert. Stattdessen laeuft
-   * scrollProgress per rAF immer ueber exakt ANIMATION_DURATION zum Ziel
-   * (0 oder 1) und schreibt synchron per `window.scrollTo` die echte
-   * Scrollposition mit, damit rect.top danach wieder zur Realitaet passt.
-   * Sobald das Ziel erreicht ist UND der Input weiter in dieselbe Richtung
-   * geht, wird die Kontrolle wieder an den nativen Scroll uebergeben.
+   * Erster Versuch (nur preventDefault innerhalb der Pin-Range) hat NICHT
+   * gereicht: bei einem kraeftigen Flick beginnt die native iOS-Momentum-
+   * Animation schon WAEHREND der Naeherung an die Section — und laeuft dann
+   * komplett am JS vorbei, es feuert kein einziges touchmove-Event mehr,
+   * bis der Flick laengst durch die gesamte Wachstumsstrecke hindurch ist
+   * ("ein Swipe reicht, um komplett durchzuscrollen"). preventDefault kann
+   * eine bereits laufende Momentum-Animation nicht mehr stoppen — es muss
+   * verhindert werden, dass sie ueberhaupt erst STARTET.
    *
-   * Ausserhalb dieser Strecke (Box noch nicht erreicht oder schon ganz
-   * durchgescrollt) greift nichts davon — normales, freies Scrollen bleibt
-   * ueberall sonst unveraendert.
+   * Deswegen wird jetzt in der GESAMTEN Naehe der Section (die 180svh-Box
+   * inkl. des `-100svh`-Overlaps mit dem Hero, siehe unten IntersectionObserver
+   * ohne rootMargin) JEDES wheel-/touchmove-Event abgefangen — nicht nur
+   * innerhalb der eigentlichen Pin-Range. Dadurch startet in dieser ganzen
+   * Zone niemals native Momentum-Physik, JS bleibt durchgehend im Bild:
+   *
+   * - Ausserhalb der Pin-Range (Box noch nicht gepinnt oder schon ganz
+   *   durchgescrollt): das Eingabedelta wird 1:1 (gedeckelt gegen einzelne
+   *   Ausreisser-Events, MAX_FREE_STEP) per `window.scrollBy` weitergereicht
+   *   — fuehlt sich wie normales Scrollen an, nur ohne Momentum-Nachlauf.
+   * - Innerhalb der Pin-Range: nur die RICHTUNG des Inputs zaehlt, die
+   *   Staerke wird ignoriert. scrollProgress laeuft per rAF immer ueber
+   *   exakt ANIMATION_DURATION zum Ziel (0 oder 1) und schreibt synchron
+   *   per `window.scrollTo` die echte Scrollposition mit.
+   *
+   * Ausserhalb der beobachteten Naehe (Section laengst nicht mehr im Bild)
+   * greift gar nichts — dort bleibt normales, natives Scrollen unveraendert.
    */
+  const isNearRef = useRef(false);
   const lockedRef = useRef(false);
   const animatingRef = useRef(false);
   const animatingTargetRef = useRef<0 | 1 | null>(null);
   const rafIdRef = useRef<number | null>(null);
   const touchYRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isNearRef.current = entry?.isIntersecting ?? false;
+      },
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -164,6 +189,7 @@ export function VideoShowcase(): ReactNode {
       }
       animatingRef.current = false;
       animatingTargetRef.current = null;
+      lockedRef.current = false;
     };
 
     const animateTo = (target: 0 | 1, rect: DOMRect, viewportH: number): void => {
@@ -178,6 +204,7 @@ export function VideoShowcase(): ReactNode {
 
       animatingRef.current = true;
       animatingTargetRef.current = target;
+      lockedRef.current = true;
 
       const tick = (now: number): void => {
         const t = Math.min((now - startTime) / ANIMATION_DURATION, 1);
@@ -190,15 +217,16 @@ export function VideoShowcase(): ReactNode {
           rafIdRef.current = requestAnimationFrame(tick);
         } else {
           stopAnimation();
-          lockedRef.current = false;
         }
       };
       rafIdRef.current = requestAnimationFrame(tick);
     };
 
     const handleDirectionalInput = (deltaY: number, event: Event): void => {
-      // Kleines Deadzone gegen Zittern/Rauschen einzelner touchmove-Events.
-      if (Math.abs(deltaY) < 2) return;
+      if (deltaY === 0) return;
+      // Weit weg von der Section: das hier ist nicht unsere Zustaendigkeit,
+      // ganz normal nativ scrollen lassen.
+      if (!isNearRef.current) return;
 
       const el = sectionRef.current;
       if (!el) return;
@@ -207,28 +235,25 @@ export function VideoShowcase(): ReactNode {
       const scrollableHeight = rect.height - viewportH;
       if (scrollableHeight <= 0) return;
 
-      const wantsForward = deltaY > 0;
+      // Ab hier IMMER preventDefault — das ist der eigentliche Punkt: sobald
+      // die Section in der Naehe ist, darf der Browser gar nicht erst selbst
+      // scrollen, sonst kann daraus (ausserhalb unserer Kontrolle) Momentum
+      // werden. Wir uebernehmen die Bewegung komplett selbst.
+      event.preventDefault();
+
       const inPinRange = rect.top <= 0.5 && rect.top >= -(scrollableHeight + 0.5);
 
-      // Ausserhalb der gepinnten Strecke (und nicht schon mitten in einer
-      // gesperrten Animation) ist das hier nicht unsere Zustaendigkeit —
-      // normal weiterscrollen lassen.
-      if (!inPinRange && !lockedRef.current) return;
-
-      const currentProgress = scrollProgress.get();
-      const exitingTop = currentProgress <= 0.001 && !wantsForward;
-      const exitingBottom = currentProgress >= 0.999 && wantsForward;
-      if (exitingTop || exitingBottom) {
-        // Rand der Strecke erreicht und weiter in dieselbe Richtung
-        // unterwegs — dem nativen Scroll wieder das Feld ueberlassen.
-        lockedRef.current = false;
-        stopAnimation();
+      if (!inPinRange) {
+        // Freie Zone (Anlauf vor dem Pin oder schon danach) — Delta 1:1
+        // weiterreichen, nur gegen einzelne Riesen-Events gedeckelt.
+        const clamped = Math.max(-MAX_FREE_STEP, Math.min(MAX_FREE_STEP, deltaY));
+        window.scrollBy(0, clamped);
         return;
       }
 
-      event.preventDefault();
-      lockedRef.current = true;
-
+      // In der Pin-Range: Richtung entscheidet das Ziel, Staerke wird
+      // ignoriert (siehe ANIMATION_DURATION oben).
+      const wantsForward = deltaY > 0;
       const target: 0 | 1 = wantsForward ? 1 : 0;
       if (animatingRef.current && animatingTargetRef.current === target) return; // schon unterwegs dorthin
 
@@ -250,13 +275,21 @@ export function VideoShowcase(): ReactNode {
       handleDirectionalInput(delta, e);
     };
 
+    const onTouchEnd = (): void => {
+      touchYRef.current = null;
+    };
+
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", onTouchEnd, { passive: true });
     return () => {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchEnd);
       stopAnimation();
     };
   }, [prefersReducedMotion, scrollProgress]);
