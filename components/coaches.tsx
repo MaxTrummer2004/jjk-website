@@ -4,7 +4,13 @@ import { coaches } from "@/lib/config";
 import { KanjiLabel } from "@/components/kanji-label";
 import StaggeredText from "@/components/staggered-text";
 import ParallaxCarousel from "@/components/parallax-carousel";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+
+/** ParallaxCarousel bekommt die Plane-Groesse als feste Pixelzahlen (kein
+ *  CSS, direkt die WebGL-Planengroesse) — dafuer hier per matchMedia
+ *  (Tailwind-`sm`-Breakpoint, 640px) selbst reagieren, damit die Boxen am
+ *  Handy weniger hoch sind statt am Desktop-Mass festzukleben. */
+const MOBILE_QUERY = "(max-width: 639px)";
 
 /**
  * ── Coach-Avatare ────────────────────────────────────────────────────────
@@ -27,6 +33,22 @@ function avatarDataUrl(): string {
 const COACH_AVATARS = coaches.map(() => avatarDataUrl());
 
 export function Coaches(): ReactNode {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_QUERY);
+    const update = (): void => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  // Am Handy etwas weniger hoch (390 statt 520) — Breite etwas mitreduziert,
+  // damit das Seitenverhaeltnis nicht zu sehr von den 380x520 der Platzhalter
+  // abweicht und der Crop nicht unnoetig viel wegschneidet.
+  const imageWidth = isMobile ? 300 : 380;
+  const imageHeight = isMobile ? 390 : 520;
+
   return (
     <section id="coaches" className="w-full">
       <div className="mx-auto w-full max-w-[1400px] px-4 pt-28 sm:px-6 sm:pt-36 lg:px-8">
@@ -50,8 +72,8 @@ export function Coaches(): ReactNode {
       <div className="mt-12">
         <ParallaxCarousel
           images={COACH_AVATARS}
-          imageWidth={380}
-          imageHeight={520}
+          imageWidth={imageWidth}
+          imageHeight={imageHeight}
           gap={20}
           parallaxIntensity={0.35}
           uvScale={0.2}
@@ -59,7 +81,7 @@ export function Coaches(): ReactNode {
           loop
           autoplaySpeed={0}
           showProgress={false}
-          className="h-[520px]"
+          className="h-[390px] sm:h-[520px]"
         />
       </div>
     </section>
