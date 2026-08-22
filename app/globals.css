@@ -1,21 +1,5 @@
 @import "tailwindcss";
 
-/* The site draws its own pointer everywhere — a trail of embers above the
-   Programs section, a ring and dot below it (components/providers.tsx). The
-   system arrow on top of either is two cursors, so it is off site-wide rather
-   than region by region.
-
-   `!important` and the descendant selector together, because half the UI
-   library sets `cursor: pointer` on its own buttons and every one of those
-   would otherwise put the arrow back. */
-html,
-body,
-body *,
-.jjk-no-cursor,
-.jjk-no-cursor * {
-  cursor: none !important;
-}
-
 /* ==========================================================================
    JJK — JIU-JITSU KAISEN ACADEMY · DESIGN SYSTEM
    "Shibuya Incident" ember aesthetic. Dark-only. A near-black, slightly warm
