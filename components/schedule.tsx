@@ -83,6 +83,11 @@ const STACK_SHARED = {
   depthOpacity: 0.12,
   duration: 0.4,
   ease: "power3.out",
+  // Der kurze weisse Ping-Punkt ueber der obersten Karte — derselbe Hinweis,
+  // den der Programm-Stapel am Handy schon traegt (components/features-6.tsx).
+  // Hier auf beiden Breakpoints, weil der Stundenplan die einzigen Klick-
+  // Karten sind, die es auch am PC gibt.
+  tapHint: true,
 } as const;
 
 export function Schedule() {
