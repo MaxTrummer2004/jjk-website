@@ -73,11 +73,22 @@ const OVERSCAN = 3;
  *  Sanft-Stop (siehe Effect weiter unten) eingreift. Lenis' `velocity` ist
  *  grob px pro Frame der animierten (nicht der rohen) Scrollposition — bei
  *  `touchMultiplier: 2` reicht ein normaler Wisch am Handy im Alltag nicht
- *  annaehernd an diesen Wert heran, ein kraeftiger Flick schon deutlich. */
-const CATCH_VELOCITY = 25;
+ *  annaehernd an diesen Wert heran, ein kraeftiger Flick schon deutlich.
+ *
+ *  Hoch angesetzt (vorher 25): der Umlenker soll sich wie ein sanftes
+ *  Abbremsen anfuehlen, nicht wie ein Einrasten. Nur noch ein wirklich
+ *  heftiger Flick, der das Video sonst komplett ueberspringt, loest ihn aus;
+ *  alles darunter fliesst frei durch. */
+const CATCH_VELOCITY = 42;
 
-/** Feste, kurze Dauer fuer den Sanft-Stop selbst. */
-const CATCH_DURATION = 0.5;
+/** Dauer des Sanft-Stops. Laenger als der fruehere halbe Sekundenruck, damit
+ *  der Scroll in den Zielpunkt hineingleitet statt hineinzuschnappen. */
+const CATCH_DURATION = 1;
+
+/** easeOutCubic — startet mit der Restgeschwindigkeit des Wisches und laeuft
+ *  weich aus, statt Lenis' Default gegen die eigene Momentum-Animation zu
+ *  setzen (was den harten Stopp mit ausmachte). */
+const CATCH_EASE = (t: number): number => 1 - Math.pow(1 - t, 3);
 
 export function VideoShowcase(): ReactNode {
   const prefersReducedMotion = useReducedMotion();
@@ -190,7 +201,7 @@ export function VideoShowcase(): ReactNode {
       hasCaught = true;
       const documentTop = rect.top + e.animatedScroll;
       const targetY = documentTop + GROWTH_END * scrollableHeight;
-      lenis.scrollTo(targetY, { duration: CATCH_DURATION });
+      lenis.scrollTo(targetY, { duration: CATCH_DURATION, easing: CATCH_EASE });
     };
 
     // lenisRef.current ist evtl. noch null, wenn dieser Effect vor dem
