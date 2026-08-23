@@ -3,9 +3,7 @@
 /**
  * Atmosphere — the global post-processing layer, done in CSS.
  *
- * Film grain, a hard vignette and a faint interlace scanline sit above every
- * section. Together with the chromatic-aberration text utilities this is what
- * makes the page read as a frame from the opening rather than a normal site.
+ * Only a hard vignette sits above every section now.
  */
 
 import type { ReactNode } from "react";
@@ -23,9 +21,14 @@ export function Atmosphere(): ReactNode {
           mobilen Geraeten (v.a. iOS Safari) sind solche SVG-Filter dafuer
           bekannt, statt sauberem Rauschen sichtbare farbige Streifen/Baender
           zu erzeugen statt Grau — genau das rote "Raster/Streifen"-Muster,
-          das ueberall auf der Seite auftauchte, nicht nur im Hero. */}
+          das ueberall auf der Seite auftauchte, nicht nur im Hero.
+
+          Die Scanline (.jjk-scanline, repeating-linear-gradient alle 4px)
+          ist jetzt auch raus: exakt das noch verbliebene "Streifen"-Muster,
+          das auf jeder hellen/weissen Flaeche sichtbar war und die Seite nie
+          richtig sauber weiss wirken liess — site-weit ueber allem, jede
+          Sektion, jedes Bild. */}
       <div className="jjk-vignette" />
-      <div className="jjk-scanline" />
     </div>
   );
 }
