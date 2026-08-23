@@ -234,21 +234,21 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
 
 export const coaches = [
   {
-    name: "Rafael Mendes",
+    name: "Liridon",
     role: "Head Coach · Founder",
     belt: "3rd Degree Black Belt",
     beltColor: "black",
     bio: "20 years on the mats. Trained under the Gracie lineage and has cornered European champions.",
   },
   {
-    name: "Marina Silva",
+    name: "Ervin",
     role: "No-Gi & Competition",
     belt: "Black Belt",
     beltColor: "black",
     bio: "ADCC trials veteran. Turns raw athletes into podium finishers with a relentless leg-lock game.",
   },
   {
-    name: "Lucas Weber",
+    name: "Wolfgang",
     role: "Head of Kids Program",
     belt: "Brown Belt",
     beltColor: "brown",

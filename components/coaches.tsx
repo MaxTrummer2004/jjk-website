@@ -14,11 +14,11 @@ const MOBILE_QUERY = "(max-width: 639px)";
 
 /**
  * ── Coach-Avatare ────────────────────────────────────────────────────────
- * Neutraler Platzhalter (Kopf + Schultern als Silhouette), bis es echte
- * Fotos gibt — keine echten Fotos, und keine tatsaechlichen Jujutsu-Kaisen-
- * Figuren (urheberrechtlich geschuetzt). Kraeftiger Kontrast (helle Form
- * + duennes helleres Outline auf dunklem Grund), damit die Form auch klein
- * (siehe mobile Groesse unten) klar erkennbar bleibt.
+ * Neutraler Platzhalter (Kopf + Schultern als Silhouette) fuer Coaches ohne
+ * Foto — keine tatsaechlichen Jujutsu-Kaisen-Figuren (urheberrechtlich
+ * geschuetzt). Kraeftiger Kontrast (helle Form + duennes helleres Outline
+ * auf dunklem Grund), damit die Form auch klein (siehe mobile Groesse
+ * unten) klar erkennbar bleibt.
  */
 function avatarDataUrl(): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 520" width="380" height="520">
@@ -30,7 +30,24 @@ function avatarDataUrl(): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
-const COACH_AVATARS = coaches.map(() => avatarDataUrl());
+/**
+ * Echte Fotos fuer die ersten drei Coaches (Liridon, Ervin, Wolfgang) —
+ * Ervin und Wolfgang aus einem Gruppenfoto einzeln freigestellt. Die
+ * restlichen drei (Ana, Tomás, Yuki) haben noch kein Foto und bleiben beim
+ * neutralen Platzhalter, bis welche da sind.
+ */
+const COACH_PHOTOS: (string | null)[] = [
+  "/img/coaches/liridon.jpg",
+  "/img/coaches/ervin.jpg",
+  "/img/coaches/wolfgang.jpg",
+  null,
+  null,
+  null,
+];
+
+const COACH_AVATARS = coaches.map(
+  (_, index) => COACH_PHOTOS[index] ?? avatarDataUrl()
+);
 
 export function Coaches(): ReactNode {
   const [isMobile, setIsMobile] = useState(false);
