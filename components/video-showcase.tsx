@@ -75,11 +75,13 @@ const OVERSCAN = 3;
  *  `touchMultiplier: 2` reicht ein normaler Wisch am Handy im Alltag nicht
  *  annaehernd an diesen Wert heran, ein kraeftiger Flick schon deutlich.
  *
- *  Hoch angesetzt (vorher 25): der Umlenker soll sich wie ein sanftes
- *  Abbremsen anfuehlen, nicht wie ein Einrasten. Nur noch ein wirklich
- *  heftiger Flick, der das Video sonst komplett ueberspringt, loest ihn aus;
- *  alles darunter fliesst frei durch. */
-const CATCH_VELOCITY = 42;
+ *  Nochmal hoch angesetzt (vorher 42, davor 25): loeste bei 42 immer noch
+ *  bei ganz normalen/mittleren Wischen aus, nicht nur bei sehr starken —
+ *  fuehlte sich als staendiges Eingreifen an statt als Ausnahme fuer den
+ *  Extremfall. Nur noch ein wirklich heftiger Flick, der das Video sonst
+ *  komplett ueberspringt, soll ihn ausloesen; alles darunter fliesst frei
+ *  durch. */
+const CATCH_VELOCITY = 70;
 
 /** Dauer des Sanft-Stops. War kurzzeitig auf 1s hochgesetzt, damit der
  *  Scroll weicher in den Zielpunkt hineingleitet — genau das sorgte aber
