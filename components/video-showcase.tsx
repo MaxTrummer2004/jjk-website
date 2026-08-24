@@ -113,13 +113,31 @@ export function VideoShowcase(): ReactNode {
    */
   useEffect(() => {
     const vv = window.visualViewport;
+    // Einmal auf true gesetzt, sobald die Box fertig ausgewachsen ist
+    // (progress >= GROWTH_END), und erst zurueckgesetzt, wenn wieder darunter
+    // gescrollt wird. Verhindert, dass "viewport" (und damit fullHeight)
+    // waehrend eines Scroll-getriebenen Ticks noch einmal neu gemessen wird.
+    let grown = false;
 
-    const update = (): void => {
-      const w = Math.ceil(vv?.width ?? window.innerWidth);
-      const h = Math.ceil(vv?.height ?? window.innerHeight);
-      setViewport((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
-
+    // `fromScroll`: true fuer Aufrufe ueber "scroll"/visualViewport-"scroll",
+    // false fuer echte Groessenaenderungen ("resize", "orientationchange",
+    // visualViewport-"resize"). Der Unterschied ist der Punkt hier: solange
+    // die Box schon voll ausgewachsen ist (grown), wuerde ein Scroll-Tick,
+    // der zufaellig mit einem Einklappen der mobilen Adressleiste
+    // zusammenfaellt, `viewport.h` noch vergroessern und die fertig
+    // ausgewachsene Box sichtbar nachtraeglich nach unten verlaengern —
+    // obwohl scrollProgress laengst bei GROWTH_END steht und sich gar nichts
+    // mehr aendern sollte. Eine echte Rotation/Resize soll aber weiterhin
+    // durchkommen, auch waehrend "grown".
+    const update = (fromScroll: boolean): void => {
       const el = sectionRef.current;
+      const h = Math.ceil(vv?.height ?? window.innerHeight);
+
+      if (!fromScroll || !grown) {
+        const w = Math.ceil(vv?.width ?? window.innerWidth);
+        setViewport((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
+      }
+
       if (!el) return;
       const rect = el.getBoundingClientRect();
       const scrollableHeight = rect.height - h;
@@ -128,20 +146,24 @@ export function VideoShowcase(): ReactNode {
           ? Math.min(Math.max(-rect.top / scrollableHeight, 0), 1)
           : 0;
       scrollProgress.set(progress);
+      grown = progress >= GROWTH_END;
     };
 
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    window.addEventListener("orientationchange", update);
-    vv?.addEventListener("resize", update);
-    vv?.addEventListener("scroll", update);
+    const onScroll = (): void => update(true);
+    const onResize = (): void => update(false);
+
+    update(false);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    vv?.addEventListener("resize", onResize);
+    vv?.addEventListener("scroll", onScroll);
     return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
-      window.removeEventListener("orientationchange", update);
-      vv?.removeEventListener("resize", update);
-      vv?.removeEventListener("scroll", update);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+      vv?.removeEventListener("resize", onResize);
+      vv?.removeEventListener("scroll", onScroll);
     };
   }, [scrollProgress]);
 
