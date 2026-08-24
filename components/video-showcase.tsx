@@ -116,25 +116,30 @@ export function VideoShowcase(): ReactNode {
     // Einmal auf true gesetzt, sobald die Box fertig ausgewachsen ist
     // (progress >= GROWTH_END), und erst zurueckgesetzt, wenn wieder darunter
     // gescrollt wird. Verhindert, dass "viewport" (und damit fullHeight)
-    // waehrend eines Scroll-getriebenen Ticks noch einmal neu gemessen wird.
+    // waehrend die Box schon fertig ist noch einmal neu gemessen wird.
+    //
+    // Wichtig: das laesst sich NICHT am Event-Typ festmachen ("scroll" vs.
+    // "resize") — genau das war der erste Versuch hier und hat nichts
+    // gebracht: mobile Browser feuern beim Ein-/Ausklappen der Adressleiste
+    // haeufig ganz regulaer ein "resize" auf window bzw. visualViewport,
+    // nicht nur "scroll". Ein pauschales "resize kommt immer durch" liess die
+    // Box also trotzdem nachtraeglich wachsen. Der zuverlaessige
+    // Unterschied ist stattdessen die BREITE: eine echte Rotation oder ein
+    // echtes Resize aendert (fast immer) auch die Breite, ein reines
+    // Einklappen der Adressleiste aendert nur die Hoehe. Solange die Box
+    // fertig ist, wird deshalb nur bei einer Breitenaenderung neu gemessen.
     let grown = false;
+    let lastWidth: number | null = null;
 
-    // `fromScroll`: true fuer Aufrufe ueber "scroll"/visualViewport-"scroll",
-    // false fuer echte Groessenaenderungen ("resize", "orientationchange",
-    // visualViewport-"resize"). Der Unterschied ist der Punkt hier: solange
-    // die Box schon voll ausgewachsen ist (grown), wuerde ein Scroll-Tick,
-    // der zufaellig mit einem Einklappen der mobilen Adressleiste
-    // zusammenfaellt, `viewport.h` noch vergroessern und die fertig
-    // ausgewachsene Box sichtbar nachtraeglich nach unten verlaengern —
-    // obwohl scrollProgress laengst bei GROWTH_END steht und sich gar nichts
-    // mehr aendern sollte. Eine echte Rotation/Resize soll aber weiterhin
-    // durchkommen, auch waehrend "grown".
-    const update = (fromScroll: boolean): void => {
+    const update = (): void => {
       const el = sectionRef.current;
       const h = Math.ceil(vv?.height ?? window.innerHeight);
+      const w = Math.ceil(vv?.width ?? window.innerWidth);
 
-      if (!fromScroll || !grown) {
-        const w = Math.ceil(vv?.width ?? window.innerWidth);
+      const widthChanged = lastWidth !== null && w !== lastWidth;
+      lastWidth = w;
+
+      if (!grown || widthChanged) {
         setViewport((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
       }
 
@@ -149,21 +154,18 @@ export function VideoShowcase(): ReactNode {
       grown = progress >= GROWTH_END;
     };
 
-    const onScroll = (): void => update(true);
-    const onResize = (): void => update(false);
-
-    update(false);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize);
-    window.addEventListener("orientationchange", onResize);
-    vv?.addEventListener("resize", onResize);
-    vv?.addEventListener("scroll", onScroll);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    vv?.addEventListener("resize", update);
+    vv?.addEventListener("scroll", update);
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("orientationchange", onResize);
-      vv?.removeEventListener("resize", onResize);
-      vv?.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+      vv?.removeEventListener("resize", update);
+      vv?.removeEventListener("scroll", update);
     };
   }, [scrollProgress]);
 
