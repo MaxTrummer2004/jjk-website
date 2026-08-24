@@ -81,9 +81,14 @@ const OVERSCAN = 3;
  *  alles darunter fliesst frei durch. */
 const CATCH_VELOCITY = 42;
 
-/** Dauer des Sanft-Stops. Laenger als der fruehere halbe Sekundenruck, damit
- *  der Scroll in den Zielpunkt hineingleitet statt hineinzuschnappen. */
-const CATCH_DURATION = 1;
+/** Dauer des Sanft-Stops. War kurzzeitig auf 1s hochgesetzt, damit der
+ *  Scroll weicher in den Zielpunkt hineingleitet — genau das sorgte aber
+ *  dafuer, dass die Seite noch eine volle Sekunde lang sichtbar
+ *  weiterscrollte, nachdem der Finger laengst vom Screen war ("scrollt von
+ *  selbst weiter, ohne dass man was macht"). Zurueck auf eine kurze Dauer:
+ *  der Umlenker soll spuerbar bremsen, aber fertig sein, bevor er wie
+ *  eigenstaendige Bewegung wirkt statt wie ein Ausklingen des Wisches. */
+const CATCH_DURATION = 0.45;
 
 /** easeOutCubic — startet mit der Restgeschwindigkeit des Wisches und laeuft
  *  weich aus, statt Lenis' Default gegen die eigene Momentum-Animation zu
