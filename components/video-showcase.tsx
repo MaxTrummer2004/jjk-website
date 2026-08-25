@@ -69,20 +69,6 @@ function ShowcaseVideo({
  *  overflow-hidden der Pin-Huelle ohnehin unsichtbar. */
 const OVERSCAN = 3;
 
-/** Ab welcher Lenis-Velocity ein Swipe als "zu stark" gilt und der
- *  Sanft-Stop (siehe Effect weiter unten) eingreift. Lenis' `velocity` ist
- *  grob px pro Frame der animierten (nicht der rohen) Scrollposition — bei
- *  `touchMultiplier: 2` reicht ein normaler Wisch am Handy im Alltag nicht
- *  annaehernd an diesen Wert heran, ein kraeftiger Flick schon deutlich.
- *
- *  Nochmal hoch angesetzt (vorher 42, davor 25): loeste bei 42 immer noch
- *  bei ganz normalen/mittleren Wischen aus, nicht nur bei sehr starken —
- *  fuehlte sich als staendiges Eingreifen an statt als Ausnahme fuer den
- *  Extremfall. Nur noch ein wirklich heftiger Flick, der das Video sonst
- *  komplett ueberspringt, soll ihn ausloesen; alles darunter fliesst frei
- *  durch. */
-const CATCH_VELOCITY = 70;
-
 /** Dauer des Sanft-Stops. War kurzzeitig auf 1s hochgesetzt, damit der
  *  Scroll weicher in den Zielpunkt hineingleitet — genau das sorgte aber
  *  dafuer, dass die Seite noch eine volle Sekunde lang sichtbar
@@ -185,24 +171,23 @@ export function VideoShowcase(): ReactNode {
    * und Lenis "besitzt" die Scrollposition und animiert bei jedem eigenen
    * `window.scrollTo`-Aufruf von aussen dagegen an (siehe Kommentar in
    * lib/lenis.ts). Deshalb jetzt NICHT mehr gegen Lenis ankaempfen, sondern
-   * Lenis' eigene `scrollTo`-API nutzen: sobald ein SCHNELLER Scroll (hohe
-   * `velocity`) die Zone kurz nach GROWTH_END durchquert, wird die laufende
-   * Lenis-Animation einmalig sanft auf genau den GROWTH_END-Punkt
-   * umgelenkt (kurze eigene Dauer) — kein Sperren, kein Abfangen von
-   * Touch-Events, die Seite bleibt frei scrollbar. Ein zweiter Swipe
-   * danach setzt normal fort.
+   * Lenis' eigene `scrollTo`-API nutzen: sobald der Scroll die Zone kurz
+   * nach GROWTH_END durchquert, wird die laufende Lenis-Animation einmalig
+   * sanft auf genau den GROWTH_END-Punkt umgelenkt (kurze eigene Dauer).
    *
-   * ── Ausnahme: der erste Swipe aus dem Hero heraus ───────────────────────
-   * Die Velocity-Schwelle sorgt dafuer, dass der Sanft-Stop nur bei einem
-   * wirklich heftigen Flick eingreift — genau richtig fuer Swipes, die schon
-   * IM Video sind. Aber der Wisch, der noch im Hero beginnt und in einem
-   * Zug bis ueber das Video hinaustraegt, soll IMMER gefangen werden, egal
-   * wie schnell er ist: sonst kann man mit einem einzigen, ganz normalen
-   * Swipe vom Hero komplett am Video vorbeiscrollen, ohne es je in voller
-   * Groesse gesehen zu haben. Ein `touchstart`, der noch VOR der Pin-Section
-   * liegt (rawProgress <= 0), markiert die laufende Beruehrung dafuer als
-   * "startet im Hero" — die Velocity-Schwelle wird fuer sie ausgesetzt, bis
-   * die naechste Beruehrung beginnt.
+   * Erst gab es hier eine Velocity-Schwelle (nur "starke" Wische fangen),
+   * die dann noch mehrfach hochgesetzt wurde, weil sie trotzdem staendig bei
+   * ganz normalen Wischen ausloeste. Jetzt keine Schwelle mehr: JEDER Swipe,
+   * der die Zone durchquert, wird gefangen — einfacher und tut genau das,
+   * was verlangt war ("man soll nie ueber das Video drueberkommen"), ohne
+   * eine Geschwindigkeit zu erraten, ab der es "zu viel" wird.
+   *
+   * `lock: true` waehrend der kurzen Snap-Animation: ohne das konnte sich
+   * ein sehr starker Wisch (dessen eigene Lenis-Momentum-Animation noch
+   * weiterlief) ueber den Sanft-Stop hinweg fortsetzen — sichtbar als
+   * "haelt kurz, geht dann trotzdem weiter". Die Sperre gilt nur fuer die
+   * CATCH_DURATION (0.45s), danach ist die Seite sofort wieder frei
+   * scrollbar; ein zweiter Swipe danach setzt normal fort.
    */
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -210,22 +195,7 @@ export function VideoShowcase(): ReactNode {
 
     let disposed = false;
     let hasCaught = false;
-    let touchStartedInHero = false;
     let unsubscribe: (() => void) | null = null;
-
-    const onTouchStart = (): void => {
-      const el = sectionRef.current;
-      if (!el) {
-        touchStartedInHero = false;
-        return;
-      }
-      const vh = window.visualViewport?.height ?? window.innerHeight;
-      const rect = el.getBoundingClientRect();
-      const scrollableHeight = rect.height - vh;
-      const rawProgress = scrollableHeight > 0 ? -rect.top / scrollableHeight : 0;
-      touchStartedInHero = rawProgress <= 0;
-    };
-    window.addEventListener("touchstart", onTouchStart, { passive: true });
 
     // `any` bewusst: Lenis' eigener Event-Typ bringt hier mehr Aerger als
     // Nutzen (die Callback-Signatur in `lenis.on` ist je nach Version
@@ -254,12 +224,21 @@ export function VideoShowcase(): ReactNode {
         return;
       }
       if (hasCaught) return;
-      if (Math.abs(e.velocity) < CATCH_VELOCITY && !touchStartedInHero) return;
 
       hasCaught = true;
       const documentTop = rect.top + e.animatedScroll;
       const targetY = documentTop + GROWTH_END * scrollableHeight;
-      lenis.scrollTo(targetY, { duration: CATCH_DURATION, easing: CATCH_EASE });
+      // `lock: true`: waehrend der kurzen Snap-Animation wird kein weiterer
+      // Scroll-Input verarbeitet. Ohne das setzte sich ein sehr starker
+      // Wisch (dessen eigene Lenis-Momentum-Animation noch weiterlief) ueber
+      // den Sanft-Stop hinweg fort — sichtbar als "haelt kurz, geht dann bei
+      // starkem Scroll trotzdem weiter". Die Sperre gilt nur fuer die
+      // CATCH_DURATION (0.45s), danach ist die Seite sofort wieder frei.
+      lenis.scrollTo(targetY, {
+        duration: CATCH_DURATION,
+        easing: CATCH_EASE,
+        lock: true,
+      });
     };
 
     // lenisRef.current ist evtl. noch null, wenn dieser Effect vor dem
@@ -279,7 +258,6 @@ export function VideoShowcase(): ReactNode {
 
     return () => {
       disposed = true;
-      window.removeEventListener("touchstart", onTouchStart);
       unsubscribe?.();
     };
   }, [prefersReducedMotion]);
