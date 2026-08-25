@@ -191,6 +191,18 @@ export function VideoShowcase(): ReactNode {
    * umgelenkt (kurze eigene Dauer) — kein Sperren, kein Abfangen von
    * Touch-Events, die Seite bleibt frei scrollbar. Ein zweiter Swipe
    * danach setzt normal fort.
+   *
+   * ── Ausnahme: der erste Swipe aus dem Hero heraus ───────────────────────
+   * Die Velocity-Schwelle sorgt dafuer, dass der Sanft-Stop nur bei einem
+   * wirklich heftigen Flick eingreift — genau richtig fuer Swipes, die schon
+   * IM Video sind. Aber der Wisch, der noch im Hero beginnt und in einem
+   * Zug bis ueber das Video hinaustraegt, soll IMMER gefangen werden, egal
+   * wie schnell er ist: sonst kann man mit einem einzigen, ganz normalen
+   * Swipe vom Hero komplett am Video vorbeiscrollen, ohne es je in voller
+   * Groesse gesehen zu haben. Ein `touchstart`, der noch VOR der Pin-Section
+   * liegt (rawProgress <= 0), markiert die laufende Beruehrung dafuer als
+   * "startet im Hero" — die Velocity-Schwelle wird fuer sie ausgesetzt, bis
+   * die naechste Beruehrung beginnt.
    */
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -198,7 +210,22 @@ export function VideoShowcase(): ReactNode {
 
     let disposed = false;
     let hasCaught = false;
+    let touchStartedInHero = false;
     let unsubscribe: (() => void) | null = null;
+
+    const onTouchStart = (): void => {
+      const el = sectionRef.current;
+      if (!el) {
+        touchStartedInHero = false;
+        return;
+      }
+      const vh = window.visualViewport?.height ?? window.innerHeight;
+      const rect = el.getBoundingClientRect();
+      const scrollableHeight = rect.height - vh;
+      const rawProgress = scrollableHeight > 0 ? -rect.top / scrollableHeight : 0;
+      touchStartedInHero = rawProgress <= 0;
+    };
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
 
     // `any` bewusst: Lenis' eigener Event-Typ bringt hier mehr Aerger als
     // Nutzen (die Callback-Signatur in `lenis.on` ist je nach Version
@@ -227,7 +254,7 @@ export function VideoShowcase(): ReactNode {
         return;
       }
       if (hasCaught) return;
-      if (Math.abs(e.velocity) < CATCH_VELOCITY) return;
+      if (Math.abs(e.velocity) < CATCH_VELOCITY && !touchStartedInHero) return;
 
       hasCaught = true;
       const documentTop = rect.top + e.animatedScroll;
@@ -252,6 +279,7 @@ export function VideoShowcase(): ReactNode {
 
     return () => {
       disposed = true;
+      window.removeEventListener("touchstart", onTouchStart);
       unsubscribe?.();
     };
   }, [prefersReducedMotion]);
