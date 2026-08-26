@@ -1,15 +1,50 @@
-import { sql } from "@vercel/postgres";
+import { neon } from "@neondatabase/serverless";
 
 /**
  * Mitglieder-Datenbank (Postgres, ueber die Vercel-Postgres/Neon-Integration
- * des Projekts). `sql` liest die Verbindung automatisch aus den von Vercel
- * gesetzten Env-Vars (POSTGRES_URL etc.) — lokal muss dafuer `vercel env
- * pull` gelaufen sein bzw. die Variablen in .env.local stehen.
+ * des Projekts). `@vercel/postgres` ist mittlerweile deprecated — Vercel
+ * verweist selbst auf Neons eigenes SDK, das genau dieselbe
+ * Tagged-Template-API bietet, deshalb direkt das hier.
+ *
+ * WICHTIG (anders als bei @vercel/postgres!): `sql\`...\`` liefert direkt
+ * ein Array von Zeilen zurueck, kein `{ rows, rowCount }`-Objekt.
+ *
+ * Verbindung kommt aus DATABASE_URL (Neons Standardname) oder POSTGRES_URL
+ * (falls Vercel die Variable so benennt) — lokal muss dafuer `vercel env
+ * pull` gelaufen sein bzw. die Variable in .env.local stehen.
  *
  * `ensureSchema()` legt die Tabellen an, falls sie noch fehlen — einmal pro
  * Server-Prozess ausgefuehrt (nicht bei jedem Request neu), damit das erste
  * Deployment ohne manuelle Migration funktioniert.
  */
+type SqlRow = Record<string, unknown>;
+type SqlFn = ReturnType<typeof neon>;
+
+let sqlInstance: SqlFn | null = null;
+
+function getConnectionString(): string {
+  const url =
+    process.env.DATABASE_URL ??
+    process.env.POSTGRES_URL ??
+    process.env.DATABASE_URL_UNPOOLED;
+  if (!url) {
+    throw new Error(
+      "Keine Datenbank-Verbindung gefunden (DATABASE_URL bzw. POSTGRES_URL " +
+        "fehlt). In Vercel unter Storage eine Postgres-Datenbank anlegen — " +
+        "die Env-Var wird dann automatisch gesetzt."
+    );
+  }
+  return url;
+}
+
+export function sql<T extends SqlRow = SqlRow>(
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+): Promise<T[]> {
+  if (!sqlInstance) sqlInstance = neon(getConnectionString());
+  return sqlInstance(strings, ...values) as Promise<T[]>;
+}
+
 let schemaReady: Promise<void> | null = null;
 
 async function createSchema(): Promise<void> {
@@ -46,5 +81,3 @@ export function ensureSchema(): Promise<void> {
   }
   return schemaReady;
 }
-
-export { sql };

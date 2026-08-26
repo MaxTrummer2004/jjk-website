@@ -40,7 +40,7 @@ export async function registerAction(
   }
 
   const existing = await sql`select id from members where username = ${username}`;
-  if (existing.rows.length > 0) {
+  if (existing.length > 0) {
     return { error: "Der Benutzername ist schon vergeben." };
   }
 
@@ -50,7 +50,7 @@ export async function registerAction(
     values (${name}, ${username}, ${passwordHash})
     returning id
   `;
-  const memberId = inserted.rows[0]?.id as number;
+  const memberId = inserted[0]?.id as number;
   await createSession(memberId);
   revalidatePath("/mitglieder");
   return {};
@@ -70,7 +70,7 @@ export async function loginAction(
   const result = await sql`
     select id, password_hash from members where username = ${username}
   `;
-  const row = result.rows[0];
+  const row = result[0];
   if (!row || !(await verifyPassword(password, row.password_hash as string))) {
     return { error: "Benutzername oder Passwort falsch." };
   }

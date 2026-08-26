@@ -80,13 +80,13 @@ export default async function MitgliederPage(): Promise<ReactNode> {
   ]);
 
   const votesByMember = new Map<number, AttendanceVote[]>();
-  for (const v of votesResult.rows) {
+  for (const v of votesResult) {
     const list = votesByMember.get(v.member_id) ?? [];
     list.push({ training_date: v.training_date, present: v.present });
     votesByMember.set(v.member_id, list);
   }
 
-  const ranked = membersResult.rows
+  const ranked = membersResult
     .map((m) => {
       const votes = votesByMember.get(m.id) ?? [];
       const stats = computeStats(new Date(m.joined_at), votes);
