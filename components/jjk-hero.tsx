@@ -26,6 +26,9 @@ export function JJKHero(): ReactNode {
   const [revealed, setRevealed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
+  // introExited: true sobald AnimatePresence.onExitComplete gefeuert hat.
+  // Hero-Canvas mountet erst dann — keine zwei WebGL-Layer gleichzeitig.
+  const [introExited, setIntroExited] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const scrollFraction = useMotionValue(0);
   // Ab hier ist die Opacity (siehe scrollFade unten) schon laengst bei 0 —
@@ -111,32 +114,30 @@ export function JJKHero(): ReactNode {
     return () => { setOpeningDone(true); };
   }, []);
 
-  // prefers-reduced-motion: sofort fertig.
+  // prefers-reduced-motion: sofort auf 100 springen, dann Loader-Exit (0.01s)
+  // ausloesen — onExitComplete kuemmert sich um introExited/opening/revealed.
   useEffect(() => {
     if (!prefersReducedMotion) return;
     setProgress(100);
     setLoading(false);
-    setOpeningDone(true);
-    setRevealed(true);
   }, [prefersReducedMotion]);
 
-  // Progress-Counter: alle 45 ms +1 bis 100.
+  // Progress-Counter: alle 30 ms +1 bis 100 (~3 s gesamt).
   useEffect(() => {
     if (!loading || prefersReducedMotion) return;
     const id = window.setInterval(() => {
       setProgress((p) => Math.min(p + 1, 100));
-    }, 45);
+    }, 30);
     return () => window.clearInterval(id);
   }, [loading, prefersReducedMotion]);
 
-  // Bei 100: kurzer Hold, dann Loader ausblenden und Hero starten.
+  // Bei 100: kurzer Hold, dann AnimatePresence-Exit starten.
+  // setOpeningDone und setRevealed laufen in onExitComplete (nach dem Exit),
+  // damit der Hero-Canvas nie waehrend des Intro-Canvas laeuft.
   useEffect(() => {
     if (!loading || progress < 100 || prefersReducedMotion) return;
     const holdT = window.setTimeout(() => {
       setLoading(false);
-      setOpeningDone(true);
-      // Hero-Reveal startet waehrend Loader noch ausblendet (~400ms ins Exit).
-      window.setTimeout(() => setRevealed(true), 400);
     }, 700);
     return () => window.clearTimeout(holdT);
   }, [loading, progress, prefersReducedMotion]);
@@ -193,7 +194,9 @@ export function JJKHero(): ReactNode {
           aria-hidden="true"
           className="pointer-events-none absolute -inset-1"
         >
-          {showBackground && (
+          {/* introExited: Intro-Canvas muss vollstaendig abgebaut sein,
+              bevor dieser Hero-Canvas mountet (eine WebGL-Instanz gleichzeitig). */}
+          {showBackground && introExited && (
             <Watercolor
               className="absolute inset-0"
               color1="#030304"
@@ -263,7 +266,15 @@ export function JJKHero(): ReactNode {
       </motion.div>
     </section>
 
-      <AnimatePresence>
+      {/* onExitComplete: Intro-Canvas vollstaendig abgebaut.
+          Erst jetzt darf Hero-Canvas mounten und Nav einfahren. */}
+      <AnimatePresence
+        onExitComplete={() => {
+          setIntroExited(true);
+          setOpeningDone(true);
+          setRevealed(true);
+        }}
+      >
         {loading && <IntroLoader key="intro-loader" progress={progress} />}
       </AnimatePresence>
     </>
