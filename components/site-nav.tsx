@@ -7,10 +7,13 @@ import { ScrollProgress } from "@/components/scroll-progress";
 import { softEase, useReducedMotion } from "@/lib/motion";
 import { isOpeningDone, isOpeningDoneOnServer, subscribeOpening } from "@/lib/opening";
 import { nav, siteConfig } from "@/lib/config";
+import { useSectionTransition } from "@/lib/section-transition";
+import { useIsDesktop } from "@/lib/use-is-desktop";
 import { AnimatePresence, motion, type Variants } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import { triggerPageTransition } from "@/lib/page-transition";
 
 // ---- JJK link sets -------------------------------------------------------
@@ -73,18 +76,6 @@ function useIntroDone(): boolean {
   return useSyncExternalStore(subscribeOpening, isOpeningDone, isOpeningDoneOnServer);
 }
 
-function useIsDesktop(): boolean {
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(mq.matches);
-    const handler = (e: MediaQueryListEvent): void => setIsDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return isDesktop;
-}
-
 // ---- component -----------------------------------------------------------
 
 export function SiteNav(): ReactNode {
@@ -92,6 +83,7 @@ export function SiteNav(): ReactNode {
   const isDesktop = useIsDesktop();
   const introDone = useIntroDone();
   const router = useRouter();
+  const { goToSection } = useSectionTransition();
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const closedWidth = isDesktop ? CLOSED_WIDTH_DESKTOP : CLOSED_WIDTH_MOBILE;
@@ -139,6 +131,7 @@ export function SiteNav(): ReactNode {
               <a
                 key={link.href}
                 href={link.href}
+                onClick={(e) => { e.preventDefault(); goToSection(link.href); }}
                 className="text-muted-foreground hover:text-foreground flex h-10 items-center rounded-full px-5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
               >
                 {link.label}
@@ -225,7 +218,7 @@ export function SiteNav(): ReactNode {
                             <motion.a
                               key={link.href}
                               href={link.href}
-                              onClick={closeMenu}
+                              onClick={(e) => { e.preventDefault(); closeMenu(); goToSection(link.href); }}
                               custom={1 + i}
                               variants={ITEM_VARIANTS}
                               className="text-foreground hover:text-foreground/55 w-fit text-[26px] leading-tight font-medium tracking-tight transition-colors focus-visible:outline-none"
@@ -304,8 +297,8 @@ export function SiteNav(): ReactNode {
             onClick={(e) => {
               e.preventDefault();
               closeMenu();
-              triggerPageTransition();
-              setTimeout(() => router.push("/mitglieder"), 80);
+              flushSync(() => { triggerPageTransition(); });
+              requestAnimationFrame(() => router.push("/mitglieder"));
             }}
             className="hidden h-13 items-center rounded-full px-6 text-sm font-medium transition-opacity hover:opacity-85 md:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             style={{
