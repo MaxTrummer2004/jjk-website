@@ -94,7 +94,12 @@ export function MemberProfile({
   ];
 
   return (
-    <div className="min-h-screen w-full px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="min-h-screen w-full px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24"
+    >
       {/* View switcher */}
       <div className="mx-auto mb-8 flex w-full max-w-lg rounded-full border border-white/10 bg-white/[0.04] p-1">
         {(["profil", "rangliste"] as View[]).map((v) => (
@@ -402,6 +407,6 @@ export function MemberProfile({
           <span aria-hidden>←</span> Startseite
         </Link>
       </div>
-    </div>
+    </motion.div>
   );
 }

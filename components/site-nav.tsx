@@ -11,10 +11,7 @@ import { useSectionTransition } from "@/lib/section-transition";
 import { useIsDesktop } from "@/lib/use-is-desktop";
 import { AnimatePresence, motion, type Variants } from "motion/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { flushSync } from "react-dom";
-import { triggerPageTransition } from "@/lib/page-transition";
 
 // ---- JJK link sets -------------------------------------------------------
 
@@ -82,7 +79,6 @@ export function SiteNav(): ReactNode {
   const prefersReducedMotion = useReducedMotion();
   const isDesktop = useIsDesktop();
   const introDone = useIntroDone();
-  const router = useRouter();
   const { goToSection } = useSectionTransition();
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -294,12 +290,6 @@ export function SiteNav(): ReactNode {
         <div className="flex items-center gap-2">
           <Link
             href="/mitglieder"
-            onClick={(e) => {
-              e.preventDefault();
-              closeMenu();
-              flushSync(() => { triggerPageTransition(); });
-              requestAnimationFrame(() => router.push("/mitglieder"));
-            }}
             className="hidden h-13 items-center rounded-full px-6 text-sm font-medium transition-opacity hover:opacity-85 md:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             style={{
               backgroundColor: "var(--accent)",
