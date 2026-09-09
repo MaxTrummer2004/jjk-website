@@ -43,7 +43,7 @@ function ShowcaseVideo({
       loop
       playsInline
       controls={controls}
-      preload="auto"
+      preload="metadata"
       aria-label="BJJ training at JJK Academy"
     />
   );
@@ -55,26 +55,13 @@ function ShowcaseVideo({
  * jjk-hero.tsx fuer dieselbe Begruendung) statt ueber Framers `useScroll`.
  *
  * ── Das Pinning ──────────────────────────────────────────────────────────
- * position: sticky; top: 0 auf dem Wrapper-Div. Das ist geometrisch
- * aequivalent zum frueheren fixed/absolute-Wechsel:
- *
- *   Bei scrollProgress < 1: sticky-Element am Viewport-Top, genau wie fixed.
- *   Bei scrollProgress >= 1: Section-Bottom erreicht Element-Bottom, Element
- *   loest sich und scrollt mit — Endposition identisch zu absolute; bottom:0.
- *   (Nachweis: sticky_top = section_bottom - wrapper_height = 180svh-100lvh;
- *    absolute_top = 180svh - 100lvh; identisch.)
- *
- * Kein Positions-Wechsel, kein Reflow, keine MotionValue-driven Styles auf
- * dem Wrapper. Der fruehere fixed/absolute-Wechsel (bis Commit b6d0d91) hat
- * bei Touch-Momentum um scrollProgress≈1 mehrfach zwischen fixed und
- * absolute hin- und hergeschaltet — ein Reflow pro Sprung, spuerbar als
- * kurze Sperre am Ende der Video-Section.
- *
- * Sticky war vorher auf Mobile gescheitert ("Videobox scrollte mit hoch"),
- * weil Lenis auf Mobile transforms auf den Scroll-Container setzte und damit
- * sticky bricht. Seit smooth-scroll.tsx (Commit f3789ed) laeuft Lenis auf
- * Mobile nicht mehr. Kein overflow:hidden in html/body/main — keine
- * Vorfahren-Einschraenkung fuer sticky.
+ * Auch `position: sticky` wird hier nicht mehr blind vertraut — auf Mobile
+ * blieb die Videobox nicht stehen, sondern scrollte mit hoch (bei der
+ * Vorlage nicht). Statt CSS `sticky` das Anheften ueberlassen, wird die
+ * Position hart aus scrollProgress abgeleitet: `fixed` waehrend die Section
+ * aktiv ist (haengt garantiert am Viewport, egal was ein mobiler Browser mit
+ * sticky+Adressleiste anstellt), `absolute` am Ende, damit sie sich exakt am
+ * unteren Rand der 180svh-Section loest statt daran vorbeizuschweben.
  */
 /** Ein bisschen groesser als exakt, damit ein kurz veralteter Wert (siehe
  *  unten) nie einen schwarzen Spalt zwischen Videobox und Viewportrand
@@ -95,11 +82,6 @@ const CATCH_DURATION = 0.45;
  *  weich aus, statt Lenis' Default gegen die eigene Momentum-Animation zu
  *  setzen (was den harten Stopp mit ausmachte). */
 const CATCH_EASE = (t: number): number => 1 - Math.pow(1 - t, 3);
-
-/** Mindestgeschwindigkeit (px/Frame bei 60 fps), ab der ein Wisch als
- *  "schneller Swipe" gilt und eingefangen wird. Darunter = bewusstes
- *  langsames Scrollen, das nicht unterbrochen werden darf. */
-const CATCH_MIN_VELOCITY = 30;
 
 export function VideoShowcase(): ReactNode {
   const prefersReducedMotion = useReducedMotion();
@@ -254,86 +236,6 @@ export function VideoShowcase(): ReactNode {
     };
   }, [prefersReducedMotion]);
 
-  /**
-   * ── Sanft-Stop (native, nur Mobile) ──────────────────────────────────────
-   * Ohne Lenis kein lenis.scrollTo() — stattdessen native scroll-Events mit
-   * rAF-Throttle und window.scrollTo({ behavior: "smooth" }).
-   *
-   * Ausloesung nur wenn:
-   *   - rawProgress in der schmalen Zone knapp nach GROWTH_END
-   *   - Scrollrichtung nach unten (dy > 0)
-   *   - Geschwindigkeit >= CATCH_MIN_VELOCITY px/Frame (kein langsames Scrollen)
-   *   - einmal pro Seitenaufruf (hasCaught)
-   *
-   * Abbrechbar: touchstart oder wheel waerendd des smooth-Scrolls rufen
-   * sofort window.scrollTo({ behavior: "instant" }) auf — kein Verschlucken,
-   * kein Timeout, keine Sperre. hasCaught bleibt trotzdem gesetzt.
-   */
-  useEffect(() => {
-    if (prefersReducedMotion) return;
-    if (!window.matchMedia("(max-width: 639px)").matches) return;
-
-    let hasCaught = false;
-    let rafPending = false;
-    let prevScrollY = window.scrollY;
-    let cleanupSnap: (() => void) | null = null;
-
-    const onScroll = (): void => {
-      if (rafPending) return;
-      rafPending = true;
-      requestAnimationFrame(() => {
-        rafPending = false;
-        if (hasCaught) return;
-
-        const currentScrollY = window.scrollY;
-        const dy = currentScrollY - prevScrollY;
-        prevScrollY = currentScrollY;
-
-        if (dy < CATCH_MIN_VELOCITY) return;
-
-        const el = sectionRef.current;
-        if (!el) return;
-
-        const vh = window.visualViewport?.height ?? window.innerHeight;
-        const rect = el.getBoundingClientRect();
-        const scrollableHeight = rect.height - vh;
-        if (scrollableHeight <= 0) return;
-
-        const rawProgress = -rect.top / scrollableHeight;
-        if (!(rawProgress > GROWTH_END && rawProgress < GROWTH_END + 0.06)) return;
-
-        hasCaught = true;
-
-        // targetY: Scrollposition, bei der rawProgress genau GROWTH_END ist.
-        // Herleitung: rawProgress = -rect.top / scrollableHeight = GROWTH_END
-        // => rect.top_target = -GROWTH_END * scrollableHeight
-        // => targetY = currentScrollY + (rect.top - rect.top_target)
-        //            = currentScrollY + rect.top + GROWTH_END * scrollableHeight
-        const targetY = currentScrollY + rect.top + GROWTH_END * scrollableHeight;
-        window.scrollTo({ top: targetY, behavior: "smooth" });
-
-        // Abbruch bei neuem Touch oder Wheel: smooth-Scroll sofort stoppen.
-        const abort = (): void => {
-          window.scrollTo({ top: window.scrollY, behavior: "instant" });
-          cleanupSnap?.();
-          cleanupSnap = null;
-        };
-        window.addEventListener("touchstart", abort, { once: true, passive: true });
-        window.addEventListener("wheel", abort, { once: true, passive: true });
-        cleanupSnap = () => {
-          window.removeEventListener("touchstart", abort);
-          window.removeEventListener("wheel", abort);
-        };
-      });
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      cleanupSnap?.();
-    };
-  }, [prefersReducedMotion]);
-
   const fullWidth =
     Math.min(viewport.w, MAX_WIDTH) - sectionPadding(viewport.w) * 2 + OVERSCAN;
   const fullHeight = viewport.h - NAV_OFFSET - BOTTOM_GAP + OVERSCAN;
@@ -357,6 +259,15 @@ export function VideoShowcase(): ReactNode {
     [GROWTH_END, GROWTH_END + 0.1, 0.9, 0.98],
     [0, 1, 1, 0]
   );
+
+  // Manuelles Pin statt CSS `sticky`: vor der Section normal im Fluss,
+  // waehrend der Section hart am Viewport fixiert, danach am unteren Rand
+  // der 180svh-Section verankert (die Section selbst ist `relative`).
+  const pinPosition = useTransform(scrollProgress, (v) =>
+    v >= 1 ? "absolute" : "fixed"
+  );
+  const pinTop = useTransform(scrollProgress, (v) => (v >= 1 ? "auto" : "0px"));
+  const pinBottom = useTransform(scrollProgress, (v) => (v >= 1 ? "0px" : "auto"));
 
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -417,12 +328,27 @@ export function VideoShowcase(): ReactNode {
       aria-label="BJJ showcase"
       className="pointer-events-none relative z-20 [margin-top:-100svh] h-[180svh] [overflow-anchor:none]"
     >
-      {/* sticky top-0: Browser pinnt ohne Position-Wechsel und ohne Reflow.
-          h-lvh: muss den Viewport beim Einblenden der Adressleiste abdecken
-          (svh waere zu kurz — schwarzer Rand unten). z-20: Stacking-Context
-          explizit auf dem tatsaechlich gepinnten Element setzen, damit der
-          Watercolor-Hintergrund im Hero darunter bleibt. */}
-      <div className="sticky top-0 z-20 h-lvh overflow-hidden">
+      <motion.div
+        style={{ position: pinPosition, top: pinTop, bottom: pinBottom, left: 0, right: 0 }}
+        className="z-20 h-lvh overflow-hidden"
+      >
+        {/* z-20 direkt hier (nicht nur auf der Section aussen): `position:
+            fixed`-Kindelemente stapeln sich zwar innerhalb des
+            Stacking-Contexts der Section, aber ein z-index direkt auf dem
+            tatsaechlich fixierten Element ist eindeutig statt sich auf diese
+            Vererbung zu verlassen — der Watercolor-Hintergrund im Hero
+            (siehe jjk-hero.tsx, dort bewusst niedriger) schien sonst
+            teilweise ueber dem Video statt darunter. */}
+        {/* h-lvh statt h-svh: dieser Wrapper ist waehrend des Pins `position:
+            fixed` und muss den sichtbaren Bereich IMMER voll abdecken. `svh`
+            geht von eingeblendeter Adressleiste aus (kleinstmoegliche Hoehe)
+            — blendet die Leiste auf einem echten Handy beim Scrollen aus,
+            wird der sichtbare Bereich groesser als `100svh`, und der fixierte
+            Wrapper bleibt zu kurz: schwarzer Rand unten. `lvh` geht vom
+            eingeklappten Zustand aus (groesstmoegliche Hoehe) und deckt den
+            Viewport so immer ab. Beides sind statische Werte (kein
+            Nachzittern wie bei `dvh`), Chrome-DevTools-Emulation ohne echte
+            Adressleiste zeigt den Unterschied nie. */}
         <motion.p
           style={{ x: "-50%", y: captionY, opacity: captionOpacity }}
           className="text-foreground absolute top-0 left-1/2 flex items-center gap-2.5 text-xs font-medium whitespace-nowrap"
@@ -460,7 +386,7 @@ export function VideoShowcase(): ReactNode {
             </motion.span>
           </motion.div>
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   );
 }
