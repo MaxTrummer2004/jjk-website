@@ -307,45 +307,34 @@ function MobileCarousel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const kanjiRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const scrollRafRef = useRef<number | undefined>(undefined);
 
   const handleScroll = useCallback(() => {
-    // rAF throttle: one DOM read/write batch per frame, not per scroll event.
-    if (scrollRafRef.current !== undefined) return;
-    scrollRafRef.current = requestAnimationFrame(() => {
-      scrollRafRef.current = undefined;
-      const el = scrollRef.current;
-      if (!el) return;
-      // el.clientWidth ≈ viewport width since container is full-width (-mx-4 cancels section padding)
-      const vw = el.clientWidth;
-      const cardW = vw * 0.8;   // 80vw
-      const gap = vw * 0.04;    // 4vw gap
-      const stride = cardW + gap;
+    const el = scrollRef.current;
+    if (!el) return;
+    // el.clientWidth ≈ viewport width since container is full-width (-mx-4 cancels section padding)
+    const vw = el.clientWidth;
+    const cardW = vw * 0.8;   // 80vw
+    const gap = vw * 0.04;    // 4vw gap
+    const stride = cardW + gap;
 
-      const idx = Math.round(el.scrollLeft / stride);
-      setActiveIndex(Math.max(0, Math.min(idx, cards.length - 1)));
+    const idx = Math.round(el.scrollLeft / stride);
+    setActiveIndex(Math.max(0, Math.min(idx, cards.length - 1)));
 
-      if (!reducedMotion) {
-        const padLeft = vw * 0.1; // 10vw padding-left
-        const viewCenter = el.scrollLeft + vw / 2;
-        kanjiRefs.current.forEach((span, i) => {
-          if (!span) return;
-          const cardCenter = padLeft + i * stride + cardW / 2;
-          // offset: 0 when card is centered, ±1 when one card away
-          const offset = (cardCenter - viewCenter) / stride;
-          span.style.transform = `translateX(${offset * 40}px)`;
-        });
-      }
-    });
+    if (!reducedMotion) {
+      const padLeft = vw * 0.1; // 10vw padding-left
+      const viewCenter = el.scrollLeft + vw / 2;
+      kanjiRefs.current.forEach((span, i) => {
+        if (!span) return;
+        const cardCenter = padLeft + i * stride + cardW / 2;
+        // offset: 0 when card is centered, ±1 when one card away
+        const offset = (cardCenter - viewCenter) / stride;
+        span.style.transform = `translateX(${offset * 40}px)`;
+      });
+    }
   }, [cards.length, reducedMotion]);
 
   useEffect(() => {
     handleScroll();
-    return () => {
-      if (scrollRafRef.current !== undefined) {
-        cancelAnimationFrame(scrollRafRef.current);
-      }
-    };
   }, [handleScroll]);
 
   return (
@@ -358,8 +347,6 @@ function MobileCarousel({
         style={{
           scrollSnapType: "x mandatory",
           overscrollBehaviorX: "contain",
-          overscrollBehaviorY: "auto",
-          touchAction: "pan-x pan-y",
           WebkitOverflowScrolling: "touch",
           scrollbarWidth: "none",
           msOverflowStyle: "none",

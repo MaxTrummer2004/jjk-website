@@ -119,9 +119,7 @@ export function VideoShowcase(): ReactNode {
     let grown = false;
     let lastWidth: number | null = null;
 
-    let rafId: number | undefined;
-    const flush = (): void => {
-      rafId = undefined;
+    const update = (): void => {
       const el = sectionRef.current;
       const h = Math.ceil(vv?.height ?? window.innerHeight);
       const w = Math.ceil(vv?.width ?? window.innerWidth);
@@ -143,39 +141,57 @@ export function VideoShowcase(): ReactNode {
       scrollProgress.set(progress);
       grown = progress >= GROWTH_END;
     };
-    const schedule = (): void => {
-      if (rafId === undefined) rafId = requestAnimationFrame(flush);
-    };
 
-    flush();
-    window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule, { passive: true });
-    window.addEventListener("orientationchange", schedule, { passive: true });
-    vv?.addEventListener("resize", schedule, { passive: true });
-    vv?.addEventListener("scroll", schedule, { passive: true });
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    vv?.addEventListener("resize", update);
+    vv?.addEventListener("scroll", update);
     return () => {
-      if (rafId !== undefined) cancelAnimationFrame(rafId);
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
-      window.removeEventListener("orientationchange", schedule);
-      vv?.removeEventListener("resize", schedule);
-      vv?.removeEventListener("scroll", schedule);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+      vv?.removeEventListener("resize", update);
+      vv?.removeEventListener("scroll", update);
     };
   }, [scrollProgress]);
 
   /**
-   * ── Sanft-Stop bei der voll ausgewachsenen Groesse (nur Desktop) ─────────
-   * Auf Desktop: ein starker Scroll kann die Wachstumszone (bis GROWTH_END)
-   * ueberfliegen. Einmalig per Lenis-scrollTo einrasten, wenn der Scroll
-   * die schmale Zone knapp nach GROWTH_END durchquert.
-   * Auf Mobile laeuft Lenis nicht (smooth-scroll.tsx), deshalb bailed dieser
-   * Effect dort sofort — kein rAF-Polling, kein toter Code.
+   * ── Sanft-Stop bei der voll ausgewachsenen Groesse (nur mobil) ──────────
+   * Nur am Handy laesst sich das Video bei einem kraeftigen Swipe komplett
+   * uebersehen: die Wachstumsanimation ist bei GROWTH_END (55%) fertig,
+   * aber die Pin-Strecke laeuft bis 100% weiter — ein starker Wisch reisst
+   * ueber die volle Strecke, und "fertig gewachsen" wird nie wirklich
+   * wahrgenommen.
+   *
+   * Der fruehere Versuch, das per manuellem preventDefault + eigenem
+   * `window.scrollTo` zu verhindern, fuehlte sich steif an — aus gutem
+   * Grund: die Seite scrollt hier ueber Lenis (components/smooth-scroll.tsx),
+   * und Lenis "besitzt" die Scrollposition und animiert bei jedem eigenen
+   * `window.scrollTo`-Aufruf von aussen dagegen an (siehe Kommentar in
+   * lib/lenis.ts). Deshalb jetzt NICHT mehr gegen Lenis ankaempfen, sondern
+   * Lenis' eigene `scrollTo`-API nutzen: sobald der Scroll die Zone kurz
+   * nach GROWTH_END durchquert, wird die laufende Lenis-Animation einmalig
+   * sanft auf genau den GROWTH_END-Punkt umgelenkt (kurze eigene Dauer).
+   *
+   * Erst gab es hier eine Velocity-Schwelle (nur "starke" Wische fangen),
+   * die dann noch mehrfach hochgesetzt wurde, weil sie trotzdem staendig bei
+   * ganz normalen Wischen ausloeste. Jetzt keine Schwelle mehr: JEDER Swipe,
+   * der die Zone durchquert, wird gefangen — einfacher und tut genau das,
+   * was verlangt war ("man soll nie ueber das Video drueberkommen"), ohne
+   * eine Geschwindigkeit zu erraten, ab der es "zu viel" wird.
+   *
+   * `lock: true` waehrend der kurzen Snap-Animation: ohne das konnte sich
+   * ein sehr starker Wisch (dessen eigene Lenis-Momentum-Animation noch
+   * weiterlief) ueber den Sanft-Stop hinweg fortsetzen — sichtbar als
+   * "haelt kurz, geht dann trotzdem weiter". Die Sperre gilt nur fuer die
+   * CATCH_DURATION (0.45s), danach ist die Seite sofort wieder frei
+   * scrollbar; ein zweiter Swipe danach setzt normal fort.
    */
   useEffect(() => {
     if (prefersReducedMotion) return;
-    // Lenis does not run on mobile (see smooth-scroll.tsx) so there is nothing
-    // to snap with there. Desktop only.
-    if (!window.matchMedia("(min-width: 640px)").matches) return;
+    if (!window.matchMedia("(max-width: 639px)").matches) return;
 
     let disposed = false;
     let hasCaught = false;
@@ -201,23 +217,27 @@ export function VideoShowcase(): ReactNode {
       // ab 1 einfach bei 1 stehen und wuerde das "gerade durchquert" nicht
       // mehr hergeben).
       const rawProgress = -rect.top / scrollableHeight;
-      const inCatchZone = rawProgress > GROWTH_END && rawProgress < GROWTH_END + 0.06;
+      const inCatchZone = rawProgress > GROWTH_END && rawProgress < 0.95;
 
-      if (!inCatchZone) return;
-
-      // Only snap on the way down, never on upward scroll
-      if (e.direction !== 1) return;
-
-      // Fire once per page load — no reset after catch, so repeated scrolling
-      // through the video section never re-triggers the lock
+      if (!inCatchZone) {
+        hasCaught = false;
+        return;
+      }
       if (hasCaught) return;
 
       hasCaught = true;
       const documentTop = rect.top + e.animatedScroll;
       const targetY = documentTop + GROWTH_END * scrollableHeight;
+      // `lock: true`: waehrend der kurzen Snap-Animation wird kein weiterer
+      // Scroll-Input verarbeitet. Ohne das setzte sich ein sehr starker
+      // Wisch (dessen eigene Lenis-Momentum-Animation noch weiterlief) ueber
+      // den Sanft-Stop hinweg fort — sichtbar als "haelt kurz, geht dann bei
+      // starkem Scroll trotzdem weiter". Die Sperre gilt nur fuer die
+      // CATCH_DURATION (0.45s), danach ist die Seite sofort wieder frei.
       lenis.scrollTo(targetY, {
         duration: CATCH_DURATION,
         easing: CATCH_EASE,
+        lock: true,
       });
     };
 
@@ -266,10 +286,14 @@ export function VideoShowcase(): ReactNode {
     [0, 1, 1, 0]
   );
 
-  // `position: sticky` statt manuell fixed→absolute: geometrisch identisch
-  // (sticky loest sich exakt dann vom Viewport, wenn scrollProgress=1 waere),
-  // aber ohne den compositor-layer Flush den fixed→absolute mitten im Scroll
-  // ausloest. Kein Reflow, kein Haken nach dem Video.
+  // Manuelles Pin statt CSS `sticky`: vor der Section normal im Fluss,
+  // waehrend der Section hart am Viewport fixiert, danach am unteren Rand
+  // der 180svh-Section verankert (die Section selbst ist `relative`).
+  const pinPosition = useTransform(scrollProgress, (v) =>
+    v >= 1 ? "absolute" : "fixed"
+  );
+  const pinTop = useTransform(scrollProgress, (v) => (v >= 1 ? "auto" : "0px"));
+  const pinBottom = useTransform(scrollProgress, (v) => (v >= 1 ? "0px" : "auto"));
 
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -328,9 +352,12 @@ export function VideoShowcase(): ReactNode {
       ref={sectionRef}
       id="video"
       aria-label="BJJ showcase"
-      className="pointer-events-none relative z-20 [margin-top:-100svh] h-[180svh] [overflow-anchor:none]"
+      className="pointer-events-none relative z-20 [margin-top:-100svh] h-[180svh]"
     >
-      <div className="sticky top-0 z-20 h-lvh overflow-hidden">
+      <motion.div
+        style={{ position: pinPosition, top: pinTop, bottom: pinBottom, left: 0, right: 0 }}
+        className="z-20 h-lvh overflow-hidden"
+      >
         {/* z-20 direkt hier (nicht nur auf der Section aussen): `position:
             fixed`-Kindelemente stapeln sich zwar innerhalb des
             Stacking-Contexts der Section, aber ein z-index direkt auf dem
@@ -385,7 +412,7 @@ export function VideoShowcase(): ReactNode {
             </motion.span>
           </motion.div>
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   );
 }

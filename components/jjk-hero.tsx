@@ -43,37 +43,31 @@ export function JJKHero(): ReactNode {
   // und laesst den Swipe ruckeln/haengenbleiben ("ein Swipe reicht nicht").
   // Etwas Puffer (0.6 statt exakt 0.5) gegen Flackern an der Fade-Grenze.
   const [showBackground, setShowBackground] = useState(true);
-  const showBackgroundRef = useRef(true);
 
   useEffect(() => {
-    let rafId: number | undefined;
-    const flush = (): void => {
-      rafId = undefined;
+    const update = (): void => {
       const el = heroRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
       const height = rect.height || 1;
       const fraction = Math.min(Math.max(-rect.top / height, 0), 1);
       scrollFraction.set(fraction);
-      // setShowBackground aus dem Scroll-Pfad entfernt: MotionValue-Subscriber
-      // unten liest showBackgroundRef und setzt State nur wenn noetig.
-      const shouldShow = fraction < 0.6;
-      if (showBackgroundRef.current !== shouldShow) {
-        showBackgroundRef.current = shouldShow;
-        setShowBackground(shouldShow);
-      }
     };
-    const schedule = (): void => {
-      if (rafId === undefined) rafId = requestAnimationFrame(flush);
-    };
-    flush();
-    window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule, { passive: true });
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
     return () => {
-      if (rafId !== undefined) cancelAnimationFrame(rafId);
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
     };
+  }, [scrollFraction]);
+
+  useEffect(() => {
+    const unsubscribe = scrollFraction.on("change", (fraction) => {
+      const shouldShow = fraction < 0.6;
+      setShowBackground((prev) => (prev === shouldShow ? prev : shouldShow));
+    });
+    return unsubscribe;
   }, [scrollFraction]);
 
   // Bei 50% der eigenen Hoehe komplett verblasst — danach ist der Hero
@@ -81,12 +75,29 @@ export function JJKHero(): ReactNode {
   const scrollFade = useTransform(scrollFraction, [0, 0.5], [1, 0]);
 
   // ── Das Pinning ──────────────────────────────────────────────────────────
-  // `position: sticky` statt manuell fixed→absolute: Die Section ist h-svh,
-  // der Inhalt sticky top-0 h-svh — loest sich exakt dann, wenn die Section
-  // komplett gescrollt ist (= scrollFraction 1). Kein compositor-layer Flush,
-  // kein Reflow mitten im Scroll.
-  // Der Inhalt ab fraction=0.5 pointer-events:none — "Book"/"Schedule" sollen
-  // nach dem Fade keine Taps mehr abfangen.
+  // Der Hero war bisher ein ganz normaler, mitscrollender Abschnitt: beim
+  // ersten Swipe wanderte er einfach nach oben aus dem Bild, WAEHRENDDESSEN
+  // faded er zwar, aber das Video reagierte in genau diesem Swipe kaum
+  // sichtbar mit — es fuehlte sich an, als wuerde nur der Hero wegscrollen
+  // und erst ein zweiter Swipe das Video bringen. Jetzt exakt wie die
+  // Video-Box in video-showcase.tsx gepinnt: `fixed` (haengt fest am
+  // Viewport, bewegt sich NICHT mit dem Scroll) solange scrollFraction < 1,
+  // danach `absolute` am unteren Rand der eigenen h-svh-Box verankert — zu
+  // dem Zeitpunkt ist die Opacity laengst 0, der Wechsel unsichtbar. Die
+  // Section selbst bleibt im Fluss und beansprucht weiter genau eine
+  // h-svh-Scrollstrecke, nur ihr INHALT bewegt sich nicht mehr mit.
+  const pinPosition = useTransform(scrollFraction, (v) =>
+    v >= 1 ? "absolute" : "fixed"
+  );
+  const pinTop = useTransform(scrollFraction, (v) => (v >= 1 ? "auto" : "0px"));
+  const pinBottom = useTransform(scrollFraction, (v) =>
+    v >= 1 ? "0px" : "auto"
+  );
+  // Der Inhalt (inkl. Buttons) haengt jetzt bis fraction=1 fix am Viewport,
+  // auch nachdem er bei fraction=0.5 unsichtbar geworden ist — ohne das hier
+  // blieben "Book a trial class"/"Schedule" unsichtbar, aber bildschirmfest
+  // anklickbar und wuerden Klicks/Taps abfangen, die eigentlich dem Video
+  // oder was danach kommt galten. Gleiche Schwelle wie der Opacity-Fade.
   const pinPointerEvents = useTransform(scrollFraction, (v) =>
     v < 0.5 ? "auto" : "none"
   );
@@ -160,12 +171,16 @@ export function JJKHero(): ReactNode {
       // "auffrisst". lvh loeste zwar den Rand unten, verschob den
       // zentrierten Titel aber bei sichtbarer Leiste (Normalzustand beim
       // Laden) nach unten. svh ist statisch — kein Ruckeln, Titel/Buttons
-      // korrekt zentriert im Normalzustand. Inhalt sticky top-0, loest sich
-      // exakt wenn die Section vollstaendig gescrollt ist.
+      // korrekt zentriert im Normalzustand. Diese Section selbst ist kein
+      // `position: fixed` (nur ihr Inhalt gleich, siehe pinPosition) — sie
+      // beansprucht nur weiterhin genau eine h-svh-Scrollstrecke im Fluss.
       className="relative h-svh min-h-[640px]"
       aria-label={siteConfig.fullName}
     >
-      <div className="sticky top-0 z-0 bg-background-deep flex h-svh min-h-[640px] items-center justify-center overflow-hidden">
+      <motion.div
+        style={{ position: pinPosition, top: pinTop, bottom: pinBottom, left: 0, right: 0 }}
+        className="bg-background-deep z-0 flex h-svh min-h-[640px] items-center justify-center overflow-hidden"
+      >
       <motion.div
         style={{
           opacity: prefersReducedMotion ? 1 : scrollFade,
@@ -187,15 +202,10 @@ export function JJKHero(): ReactNode {
           className="pointer-events-none absolute -inset-1"
         >
           {/* introExited: Intro-Canvas muss vollstaendig abgebaut sein,
-              bevor dieser Hero-Canvas mountet (eine WebGL-Instanz gleichzeitig).
-              showBackground steuert nur noch den frameloop (paused=true stoppt
-              useFrame ohne WebGL-Teardown) — kein Unmount mehr, weil ein
-              Kontext-Teardown auf Handys mehrere Frames kostet und genau in
-              dem Bereich landet, wo Hero und Video-Section ueberlappen. */}
-          {introExited && (
+              bevor dieser Hero-Canvas mountet (eine WebGL-Instanz gleichzeitig). */}
+          {showBackground && introExited && (
             <Watercolor
               className="absolute inset-0"
-              paused={!showBackground}
               color1="#030304"
               color2="#7a1a08"
               saturation={0.65}
@@ -260,7 +270,7 @@ export function JJKHero(): ReactNode {
           </motion.div>
         </div>
       </motion.div>
-      </div>
+      </motion.div>
     </section>
 
       {/* onExitComplete: Intro-Canvas vollstaendig abgebaut.

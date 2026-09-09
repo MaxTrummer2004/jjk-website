@@ -4,6 +4,9 @@ import { useEffect, type ReactNode } from "react";
 import Lenis from "lenis";
 import { lenisRef } from "@/lib/lenis";
 
+/**
+ * Duration/Easing wie in der Vorlage.
+ */
 const LENIS_OPTIONS = {
   duration: 1.6,
   easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -14,24 +17,6 @@ const LENIS_OPTIONS = {
   touchMultiplier: 2,
 };
 
-const DESKTOP_MQ = "(min-width: 640px)";
-
-function startLenis(): () => void {
-  const lenis = new Lenis(LENIS_OPTIONS);
-  lenisRef.current = lenis;
-
-  function raf(time: number): void {
-    lenis.raf(time);
-    requestAnimationFrame(raf);
-  }
-  requestAnimationFrame(raf);
-
-  return () => {
-    lenisRef.current = null;
-    lenis.destroy();
-  };
-}
-
 export function SmoothScroll({ children }: { children: ReactNode }): ReactNode {
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia(
@@ -40,23 +25,21 @@ export function SmoothScroll({ children }: { children: ReactNode }): ReactNode {
 
     if (prefersReducedMotion) return;
 
-    const mq = window.matchMedia(DESKTOP_MQ);
-    let destroyLenis: (() => void) | null = null;
+    const lenis = new Lenis(LENIS_OPTIONS);
+    // Published so components that need to reposition the scroll can do it
+    // through Lenis instead of fighting it.
+    lenisRef.current = lenis;
 
-    if (mq.matches) {
-      destroyLenis = startLenis();
+    // Eigene rAF-Schleife, unabhaengig von GSAP — wie in der Vorlage. Kein
+    // Intro-Lock mehr: unser Hero hat keinen Preload-Loader (Watercolor
+    // braucht keinen), also gibt es auch nichts, auf das Lenis warten
+    // muesste — vorher haengte das hier an einem `markIntroDone()`, das nie
+    // jemand rief, und Lenis blieb permanent gestoppt.
+    function raf(time: number): void {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
     }
-
-    const onChange = (e: MediaQueryListEvent): void => {
-      if (e.matches) {
-        destroyLenis = startLenis();
-      } else {
-        destroyLenis?.();
-        destroyLenis = null;
-      }
-    };
-
-    mq.addEventListener("change", onChange);
+    requestAnimationFrame(raf);
 
     function handleAnchorClick(e: MouseEvent) {
       const target = e.target as HTMLElement;
@@ -65,11 +48,6 @@ export function SmoothScroll({ children }: { children: ReactNode }): ReactNode {
 
       const href = anchor.getAttribute("href");
       if (!href) return;
-
-      const lenis = lenisRef.current;
-
-      // On mobile Lenis is not running — let the browser handle anchors natively.
-      if (!lenis) return;
 
       e.preventDefault();
 
@@ -93,9 +71,8 @@ export function SmoothScroll({ children }: { children: ReactNode }): ReactNode {
 
     return () => {
       document.removeEventListener("click", handleAnchorClick);
-      mq.removeEventListener("change", onChange);
-      destroyLenis?.();
-      destroyLenis = null;
+      lenisRef.current = null;
+      lenis.destroy();
     };
   }, []);
 

@@ -31,8 +31,6 @@ export interface WatercolorProps {
   opacity?: number;
   cursorInteraction?: boolean;
   cursorIntensity?: number;
-  /** Suspend the render loop without unmounting the WebGL context. */
-  paused?: boolean;
 }
 
 const VERTEX_SHADER = `
@@ -65,14 +63,8 @@ uniform vec2 uPointer;
 uniform float uCursorActive;
 uniform float uCursorIntensity;
 
-// Sin-free hash — avoids precision loss on Mali/Adreno GPUs where
-// sin() at large arguments loses mantissa bits and produces visible
-// repeating patterns. Visual structure is equivalent to the previous
-// sin-based version; uScale/uPersist/uLacun needed no adjustment.
 float hash(vec2 p) {
-  p = fract(p * vec2(0.1031, 0.1030));
-  p += dot(p, p.yx + 33.33);
-  return fract((p.x + p.y) * p.x);
+  return fract(sin(dot(p, vec2(41.713, 83.457))) * 35718.549);
 }
 
 float vnoise(vec2 p) {
@@ -116,10 +108,7 @@ void main() {
   vec3 raw = mix(uCol1, uCol2, smoothstep(0.3, 0.7, blend));
   float luma = dot(raw, vec3(0.299, 0.587, 0.114));
   vec3 col = mix(vec3(luma), raw, uSat) + uBright;
-  // Dither: static screen-space noise ±0.5/255. Breaks OLED banding in
-  // very dark gradients without adding per-frame flicker (no uTime here).
-  float dither = (hash(gl_FragCoord.xy + 0.5) - 0.5) / 255.0;
-  col = clamp(col + dither, 0.0, 1.0);
+  col = clamp(col, 0.0, 1.0);
   gl_FragColor = vec4(col, uAlpha);
 }
 `;
@@ -164,12 +153,7 @@ const WatercolorScene: React.FC<WatercolorSceneProps> = (props) => {
     const u = mat.uniforms;
     u.uTime!.value = state.clock.elapsedTime;
     (u.uRes!.value as THREE.Vector2).set(size.width * viewport.dpr, size.height * viewport.dpr);
-    u.uSpeed!.value = props.speed;
-    // Couple scale to canvas width: narrower = slightly smaller scale so
-    // cloud features stay proportionally similar across screen sizes.
-    // 0.7× at 360 px → 1.0× at 1440 px, no hard breakpoints.
-    const widthFactor = Math.max(0, Math.min(1, (size.width - 360) / (1440 - 360)));
-    u.uScale!.value = props.scale * (0.7 + 0.3 * widthFactor);
+    u.uSpeed!.value = props.speed; u.uScale!.value = props.scale;
     u.uOctaves!.value = props.octaves; u.uPersist!.value = props.persistence;
     u.uLacun!.value = props.lacunarity; u.uDrift!.value = props.driftSpeed;
     u.uWarp!.value = props.warpSpeed;
@@ -205,7 +189,6 @@ const Watercolor: React.FC<WatercolorProps> = ({
   color1 = "#0a0a0a", color2 = "#e0e0e0",
   colorGain = 1, saturation = 0, brightness = 0.15, opacity = 1,
   cursorInteraction = false, cursorIntensity = 1,
-  paused = false,
 }) => {
   const col1Rgb = useMemo(() => parseHexColor(color1), [color1]);
   const col2Rgb = useMemo(() => parseHexColor(color2), [color2]);
@@ -230,9 +213,7 @@ const Watercolor: React.FC<WatercolorProps> = ({
         className="absolute inset-0 h-full w-full"
         orthographic
         camera={{ position: [0, 0, 1], zoom: 1, left: -1, right: 1, top: 1, bottom: -1 }}
-        dpr={[1, 2]}
-        gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
-        frameloop={paused ? "never" : "always"}
+        gl={{ antialias: true, alpha: true }}
       >
         <WatercolorScene
           speed={speed} scale={scale} octaves={octaves} persistence={persistence}
