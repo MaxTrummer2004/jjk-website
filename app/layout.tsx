@@ -1,6 +1,7 @@
 import { Providers } from "@/components/providers";
 import { SkipToContent } from "@/components/skip-to-content";
 import { Atmosphere } from "@/components/atmosphere";
+import { PageTransitionOverlay } from "@/components/page-transition-overlay";
 import { baseMetadata } from "@/lib/metadata";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Oswald } from "next/font/google";
@@ -80,6 +81,7 @@ export default function RootLayout({
           <SkipToContent />
           {children}
           <Atmosphere />
+          <PageTransitionOverlay />
         </Providers>
       </body>
     </html>
