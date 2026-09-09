@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "motion/react";
 import Watercolor from "@/components/watercolor";
 import { AuthForm } from "./auth-form";
@@ -27,14 +26,8 @@ export function AuthLogin() {
       {/* Auth-3-Layout: Karte links, Brand-Text rechts */}
       <div className="relative z-10 mx-auto flex w-full max-w-[1400px] items-center justify-center gap-12">
         {/* Linke Spalte: Karte + Zurück-Link */}
-        <div className="flex w-full max-w-md flex-col items-center gap-6">
+        <div className="w-full max-w-md">
           <AuthForm />
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-card px-4 py-2.5 text-sm font-medium text-foreground-dim transition-colors hover:border-white/20 hover:text-foreground"
-          >
-            <span aria-hidden>←</span> Startseite
-          </Link>
         </div>
 
         {/* Rechte Spalte: Brand-Text — nur ab lg sichtbar */}
