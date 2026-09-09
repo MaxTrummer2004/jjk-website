@@ -13,6 +13,8 @@ import { AnimatePresence, motion, type Variants } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { flushSync } from "react-dom";
+import { triggerPageTransition } from "@/lib/page-transition";
 
 // ---- JJK link sets -------------------------------------------------------
 
@@ -295,7 +297,7 @@ export function SiteNav(): ReactNode {
             onClick={(e) => {
               e.preventDefault();
               closeMenu();
-              // DOM-Overlay: kein React-Overhead, dunkel sofort beim Klick
+              // Phase 1: DOM-Cover dunkel sofort (kein React-Overhead)
               const cover = document.createElement("div");
               cover.setAttribute("aria-hidden", "true");
               cover.style.cssText =
@@ -303,9 +305,12 @@ export function SiteNav(): ReactNode {
               document.body.appendChild(cover);
               requestAnimationFrame(() => { cover.style.opacity = "1"; });
               setTimeout(() => {
+                // Phase 2: Preloader mounten (Entry-Animation läuft unter Cover, unsichtbar)
+                flushSync(() => { triggerPageTransition(); });
+                // Phase 3: Cover weg, Preloader deckt gleiche Farbe ab — nahtlos
+                setTimeout(() => cover.remove(), 80);
+                // Phase 4: Navigation — DismissTransition löst Stairs-Exit aus
                 router.push("/mitglieder");
-                // Cover nach Content-Fade-in entfernen
-                setTimeout(() => cover.remove(), 700);
               }, 320);
             }}
             className="hidden h-13 items-center rounded-full px-6 text-sm font-medium transition-opacity hover:opacity-85 md:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
