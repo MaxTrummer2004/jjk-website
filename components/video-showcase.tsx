@@ -220,7 +220,10 @@ export function VideoShowcase(): ReactNode {
       const inCatchZone = rawProgress > GROWTH_END && rawProgress < 0.95;
 
       if (!inCatchZone) {
-        hasCaught = false;
+        // Only reset when clearly above the zone — snap lands at exactly
+        // GROWTH_END (rawProgress not > GROWTH_END), which would reset
+        // hasCaught immediately and re-trigger lock on every scroll event.
+        if (rawProgress < GROWTH_END - 0.05) hasCaught = false;
         return;
       }
       if (hasCaught) return;
