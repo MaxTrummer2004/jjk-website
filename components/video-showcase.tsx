@@ -226,6 +226,9 @@ export function VideoShowcase(): ReactNode {
         if (rawProgress < GROWTH_END - 0.05) hasCaught = false;
         return;
       }
+      // No catch when scrolling up — snap only on the way down
+      if (e.direction !== 1) return;
+
       if (hasCaught) return;
 
       hasCaught = true;
