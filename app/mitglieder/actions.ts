@@ -80,6 +80,21 @@ export async function loginAction(
   return {};
 }
 
+export async function lookupUsernameAction(
+  username: string
+): Promise<{ name?: string }> {
+  try {
+    await ensureSchema();
+    const result = await sql<{ name: string }>`
+      select name from members where username = ${username.trim().toLowerCase()} limit 1
+    `;
+    const name = result[0]?.name;
+    return name !== undefined ? { name } : {};
+  } catch {
+    return {};
+  }
+}
+
 export async function logoutAction(): Promise<void> {
   await destroySession();
   revalidatePath("/mitglieder");
