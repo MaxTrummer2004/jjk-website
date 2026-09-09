@@ -13,7 +13,8 @@ import { AnimatePresence, motion, type Variants } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { navigateWithTransition } from "@/lib/page-transition";
+import { flushSync } from "react-dom";
+import { navigateWithTransition, triggerPageTransition } from "@/lib/page-transition";
 
 // ---- JJK link sets -------------------------------------------------------
 
@@ -296,7 +297,11 @@ export function SiteNav(): ReactNode {
             onClick={(e) => {
               e.preventDefault();
               closeMenu();
-              navigateWithTransition(router.push, "/mitglieder");
+              navigateWithTransition(
+                (href) => router.push(href),
+                "/mitglieder",
+                () => flushSync(() => { triggerPageTransition(); }),
+              );
             }}
             className="hidden h-13 items-center rounded-full px-6 text-sm font-medium transition-opacity hover:opacity-85 md:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             style={{

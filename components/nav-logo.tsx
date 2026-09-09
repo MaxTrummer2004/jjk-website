@@ -1,8 +1,9 @@
 "use client";
 
 import { useIsDesktop } from "@/lib/use-is-desktop";
-import { navigateWithTransition } from "@/lib/page-transition";
+import { navigateWithTransition, triggerPageTransition } from "@/lib/page-transition";
 import { useRouter } from "next/navigation";
+import { flushSync } from "react-dom";
 import type { ReactNode } from "react";
 
 export function NavLogo(): ReactNode {
@@ -18,7 +19,11 @@ export function NavLogo(): ReactNode {
     ? undefined
     : (e: React.MouseEvent) => {
         e.preventDefault();
-        navigateWithTransition(router.push, "/mitglieder");
+        navigateWithTransition(
+          (href) => router.push(href),
+          "/mitglieder",
+          () => flushSync(() => { triggerPageTransition(); }),
+        );
       };
 
   return (
