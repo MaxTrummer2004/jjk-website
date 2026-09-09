@@ -333,7 +333,7 @@ export function LitWall({
     update();
     const ro = new ResizeObserver(update);
     ro.observe(document.documentElement);
-    window.addEventListener("resize", update);
+    window.addEventListener("resize", update, { passive: true });
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", update);

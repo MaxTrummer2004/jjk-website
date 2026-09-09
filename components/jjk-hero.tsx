@@ -43,31 +43,37 @@ export function JJKHero(): ReactNode {
   // und laesst den Swipe ruckeln/haengenbleiben ("ein Swipe reicht nicht").
   // Etwas Puffer (0.6 statt exakt 0.5) gegen Flackern an der Fade-Grenze.
   const [showBackground, setShowBackground] = useState(true);
+  const showBackgroundRef = useRef(true);
 
   useEffect(() => {
-    const update = (): void => {
+    let rafId: number | undefined;
+    const flush = (): void => {
+      rafId = undefined;
       const el = heroRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
       const height = rect.height || 1;
       const fraction = Math.min(Math.max(-rect.top / height, 0), 1);
       scrollFraction.set(fraction);
-    };
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
-    };
-  }, [scrollFraction]);
-
-  useEffect(() => {
-    const unsubscribe = scrollFraction.on("change", (fraction) => {
+      // setShowBackground aus dem Scroll-Pfad entfernt: MotionValue-Subscriber
+      // unten liest showBackgroundRef und setzt State nur wenn noetig.
       const shouldShow = fraction < 0.6;
-      setShowBackground((prev) => (prev === shouldShow ? prev : shouldShow));
-    });
-    return unsubscribe;
+      if (showBackgroundRef.current !== shouldShow) {
+        showBackgroundRef.current = shouldShow;
+        setShowBackground(shouldShow);
+      }
+    };
+    const schedule = (): void => {
+      if (rafId === undefined) rafId = requestAnimationFrame(flush);
+    };
+    flush();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+    return () => {
+      if (rafId !== undefined) cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
   }, [scrollFraction]);
 
   // Bei 50% der eigenen Hoehe komplett verblasst — danach ist der Hero

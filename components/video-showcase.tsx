@@ -119,7 +119,9 @@ export function VideoShowcase(): ReactNode {
     let grown = false;
     let lastWidth: number | null = null;
 
-    const update = (): void => {
+    let rafId: number | undefined;
+    const flush = (): void => {
+      rafId = undefined;
       const el = sectionRef.current;
       const h = Math.ceil(vv?.height ?? window.innerHeight);
       const w = Math.ceil(vv?.width ?? window.innerWidth);
@@ -141,19 +143,23 @@ export function VideoShowcase(): ReactNode {
       scrollProgress.set(progress);
       grown = progress >= GROWTH_END;
     };
+    const schedule = (): void => {
+      if (rafId === undefined) rafId = requestAnimationFrame(flush);
+    };
 
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    window.addEventListener("orientationchange", update);
-    vv?.addEventListener("resize", update);
-    vv?.addEventListener("scroll", update);
+    flush();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+    window.addEventListener("orientationchange", schedule, { passive: true });
+    vv?.addEventListener("resize", schedule, { passive: true });
+    vv?.addEventListener("scroll", schedule, { passive: true });
     return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
-      window.removeEventListener("orientationchange", update);
-      vv?.removeEventListener("resize", update);
-      vv?.removeEventListener("scroll", update);
+      if (rafId !== undefined) cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("orientationchange", schedule);
+      vv?.removeEventListener("resize", schedule);
+      vv?.removeEventListener("scroll", schedule);
     };
   }, [scrollProgress]);
 
