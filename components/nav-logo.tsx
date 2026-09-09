@@ -3,6 +3,7 @@
 import { useIsDesktop } from "@/lib/use-is-desktop";
 import { triggerPageTransition } from "@/lib/page-transition";
 import { useRouter } from "next/navigation";
+import { flushSync } from "react-dom";
 import type { ReactNode } from "react";
 
 export function NavLogo(): ReactNode {
@@ -18,8 +19,17 @@ export function NavLogo(): ReactNode {
     ? undefined
     : (e: React.MouseEvent) => {
         e.preventDefault();
-        triggerPageTransition();
-        setTimeout(() => router.push("/mitglieder"), 80);
+        const cover = document.createElement("div");
+        cover.setAttribute("aria-hidden", "true");
+        cover.style.cssText =
+          "position:fixed;inset:0;z-index:9999;background:#030304;opacity:0;pointer-events:none;transition:opacity 0.3s ease-in;";
+        document.body.appendChild(cover);
+        requestAnimationFrame(() => { cover.style.opacity = "1"; });
+        setTimeout(() => {
+          flushSync(() => { triggerPageTransition(); });
+          setTimeout(() => cover.remove(), 80);
+          router.push("/mitglieder");
+        }, 320);
       };
 
   return (
