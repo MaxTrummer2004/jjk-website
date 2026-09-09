@@ -191,7 +191,9 @@ export function VideoShowcase(): ReactNode {
    */
   useEffect(() => {
     if (prefersReducedMotion) return;
-    if (!window.matchMedia("(max-width: 639px)").matches) return;
+    // Lenis does not run on mobile (see smooth-scroll.tsx) so there is nothing
+    // to snap with there. Desktop only.
+    if (!window.matchMedia("(min-width: 640px)").matches) return;
 
     let disposed = false;
     let hasCaught = false;
@@ -217,7 +219,7 @@ export function VideoShowcase(): ReactNode {
       // ab 1 einfach bei 1 stehen und wuerde das "gerade durchquert" nicht
       // mehr hergeben).
       const rawProgress = -rect.top / scrollableHeight;
-      const inCatchZone = rawProgress > GROWTH_END && rawProgress < 0.95;
+      const inCatchZone = rawProgress > GROWTH_END && rawProgress < GROWTH_END + 0.06;
 
       if (!inCatchZone) return;
 
@@ -240,7 +242,6 @@ export function VideoShowcase(): ReactNode {
       lenis.scrollTo(targetY, {
         duration: CATCH_DURATION,
         easing: CATCH_EASE,
-        lock: true,
       });
     };
 
