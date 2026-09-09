@@ -13,8 +13,6 @@ import { AnimatePresence, motion, type Variants } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { flushSync } from "react-dom";
-import { triggerPageTransition } from "@/lib/page-transition";
 
 // ---- JJK link sets -------------------------------------------------------
 
@@ -297,11 +295,18 @@ export function SiteNav(): ReactNode {
             onClick={(e) => {
               e.preventDefault();
               closeMenu();
-              flushSync(() => { triggerPageTransition(); });
-              // Double rAF: first = React committed, second = browser painted stairs
-              requestAnimationFrame(() => {
-                requestAnimationFrame(() => { router.push("/mitglieder"); });
-              });
+              // DOM-Overlay: kein React-Overhead, dunkel sofort beim Klick
+              const cover = document.createElement("div");
+              cover.setAttribute("aria-hidden", "true");
+              cover.style.cssText =
+                "position:fixed;inset:0;z-index:9999;background:#030304;opacity:0;pointer-events:none;transition:opacity 0.3s ease-in;";
+              document.body.appendChild(cover);
+              requestAnimationFrame(() => { cover.style.opacity = "1"; });
+              setTimeout(() => {
+                router.push("/mitglieder");
+                // Cover nach Content-Fade-in entfernen
+                setTimeout(() => cover.remove(), 700);
+              }, 320);
             }}
             className="hidden h-13 items-center rounded-full px-6 text-sm font-medium transition-opacity hover:opacity-85 md:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             style={{
