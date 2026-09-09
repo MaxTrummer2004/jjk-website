@@ -266,14 +266,10 @@ export function VideoShowcase(): ReactNode {
     [0, 1, 1, 0]
   );
 
-  // Manuelles Pin statt CSS `sticky`: vor der Section normal im Fluss,
-  // waehrend der Section hart am Viewport fixiert, danach am unteren Rand
-  // der 180svh-Section verankert (die Section selbst ist `relative`).
-  const pinPosition = useTransform(scrollProgress, (v) =>
-    v >= 1 ? "absolute" : "fixed"
-  );
-  const pinTop = useTransform(scrollProgress, (v) => (v >= 1 ? "auto" : "0px"));
-  const pinBottom = useTransform(scrollProgress, (v) => (v >= 1 ? "0px" : "auto"));
+  // `position: sticky` statt manuell fixed→absolute: geometrisch identisch
+  // (sticky loest sich exakt dann vom Viewport, wenn scrollProgress=1 waere),
+  // aber ohne den compositor-layer Flush den fixed→absolute mitten im Scroll
+  // ausloest. Kein Reflow, kein Haken nach dem Video.
 
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -334,10 +330,7 @@ export function VideoShowcase(): ReactNode {
       aria-label="BJJ showcase"
       className="pointer-events-none relative z-20 [margin-top:-100svh] h-[180svh] [overflow-anchor:none]"
     >
-      <motion.div
-        style={{ position: pinPosition, top: pinTop, bottom: pinBottom, left: 0, right: 0 }}
-        className="z-20 h-lvh overflow-hidden"
-      >
+      <div className="sticky top-0 z-20 h-lvh overflow-hidden">
         {/* z-20 direkt hier (nicht nur auf der Section aussen): `position:
             fixed`-Kindelemente stapeln sich zwar innerhalb des
             Stacking-Contexts der Section, aber ein z-index direkt auf dem
@@ -392,7 +385,7 @@ export function VideoShowcase(): ReactNode {
             </motion.span>
           </motion.div>
         </motion.div>
-      </motion.div>
+      </div>
     </section>
   );
 }
