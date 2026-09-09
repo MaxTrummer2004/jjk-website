@@ -1,6 +1,7 @@
 "use client";
 
 import Preloader from "@/components/preloader";
+import { lenisRef } from "@/lib/lenis";
 import {
   createContext,
   useCallback,
@@ -9,6 +10,17 @@ import {
   useState,
   type ReactNode,
 } from "react";
+
+// Lenis owns the scroll — window.scrollTo bypasses it and gets animated back.
+// Always route hard jumps through Lenis with immediate:true.
+function hardScrollTo(top: number): void {
+  const lenis = lenisRef.current;
+  if (lenis) {
+    lenis.scrollTo(top, { immediate: true });
+  } else {
+    window.scrollTo({ top, behavior: "auto" });
+  }
+}
 
 /** Fixed header height in px (h-20). Subtracted from anchor target's y. */
 const HEADER_OFFSET = 80;
@@ -49,13 +61,13 @@ export function SectionTransitionProvider({ children }: { children: ReactNode })
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ) {
       if (isTop) {
-        window.scrollTo({ top: 0, behavior: "auto" });
+        hardScrollTo(0);
       } else {
         const el = document.getElementById(id);
         if (el) {
           const top =
             el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
-          window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
+          hardScrollTo(Math.max(0, top));
         }
       }
       return;
@@ -67,7 +79,7 @@ export function SectionTransitionProvider({ children }: { children: ReactNode })
     // Define the scroll thunk that runs under cover.
     pendingScrollRef.current = () => {
       if (isTop) {
-        window.scrollTo({ top: 0, behavior: "auto" });
+        hardScrollTo(0);
         setLoading(false);
         busyRef.current = false;
         return;
@@ -82,7 +94,7 @@ export function SectionTransitionProvider({ children }: { children: ReactNode })
 
       const targetY =
         el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
-      window.scrollTo({ top: Math.max(0, targetY), behavior: "auto" });
+      hardScrollTo(Math.max(0, targetY));
 
       // rAF stabilization: video-showcase switches pinPosition (fixed↔absolute)
       // the same frame as a hard scroll, which shifts layout height and lands
@@ -97,7 +109,7 @@ export function SectionTransitionProvider({ children }: { children: ReactNode })
         if (drift > 2 && attempts <= 3) {
           const correction =
             el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
-          window.scrollTo({ top: Math.max(0, correction), behavior: "auto" });
+          hardScrollTo(Math.max(0, correction));
           requestAnimationFrame(stabilize);
         } else {
           setLoading(false);
