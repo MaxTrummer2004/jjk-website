@@ -26,7 +26,7 @@ export default function Cta9() {
           backgroundColor: "#0a0a0a",
           ...(reduced ? {} : { scale, y: panelY }),
         }}
-        className="flex flex-col items-center overflow-hidden rounded-[40px] px-6 pt-24 pb-24 text-center sm:pt-28 sm:pb-32"
+        className="flex flex-col items-center overflow-hidden rounded-[40px] px-6 pt-24 pb-20 text-center sm:pt-32 sm:pb-24"
       >
         <KanjiLabel
           kanji="一本"
