@@ -19,14 +19,14 @@ export default function Cta9() {
   return (
     <section
       ref={sectionRef}
-      className="mx-auto max-w-[1440px] scroll-mt-24 px-5 pb-24 sm:px-8 sm:pb-32 lg:px-10"
+      className="mx-auto max-w-[1440px] scroll-mt-24 px-5 pb-8 sm:px-8 sm:pb-10 lg:px-10"
     >
       <motion.div
         style={{
           backgroundColor: "#0a0a0a",
           ...(reduced ? {} : { scale, y: panelY }),
         }}
-        className="flex flex-col items-center overflow-hidden rounded-[40px] px-6 pt-24 pb-20 text-center sm:pt-32 sm:pb-24"
+        className="flex flex-col items-center overflow-hidden rounded-[40px] px-6 pt-28 pb-16 text-center sm:pt-36 sm:pb-20"
       >
         <KanjiLabel
           kanji="一本"
