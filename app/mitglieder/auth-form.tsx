@@ -30,13 +30,13 @@ export function AuthForm(): ReactNode {
       initial={{ opacity: 0, x: -50 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full max-w-md rounded-2xl p-8 shadow-2xl"
+      className="w-full max-w-md rounded-2xl p-5 sm:p-8 shadow-2xl max-h-[calc(100svh-3rem)] overflow-y-auto sm:max-h-none sm:overflow-visible"
       style={{ background: "var(--card)" }}
     >
-      <h1 className="text-3xl font-bold text-foreground mb-2">
+      <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
         {mode === "login" ? "Einloggen" : "Registrieren"}
       </h1>
-      <p className="text-sm text-foreground-dim mb-8">
+      <p className="text-sm text-foreground-dim mb-5 sm:mb-8">
         {mode === "login" ? (
           <>
             Noch kein Konto?{" "}
@@ -62,7 +62,7 @@ export function AuthForm(): ReactNode {
         )}
       </p>
 
-      <form action={formAction} className="mb-6 flex flex-col gap-4">
+      <form action={formAction} className="mb-5 sm:mb-6 flex flex-col gap-3 sm:gap-4">
         {mode === "register" && (
           <input
             name="name"
@@ -104,14 +104,14 @@ export function AuthForm(): ReactNode {
       </form>
 
       {/* OR-Divider */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-4 mb-4 sm:mb-6">
         <div className="h-px flex-1 bg-border" />
         <span className="text-sm text-muted-foreground">Oder</span>
         <div className="h-px flex-1 bg-border" />
       </div>
 
       {/* OAuth-Buttons */}
-      <div className="mb-4 space-y-3">
+      <div className="mb-3 sm:mb-4 space-y-2 sm:space-y-3">
         <button
           type="button"
           className="flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-card-raised px-6 py-3 text-sm font-medium tracking-tight text-foreground transition-colors duration-200 hover:border-border-hot"
@@ -147,7 +147,7 @@ export function AuthForm(): ReactNode {
         </button>
       </div>
 
-      <p className="text-sm text-center text-foreground-dim">
+      <p className="text-xs sm:text-sm text-center text-foreground-dim">
         Probleme beim Einloggen?{" "}
         <span className="text-foreground font-medium">
           Trainer kontaktieren

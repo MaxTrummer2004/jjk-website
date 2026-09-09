@@ -10,7 +10,7 @@ export function AuthLogin() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="relative flex min-h-screen w-full items-center justify-center p-6"
+      className="relative flex min-h-svh w-full items-start sm:items-center justify-center p-4 pt-6 sm:p-6"
     >
       {/* Roter Watercolor-Hintergrund — ersetzt das Unsplash-Foto aus Auth 3 */}
       <div className="pointer-events-none absolute inset-0">
