@@ -219,16 +219,13 @@ export function VideoShowcase(): ReactNode {
       const rawProgress = -rect.top / scrollableHeight;
       const inCatchZone = rawProgress > GROWTH_END && rawProgress < 0.95;
 
-      if (!inCatchZone) {
-        // Only reset when clearly above the zone — snap lands at exactly
-        // GROWTH_END (rawProgress not > GROWTH_END), which would reset
-        // hasCaught immediately and re-trigger lock on every scroll event.
-        if (rawProgress < GROWTH_END - 0.05) hasCaught = false;
-        return;
-      }
-      // No catch when scrolling up — snap only on the way down
+      if (!inCatchZone) return;
+
+      // Only snap on the way down, never on upward scroll
       if (e.direction !== 1) return;
 
+      // Fire once per page load — no reset after catch, so repeated scrolling
+      // through the video section never re-triggers the lock
       if (hasCaught) return;
 
       hasCaught = true;
