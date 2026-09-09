@@ -1,5 +1,9 @@
 "use client";
 
+// Ueberlebt client-seitige Navigation, wird bei Hard-Reload zurueckgesetzt.
+// Verhindert, dass der Loader beim Zuruecknavigieren von /mitglieder erneut laeuft.
+let introAlreadyPlayed = false;
+
 import { MagneticLink } from "@/components/magnetic-link";
 import { IntroLoader } from "@/components/intro-loader";
 import { softEase, useReducedMotion } from "@/lib/motion";
@@ -23,12 +27,12 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  */
 export function JJKHero(): ReactNode {
   const prefersReducedMotion = useReducedMotion();
-  const [revealed, setRevealed] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState(0);
+  const [revealed, setRevealed] = useState(introAlreadyPlayed);
+  const [loading, setLoading] = useState(!introAlreadyPlayed);
+  const [progress, setProgress] = useState(introAlreadyPlayed ? 100 : 0);
   // introExited: true sobald AnimatePresence.onExitComplete gefeuert hat.
   // Hero-Canvas mountet erst dann — keine zwei WebGL-Layer gleichzeitig.
-  const [introExited, setIntroExited] = useState(false);
+  const [introExited, setIntroExited] = useState(introAlreadyPlayed);
   const heroRef = useRef<HTMLElement>(null);
   const scrollFraction = useMotionValue(0);
   // Ab hier ist die Opacity (siehe scrollFade unten) schon laengst bei 0 —
@@ -108,8 +112,11 @@ export function JJKHero(): ReactNode {
     return () => { el.style.overflow = prev; };
   }, [loading]);
 
-  // Nav soll warten, bis Loader fertig ist.
+  // Nav soll warten, bis Loader fertig ist — aber nur beim ersten Laden.
+  // Bei client-seitiger Ruecknavigation ist introAlreadyPlayed true,
+  // der Loader wird gar nicht angezeigt, Nav soll sofort einfahren.
   useEffect(() => {
+    if (introAlreadyPlayed) return;
     setOpeningDone(false);
     return () => { setOpeningDone(true); };
   }, []);
@@ -270,6 +277,7 @@ export function JJKHero(): ReactNode {
           Erst jetzt darf Hero-Canvas mounten und Nav einfahren. */}
       <AnimatePresence
         onExitComplete={() => {
+          introAlreadyPlayed = true;
           setIntroExited(true);
           setOpeningDone(true);
           setRevealed(true);
