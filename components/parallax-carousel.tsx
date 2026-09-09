@@ -6,6 +6,7 @@ import React, {
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -126,6 +127,17 @@ void main() {
 }
 `;
 
+// One GPU texture per URL, ref-counted with subscriber pattern so concurrent
+// Plane mounts (loop repeats) share a single load and a single texture object.
+const textureCache = new Map<
+  string,
+  {
+    texture: THREE.Texture | null;
+    refCount: number;
+    subscribers: Array<(t: THREE.Texture | null) => void>;
+  }
+>();
+
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
@@ -213,33 +225,62 @@ const Plane: React.FC<PlaneProps> = ({
 
   useEffect(() => {
     if (!src) return;
-    let cancelled = false;
-    const loader = new THREE.TextureLoader();
-    loader.setCrossOrigin("anonymous");
-    loader.load(
-      src,
-      (tex) => {
-        if (cancelled) {
-          tex.dispose();
-          return;
-        }
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.minFilter = THREE.LinearFilter;
-        tex.magFilter = THREE.LinearFilter;
-        tex.wrapS = THREE.ClampToEdgeWrapping;
-        tex.wrapT = THREE.ClampToEdgeWrapping;
-        textureRef.current = tex;
-      },
-      undefined,
-      () => {
-        if (!cancelled) textureRef.current = null;
-      },
-    );
+    let alive = true;
+
+    let entry = textureCache.get(src);
+    if (!entry) {
+      entry = { texture: null, refCount: 0, subscribers: [] };
+      textureCache.set(src, entry);
+      const loader = new THREE.TextureLoader();
+      loader.setCrossOrigin("anonymous");
+      loader.load(
+        src,
+        (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.minFilter = THREE.LinearFilter;
+          tex.magFilter = THREE.LinearFilter;
+          tex.wrapS = THREE.ClampToEdgeWrapping;
+          tex.wrapT = THREE.ClampToEdgeWrapping;
+          const e = textureCache.get(src);
+          if (e) {
+            e.texture = tex;
+            e.subscribers.forEach((cb) => cb(tex));
+            e.subscribers = [];
+          } else {
+            // All refs were released before the load finished.
+            tex.dispose();
+          }
+        },
+        undefined,
+        () => {
+          const e = textureCache.get(src);
+          if (e) {
+            e.subscribers.forEach((cb) => cb(null));
+            e.subscribers = [];
+          }
+        },
+      );
+    }
+    entry.refCount++;
+
+    if (entry.texture) {
+      textureRef.current = entry.texture;
+    } else {
+      entry.subscribers.push((tex) => {
+        if (alive) textureRef.current = tex;
+      });
+    }
+
     return () => {
-      cancelled = true;
-      if (textureRef.current) {
-        textureRef.current.dispose();
-        textureRef.current = null;
+      alive = false;
+      textureRef.current = null;
+      const e = textureCache.get(src);
+      if (e) {
+        e.refCount--;
+        if (e.refCount <= 0) {
+          if (e.texture) e.texture.dispose();
+          textureCache.delete(src);
+        }
       }
     };
   }, [src]);
@@ -397,14 +438,24 @@ const ParallaxCarousel = React.forwardRef<
       images.length,
     ]);
 
+    // How many times to repeat the image list so the strip always covers the
+    // canvas. Starts at 1 and is updated on first ResizeObserver callback.
+    const [repeat, setRepeat] = useState(1);
+
     const recomputeLimit = useCallback(() => {
       const node = containerRef.current;
       if (!node) return;
+      const cw = node.clientWidth;
       const total = images.length * (imageWidth + gap) - gap;
-      const visible = node.clientWidth;
       scrollRef.current.limit = loop
         ? Number.POSITIVE_INFINITY
-        : Math.max(0, total - visible);
+        : Math.max(0, total - cw);
+      if (loop && cw > 0) {
+        const stride = imageWidth + gap;
+        const needed = cw + imageWidth * 2;
+        const r = Math.max(1, Math.ceil(needed / (images.length * stride)));
+        setRepeat(r);
+      }
     }, [images.length, imageWidth, gap, loop]);
 
     useEffect(() => {
@@ -541,9 +592,20 @@ const ParallaxCarousel = React.forwardRef<
       reset,
     ]);
 
+    // In loop mode, tile the image list enough times so that stripLength always
+    // exceeds containerWidth + imageWidth on each side. This prevents a plane
+    // from wrapping back into the visible area while still on screen.
+    const renderImages = useMemo(() => {
+      if (!loop || repeat <= 1) return images;
+      return Array.from(
+        { length: images.length * repeat },
+        (_, i) => images[i % images.length]!,
+      );
+    }, [loop, images, repeat]);
+
     const planeKeys = useMemo(
-      () => images.map((src, i) => `${i}-${src}`),
-      [images],
+      () => renderImages.map((src, i) => `${i}-${src}`),
+      [renderImages],
     );
 
     return (
@@ -565,7 +627,7 @@ const ParallaxCarousel = React.forwardRef<
           className="absolute! inset-0 w-full h-full"
         >
           <CameraRig />
-          {images.map((src, i) => (
+          {renderImages.map((src, i) => (
             <Plane
               key={planeKeys[i]}
               src={src}
@@ -577,7 +639,7 @@ const ParallaxCarousel = React.forwardRef<
               uvScale={uvScale}
               borderRadius={borderRadius}
               loop={loop}
-              totalCount={images.length}
+              totalCount={renderImages.length}
               scrollRef={scrollRef}
             />
           ))}
