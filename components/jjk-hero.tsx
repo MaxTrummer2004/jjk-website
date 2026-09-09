@@ -202,10 +202,15 @@ export function JJKHero(): ReactNode {
           className="pointer-events-none absolute -inset-1"
         >
           {/* introExited: Intro-Canvas muss vollstaendig abgebaut sein,
-              bevor dieser Hero-Canvas mountet (eine WebGL-Instanz gleichzeitig). */}
-          {showBackground && introExited && (
+              bevor dieser Hero-Canvas mountet (eine WebGL-Instanz gleichzeitig).
+              showBackground steuert nur noch den frameloop (paused=true stoppt
+              useFrame ohne WebGL-Teardown) — kein Unmount mehr, weil ein
+              Kontext-Teardown auf Handys mehrere Frames kostet und genau in
+              dem Bereich landet, wo Hero und Video-Section ueberlappen. */}
+          {introExited && (
             <Watercolor
               className="absolute inset-0"
+              paused={!showBackground}
               color1="#030304"
               color2="#7a1a08"
               saturation={0.65}

@@ -31,6 +31,8 @@ export interface WatercolorProps {
   opacity?: number;
   cursorInteraction?: boolean;
   cursorIntensity?: number;
+  /** Suspend the render loop without unmounting the WebGL context. */
+  paused?: boolean;
 }
 
 const VERTEX_SHADER = `
@@ -203,6 +205,7 @@ const Watercolor: React.FC<WatercolorProps> = ({
   color1 = "#0a0a0a", color2 = "#e0e0e0",
   colorGain = 1, saturation = 0, brightness = 0.15, opacity = 1,
   cursorInteraction = false, cursorIntensity = 1,
+  paused = false,
 }) => {
   const col1Rgb = useMemo(() => parseHexColor(color1), [color1]);
   const col2Rgb = useMemo(() => parseHexColor(color2), [color2]);
@@ -229,6 +232,7 @@ const Watercolor: React.FC<WatercolorProps> = ({
         camera={{ position: [0, 0, 1], zoom: 1, left: -1, right: 1, top: 1, bottom: -1 }}
         dpr={[1, 2]}
         gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
+        frameloop={paused ? "never" : "always"}
       >
         <WatercolorScene
           speed={speed} scale={scale} octaves={octaves} persistence={persistence}

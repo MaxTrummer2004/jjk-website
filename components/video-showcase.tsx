@@ -158,36 +158,12 @@ export function VideoShowcase(): ReactNode {
   }, [scrollProgress]);
 
   /**
-   * ── Sanft-Stop bei der voll ausgewachsenen Groesse (nur mobil) ──────────
-   * Nur am Handy laesst sich das Video bei einem kraeftigen Swipe komplett
-   * uebersehen: die Wachstumsanimation ist bei GROWTH_END (55%) fertig,
-   * aber die Pin-Strecke laeuft bis 100% weiter — ein starker Wisch reisst
-   * ueber die volle Strecke, und "fertig gewachsen" wird nie wirklich
-   * wahrgenommen.
-   *
-   * Der fruehere Versuch, das per manuellem preventDefault + eigenem
-   * `window.scrollTo` zu verhindern, fuehlte sich steif an — aus gutem
-   * Grund: die Seite scrollt hier ueber Lenis (components/smooth-scroll.tsx),
-   * und Lenis "besitzt" die Scrollposition und animiert bei jedem eigenen
-   * `window.scrollTo`-Aufruf von aussen dagegen an (siehe Kommentar in
-   * lib/lenis.ts). Deshalb jetzt NICHT mehr gegen Lenis ankaempfen, sondern
-   * Lenis' eigene `scrollTo`-API nutzen: sobald der Scroll die Zone kurz
-   * nach GROWTH_END durchquert, wird die laufende Lenis-Animation einmalig
-   * sanft auf genau den GROWTH_END-Punkt umgelenkt (kurze eigene Dauer).
-   *
-   * Erst gab es hier eine Velocity-Schwelle (nur "starke" Wische fangen),
-   * die dann noch mehrfach hochgesetzt wurde, weil sie trotzdem staendig bei
-   * ganz normalen Wischen ausloeste. Jetzt keine Schwelle mehr: JEDER Swipe,
-   * der die Zone durchquert, wird gefangen — einfacher und tut genau das,
-   * was verlangt war ("man soll nie ueber das Video drueberkommen"), ohne
-   * eine Geschwindigkeit zu erraten, ab der es "zu viel" wird.
-   *
-   * `lock: true` waehrend der kurzen Snap-Animation: ohne das konnte sich
-   * ein sehr starker Wisch (dessen eigene Lenis-Momentum-Animation noch
-   * weiterlief) ueber den Sanft-Stop hinweg fortsetzen — sichtbar als
-   * "haelt kurz, geht dann trotzdem weiter". Die Sperre gilt nur fuer die
-   * CATCH_DURATION (0.45s), danach ist die Seite sofort wieder frei
-   * scrollbar; ein zweiter Swipe danach setzt normal fort.
+   * ── Sanft-Stop bei der voll ausgewachsenen Groesse (nur Desktop) ─────────
+   * Auf Desktop: ein starker Scroll kann die Wachstumszone (bis GROWTH_END)
+   * ueberfliegen. Einmalig per Lenis-scrollTo einrasten, wenn der Scroll
+   * die schmale Zone knapp nach GROWTH_END durchquert.
+   * Auf Mobile laeuft Lenis nicht (smooth-scroll.tsx), deshalb bailed dieser
+   * Effect dort sofort — kein rAF-Polling, kein toter Code.
    */
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -233,12 +209,6 @@ export function VideoShowcase(): ReactNode {
       hasCaught = true;
       const documentTop = rect.top + e.animatedScroll;
       const targetY = documentTop + GROWTH_END * scrollableHeight;
-      // `lock: true`: waehrend der kurzen Snap-Animation wird kein weiterer
-      // Scroll-Input verarbeitet. Ohne das setzte sich ein sehr starker
-      // Wisch (dessen eigene Lenis-Momentum-Animation noch weiterlief) ueber
-      // den Sanft-Stop hinweg fort — sichtbar als "haelt kurz, geht dann bei
-      // starkem Scroll trotzdem weiter". Die Sperre gilt nur fuer die
-      // CATCH_DURATION (0.45s), danach ist die Seite sofort wieder frei.
       lenis.scrollTo(targetY, {
         duration: CATCH_DURATION,
         easing: CATCH_EASE,
@@ -356,7 +326,7 @@ export function VideoShowcase(): ReactNode {
       ref={sectionRef}
       id="video"
       aria-label="BJJ showcase"
-      className="pointer-events-none relative z-20 [margin-top:-100svh] h-[180svh]"
+      className="pointer-events-none relative z-20 [margin-top:-100svh] h-[180svh] [overflow-anchor:none]"
     >
       <motion.div
         style={{ position: pinPosition, top: pinTop, bottom: pinBottom, left: 0, right: 0 }}
