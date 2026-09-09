@@ -1,10 +1,12 @@
 "use client";
 
 import { MagneticLink } from "@/components/magnetic-link";
+import { IntroLoader } from "@/components/intro-loader";
 import { softEase, useReducedMotion } from "@/lib/motion";
+import { setOpeningDone } from "@/lib/opening";
 import Watercolor from "@/components/watercolor";
 import { siteConfig } from "@/lib/config";
-import { motion, useMotionValue, useTransform } from "motion/react";
+import { AnimatePresence, motion, useMotionValue, useTransform } from "motion/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 /**
@@ -22,6 +24,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 export function JJKHero(): ReactNode {
   const prefersReducedMotion = useReducedMotion();
   const [revealed, setRevealed] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
   const heroRef = useRef<HTMLElement>(null);
   const scrollFraction = useMotionValue(0);
   // Ab hier ist die Opacity (siehe scrollFade unten) schon laengst bei 0 —
@@ -91,14 +95,51 @@ export function JJKHero(): ReactNode {
     v < 0.5 ? "auto" : "none"
   );
 
+  // ── Intro-Loader ────────────────────────────────────────────────────────
+  // Overflow sperren, solange Loader laeuft.
   useEffect(() => {
-    if (prefersReducedMotion) {
-      setRevealed(true);
-      return;
-    }
-    const id = window.setTimeout(() => setRevealed(true), 150);
-    return () => window.clearTimeout(id);
+    if (!loading) return;
+    const el = document.documentElement;
+    const prev = el.style.overflow;
+    el.style.overflow = "hidden";
+    return () => { el.style.overflow = prev; };
+  }, [loading]);
+
+  // Nav soll warten, bis Loader fertig ist.
+  useEffect(() => {
+    setOpeningDone(false);
+    return () => { setOpeningDone(true); };
+  }, []);
+
+  // prefers-reduced-motion: sofort fertig.
+  useEffect(() => {
+    if (!prefersReducedMotion) return;
+    setProgress(100);
+    setLoading(false);
+    setOpeningDone(true);
+    setRevealed(true);
   }, [prefersReducedMotion]);
+
+  // Progress-Counter: alle 45 ms +1 bis 100.
+  useEffect(() => {
+    if (!loading || prefersReducedMotion) return;
+    const id = window.setInterval(() => {
+      setProgress((p) => Math.min(p + 1, 100));
+    }, 45);
+    return () => window.clearInterval(id);
+  }, [loading, prefersReducedMotion]);
+
+  // Bei 100: kurzer Hold, dann Loader ausblenden und Hero starten.
+  useEffect(() => {
+    if (!loading || progress < 100 || prefersReducedMotion) return;
+    const holdT = window.setTimeout(() => {
+      setLoading(false);
+      setOpeningDone(true);
+      // Hero-Reveal startet waehrend Loader noch ausblendet (~400ms ins Exit).
+      window.setTimeout(() => setRevealed(true), 400);
+    }, 700);
+    return () => window.clearTimeout(holdT);
+  }, [loading, progress, prefersReducedMotion]);
 
   const fadeUp = (delay: number) => ({
     initial: false as const,
@@ -113,6 +154,7 @@ export function JJKHero(): ReactNode {
   });
 
   return (
+    <>
     <section
       ref={heroRef}
       // h-svh, bewusst NICHT dvh/lvh: dvh folgt live der Adressleiste — genau
@@ -151,17 +193,6 @@ export function JJKHero(): ReactNode {
           aria-hidden="true"
           className="pointer-events-none absolute -inset-1"
         >
-          {/* Nur opacity, kein "scale: 0.96 -> 1" mehr auf diesem Layer:
-              react-three-fiber misst den Canvas seiner Groesse einmalig beim
-              Mount ueber getBoundingClientRect() dieses Elternelements — traf
-              das genau in einen Frame der Scale-Animation (z.B. 0.968 statt
-              1), blieb der Canvas fuer immer auf dieser zu kleinen Pixelgroesse
-              haengen (gemessen: 927x894 statt 958x924), sichtbar als
-              schwarzer Rand rechts/unten, der "manchmal" auftrat, je nachdem
-              in welchem Animationsframe gemessen wurde. Ohne Transform auf
-              diesem Element misst r3f immer die volle, korrekte Groesse.
-              -inset-1 bleibt als zusaetzlicher Puffer gegen mobile
-              Adressleisten-Resizes (siehe video-showcase.tsx). */}
           {showBackground && (
             <Watercolor
               className="absolute inset-0"
@@ -176,6 +207,17 @@ export function JJKHero(): ReactNode {
               warpSpeed={0.05}
             />
           )}
+          {/* Nur opacity, kein "scale: 0.96 -> 1" mehr auf diesem Layer:
+              react-three-fiber misst den Canvas seiner Groesse einmalig beim
+              Mount ueber getBoundingClientRect() dieses Elternelements — traf
+              das genau in einen Frame der Scale-Animation (z.B. 0.968 statt
+              1), blieb der Canvas fuer immer auf dieser zu kleinen Pixelgroesse
+              haengen (gemessen: 927x894 statt 958x924), sichtbar als
+              schwarzer Rand rechts/unten, der "manchmal" auftrat, je nachdem
+              in welchem Animationsframe gemessen wurde. Ohne Transform auf
+              diesem Element misst r3f immer die volle, korrekte Groesse.
+              -inset-1 bleibt als zusaetzlicher Puffer gegen mobile
+              Adressleisten-Resizes (siehe video-showcase.tsx). */}
         </motion.div>
 
         <div className="relative z-10 flex max-w-3xl flex-col items-center px-6 text-center">
@@ -220,5 +262,10 @@ export function JJKHero(): ReactNode {
       </motion.div>
       </motion.div>
     </section>
+
+      <AnimatePresence>
+        {loading && <IntroLoader key="intro-loader" progress={progress} />}
+      </AnimatePresence>
+    </>
   );
 }
