@@ -1,28 +1,33 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
 import Preloader from "@/components/preloader";
-import { subscribePageTransition } from "@/lib/page-transition";
+import { subscribePageTransition, subscribePageTransitionDismiss } from "@/lib/page-transition";
 
 export function PageTransitionOverlay() {
   const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
-  const pathname = usePathname();
 
   useEffect(() => {
-    return subscribePageTransition(() => {
+    const unsubTrigger = subscribePageTransition(() => {
       setActive(true);
       setLoading(true);
     });
+    const unsubDismiss = subscribePageTransitionDismiss(() => {
+      setLoading(false);
+    });
+    return () => {
+      unsubTrigger();
+      unsubDismiss();
+    };
   }, []);
 
+  // Fallback: nie länger als 4s zugedeckt bleiben
   useEffect(() => {
-    if (active) {
-      setLoading(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+    if (!loading) return;
+    const t = setTimeout(() => setLoading(false), 4000);
+    return () => clearTimeout(t);
+  }, [loading]);
 
   if (!active) return null;
 

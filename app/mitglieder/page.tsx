@@ -10,6 +10,7 @@ import {
 } from "@/lib/attendance";
 import { AuthLogin } from "./auth-login";
 import { MemberProfile } from "./member-profile";
+import { DismissTransition } from "@/components/dismiss-transition";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +67,7 @@ export default async function MitgliederPage(): Promise<ReactNode> {
   const memberId = await getSessionMemberId();
 
   if (!memberId) {
-    return <AuthLogin />;
+    return <><DismissTransition /><AuthLogin /></>;
   }
 
   const [membersResult, votesResult] = await Promise.all([
@@ -105,14 +106,17 @@ export default async function MitgliederPage(): Promise<ReactNode> {
   );
 
   return (
-    <MemberProfile
-      memberId={memberId}
-      name={me?.name ?? "Mitglied"}
-      username={me?.username ?? ""}
-      stats={me?.stats ?? { presentDays: 0, attendancePct: 0, reliabilityPct: 0 }}
-      ranked={ranked}
-      trainingDateLabel={formatDateLabel(trainingDate)}
-      currentVote={myVote ? myVote.present : null}
-    />
+    <>
+      <DismissTransition />
+      <MemberProfile
+        memberId={memberId}
+        name={me?.name ?? "Mitglied"}
+        username={me?.username ?? ""}
+        stats={me?.stats ?? { presentDays: 0, attendancePct: 0, reliabilityPct: 0 }}
+        ranked={ranked}
+        trainingDateLabel={formatDateLabel(trainingDate)}
+        currentVote={myVote ? myVote.present : null}
+      />
+    </>
   );
 }

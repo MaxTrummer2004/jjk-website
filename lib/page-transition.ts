@@ -1,14 +1,28 @@
 type Listener = () => void;
-const listeners: Listener[] = [];
+
+const triggerListeners: Listener[] = [];
+const dismissListeners: Listener[] = [];
 
 export function triggerPageTransition(): void {
-  for (const l of listeners) l();
+  for (const l of triggerListeners) l();
+}
+
+export function dismissPageTransition(): void {
+  for (const l of dismissListeners) l();
 }
 
 export function subscribePageTransition(l: Listener): () => void {
-  listeners.push(l);
+  triggerListeners.push(l);
   return () => {
-    const i = listeners.indexOf(l);
-    if (i >= 0) listeners.splice(i, 1);
+    const i = triggerListeners.indexOf(l);
+    if (i >= 0) triggerListeners.splice(i, 1);
+  };
+}
+
+export function subscribePageTransitionDismiss(l: Listener): () => void {
+  dismissListeners.push(l);
+  return () => {
+    const i = dismissListeners.indexOf(l);
+    if (i >= 0) dismissListeners.splice(i, 1);
   };
 }
