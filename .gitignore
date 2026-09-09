@@ -45,3 +45,9 @@ hero und video danach vorlage/
 
 # Sicherungskopie vor dem Hero/Video-Rebuild, kein Quellstand
 _backup_pre_rebuild/
+
+.vercel
+.env*
+
+# Rohmaterial Trainerfotos — nicht im Repo
+Bilder/

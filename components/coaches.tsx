@@ -1,6 +1,5 @@
 "use client";
 
-import { coaches } from "@/lib/config";
 import { KanjiLabel } from "@/components/kanji-label";
 import StaggeredText from "@/components/staggered-text";
 import ParallaxCarousel from "@/components/parallax-carousel";
@@ -12,42 +11,12 @@ import { useEffect, useState, type ReactNode } from "react";
  *  Handy weniger hoch sind statt am Desktop-Mass festzukleben. */
 const MOBILE_QUERY = "(max-width: 639px)";
 
-/**
- * ── Coach-Avatare ────────────────────────────────────────────────────────
- * Neutraler Platzhalter (Kopf + Schultern als Silhouette) fuer Coaches ohne
- * Foto — keine tatsaechlichen Jujutsu-Kaisen-Figuren (urheberrechtlich
- * geschuetzt). Kraeftiger Kontrast (helle Form + duennes helleres Outline
- * auf dunklem Grund), damit die Form auch klein (siehe mobile Groesse
- * unten) klar erkennbar bleibt.
- */
-function avatarDataUrl(): string {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 520" width="380" height="520">
-  <rect width="380" height="520" fill="#201d19"/>
-  <circle cx="190" cy="185" r="78" fill="#9c9182" stroke="#c9bfae" stroke-width="2"/>
-  <ellipse cx="190" cy="560" rx="155" ry="135" fill="#9c9182" stroke="#c9bfae" stroke-width="2"/>
-</svg>`;
-
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-}
-
-/**
- * Echte Fotos fuer die ersten drei Coaches (Liridon, Ervin, Wolfgang) —
- * Ervin und Wolfgang aus einem Gruppenfoto einzeln freigestellt. Die
- * restlichen drei (Ana, Tomás, Yuki) haben noch kein Foto und bleiben beim
- * neutralen Platzhalter, bis welche da sind.
- */
-const COACH_PHOTOS: (string | null)[] = [
-  "/img/coaches/liridon.jpg",
-  "/img/coaches/ervin.jpg",
-  "/img/coaches/wolfgang.jpg",
-  null,
-  null,
-  null,
+const COACH_PHOTOS = [
+  "/img/coaches/liri.jpeg",
+  "/img/coaches/ervin.jpeg",
+  "/img/coaches/wolfi.jpeg",
+  "/img/coaches/matthias.jpeg",
 ];
-
-const COACH_AVATARS = coaches.map(
-  (_, index) => COACH_PHOTOS[index] ?? avatarDataUrl()
-);
 
 export function Coaches(): ReactNode {
   const [isMobile, setIsMobile] = useState(false);
@@ -71,7 +40,7 @@ export function Coaches(): ReactNode {
       <div className="mx-auto w-full max-w-[1400px] px-4 pt-28 sm:px-6 sm:pt-36 lg:px-8">
         <KanjiLabel kanji="師範" furigana="しはん" gloss="Coaches" />
         <StaggeredText
-          text="Black belts who love to teach"
+          text="Trainers who love to teach"
           as="h2"
           segmentBy="words"
           direction="bottom"
@@ -81,14 +50,14 @@ export function Coaches(): ReactNode {
           className="font-display jjk-aberrate max-w-3xl text-4xl leading-[0.95] text-foreground sm:text-5xl lg:text-6xl"
         />
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
-          Six people, one standard. Every class on the timetable is led by one
+          Four people, one standard. Every class on the timetable is led by one
           of them — never by whoever happened to be free.
         </p>
       </div>
 
       <div className="mt-12">
         <ParallaxCarousel
-          images={COACH_AVATARS}
+          images={COACH_PHOTOS}
           imageWidth={imageWidth}
           imageHeight={imageHeight}
           gap={20}

@@ -232,51 +232,6 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   },
 ];
 
-export const coaches = [
-  {
-    name: "Liridon",
-    role: "Head Coach · Founder",
-    belt: "3rd Degree Black Belt",
-    beltColor: "black",
-    bio: "20 years on the mats. Trained under the Gracie lineage and has cornered European champions.",
-  },
-  {
-    name: "Ervin",
-    role: "No-Gi & Competition",
-    belt: "Black Belt",
-    beltColor: "black",
-    bio: "ADCC trials veteran. Turns raw athletes into podium finishers with a relentless leg-lock game.",
-  },
-  {
-    name: "Wolfgang",
-    role: "Head of Kids Program",
-    belt: "Brown Belt",
-    beltColor: "brown",
-    bio: "A teacher first. Builds confidence and discipline in the next generation of grapplers.",
-  },
-  {
-    name: "Ana König",
-    role: "Fundamentals & Women's",
-    belt: "Purple Belt",
-    beltColor: "purple",
-    bio: "The reason so many beginners fall in love with the art. Patient, precise, encouraging.",
-  },
-  {
-    name: "Tomás Carvalho",
-    role: "Wrestling & Takedowns",
-    belt: "Black Belt",
-    beltColor: "black",
-    bio: "National freestyle wrestling champion. Closes the distance before you blink.",
-  },
-  {
-    name: "Yuki Nakamura",
-    role: "Gi & Self-Defence",
-    belt: "Brown Belt",
-    beltColor: "brown",
-    bio: "Classical Judo base, modern BJJ top-game. Makes every grip exchange a lesson.",
-  },
-] as const;
-
 export const testimonials = [
   {
     quote:
