@@ -14,11 +14,23 @@
  * Idle:
  *   whileInView Stagger beim Einblenden, Kanji-Drift (y, repeat Infinity),
  *   diagonaler Sheen-Sweep (x, repeat Infinity). Alles transform/opacity only.
+ *
+ * Mobile (<sm):
+ *   Horizontales scroll-snap Carousel. Karten 80vw breit, feste Höhe.
+ *   Kanji-Parallax über direktes DOM-Transform im onScroll-Handler.
+ *   Tap öffnet dasselbe Modal wie Desktop (ModalTop + description).
  */
 
 import { useReducedMotion } from "@/lib/motion";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { motion } from "motion/react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "motion/react";
 import { Shield, Swords, Dumbbell, Trophy, Users, Heart } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { KanjiLabel } from "@/components/kanji-label";
@@ -277,12 +289,190 @@ function ModalTop({ card }: { card: CardData }): ReactNode {
   );
 }
 
+// ── MobileCarousel ────────────────────────────────────────────────────────────
+// Horizontal scroll-snap carousel for <sm. Cards are 80vw wide with 4vw gaps,
+// padded 10vw on each side so first/last card snap to center. Kanji parallax
+// via direct DOM transform in onScroll (no React state update per frame).
+// prefers-reduced-motion: no parallax, snap scroll stays.
+
+function MobileCarousel({
+  cards,
+  reducedMotion,
+  onSelect,
+}: {
+  cards: CardData[];
+  reducedMotion: boolean;
+  onSelect: (card: CardData) => void;
+}): ReactNode {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const kanjiRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    // el.clientWidth ≈ viewport width since container is full-width (-mx-4 cancels section padding)
+    const vw = el.clientWidth;
+    const cardW = vw * 0.8;   // 80vw
+    const gap = vw * 0.04;    // 4vw gap
+    const stride = cardW + gap;
+
+    const idx = Math.round(el.scrollLeft / stride);
+    setActiveIndex(Math.max(0, Math.min(idx, cards.length - 1)));
+
+    if (!reducedMotion) {
+      const padLeft = vw * 0.1; // 10vw padding-left
+      const viewCenter = el.scrollLeft + vw / 2;
+      kanjiRefs.current.forEach((span, i) => {
+        if (!span) return;
+        const cardCenter = padLeft + i * stride + cardW / 2;
+        // offset: 0 when card is centered, ±1 when one card away
+        const offset = (cardCenter - viewCenter) / stride;
+        span.style.transform = `translateX(${offset * 40}px)`;
+      });
+    }
+  }, [cards.length, reducedMotion]);
+
+  useEffect(() => {
+    handleScroll();
+  }, [handleScroll]);
+
+  return (
+    <div>
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        // -mx-4 cancels the section's px-4 so the container is full viewport width
+        className="-mx-4 flex overflow-x-auto"
+        style={{
+          scrollSnapType: "x mandatory",
+          overscrollBehaviorX: "contain",
+          WebkitOverflowScrolling: "touch",
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+          gap: "4vw",
+          paddingLeft: "10vw",
+          paddingRight: "10vw",
+        }}
+        role="region"
+        aria-label="Programme"
+      >
+        {cards.map((card, i) => {
+          const program = programs[Number(card.id)]!;
+          return (
+            <button
+              key={card.id}
+              onClick={() => onSelect(card)}
+              className="relative flex flex-none flex-col overflow-hidden rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              style={{
+                width: "80vw",
+                aspectRatio: "4/3",
+                scrollSnapAlign: "center",
+                backgroundColor: "#0f0e0d",
+              }}
+              aria-label={`${program.title} – Details anzeigen`}
+            >
+              {/* Decorative kanji — parallax target; plain span so scroll can override transform */}
+              <span
+                ref={(el) => { kanjiRefs.current[i] = el; }}
+                aria-hidden="true"
+                className="pointer-events-none absolute right-[-0.08em] bottom-[0.4rem] select-none leading-none text-foreground/[0.055]"
+                style={{ fontFamily: "var(--font-jp)", fontSize: "9rem" }}
+              >
+                {program.kanji}
+              </span>
+
+              {/* Top row: index + tag */}
+              <div
+                className="relative z-[2] mx-5 mt-5 flex items-center justify-between pb-3"
+                style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+              >
+                <span className="font-mono text-[0.65rem] font-medium tracking-[0.26em] text-muted-foreground">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="font-mono text-[0.6rem] uppercase tracking-widest text-accent/60">
+                  {program.tag}
+                </span>
+              </div>
+
+              {/* Bottom: level + title */}
+              <div className="relative z-[2] mx-5 mb-6 mt-auto text-left">
+                <p className="mb-2 font-mono text-[0.6rem] uppercase tracking-[0.22em] text-muted-foreground/70">
+                  {program.level}
+                </p>
+                <h3
+                  className="text-xl font-medium leading-tight text-foreground"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {program.title}
+                </h3>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Pill/dot position indicator */}
+      <div
+        className="mt-5 flex items-center justify-center gap-2"
+        aria-hidden="true"
+      >
+        {cards.map((_, i) => (
+          <div
+            key={i}
+            className="rounded-full transition-all duration-300"
+            style={{
+              width: i === activeIndex ? "1.25rem" : "0.375rem",
+              height: "0.375rem",
+              backgroundColor:
+                i === activeIndex
+                  ? "var(--accent)"
+                  : "rgba(255,255,255,0.2)",
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Section ───────────────────────────────────────────────────────────────────
 
 export default function Features6(): ReactNode {
   const reducedMotion = useReducedMotion();
+  const [mobileSelected, setMobileSelected] = useState<CardData | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Body scroll lock while mobile modal is open
+  useEffect(() => {
+    if (mobileSelected) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileSelected]);
+
+  // Escape key closes mobile modal
+  useEffect(() => {
+    if (!mobileSelected) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileSelected(null);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [mobileSelected]);
+
   return (
-    <section className="w-full px-4 pt-28 pb-16 sm:px-6 sm:pt-36 lg:px-8 lg:pt-44">
+    // overflow-x-hidden prevents the -mx-4 carousel bleed from causing page-level horizontal scroll
+    <section className="w-full overflow-x-hidden px-4 pt-28 pb-16 sm:px-6 sm:pt-36 lg:px-8 lg:pt-44">
       <div className="mx-auto w-full max-w-[1400px]">
         <KanjiLabel kanji="稽古" furigana="けいこ" gloss="Programs" />
         <StaggeredText
@@ -300,7 +490,17 @@ export default function Features6(): ReactNode {
           knowing how to do this.
         </p>
 
-        <div className="mt-12 sm:mt-16">
+        {/* Mobile: horizontal scroll-snap carousel (below sm) */}
+        <div className="mt-12 sm:hidden">
+          <MobileCarousel
+            cards={CARDS}
+            reducedMotion={reducedMotion}
+            onSelect={setMobileSelected}
+          />
+        </div>
+
+        {/* Desktop: modal cards grid (sm+) */}
+        <div className="mt-12 hidden sm:mt-16 sm:block">
           <ModalCards
             cards={CARDS}
             renderCardFace={(card) => (
@@ -320,6 +520,85 @@ export default function Features6(): ReactNode {
           />
         </div>
       </div>
+
+      {/* Mobile modal portal — uses same ModalTop as desktop for visual consistency */}
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {mobileSelected && (
+              <>
+                {/* Backdrop */}
+                <motion.div
+                  key="mobile-modal-backdrop"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+                  onClick={() => setMobileSelected(null)}
+                  className="fixed inset-0 z-[999999] cursor-pointer"
+                  style={{
+                    background:
+                      "radial-gradient(125% 125% at 50% 0%, #0a0a0a 40%, #5a0a0a 100%)",
+                    backdropFilter: "blur(8px)",
+                  }}
+                  role="button"
+                  aria-label="Schließen"
+                  tabIndex={0}
+                />
+
+                {/* Dialog */}
+                <div
+                  key="mobile-modal-dialog"
+                  className="pointer-events-none fixed inset-0 z-[1000000] flex items-center justify-center p-6"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Programm-Details"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    className="pointer-events-auto relative max-h-[80vh] w-full max-w-lg overflow-hidden rounded-2xl"
+                    style={{ backgroundColor: "#0f0e0d" }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="relative">
+                      <ModalTop card={mobileSelected} />
+                      <button
+                        onClick={() => setMobileSelected(null)}
+                        className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60"
+                        aria-label="Schließen"
+                      >
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M12 4L4 12M4 4L12 12"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="overflow-y-auto p-8">
+                      <p className="text-lg leading-relaxed text-foreground/70">
+                        {mobileSelected.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                </div>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
     </section>
   );
 }
