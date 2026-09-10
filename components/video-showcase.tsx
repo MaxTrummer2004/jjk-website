@@ -26,6 +26,9 @@ const BOTTOM_GAP = 24;
 const GROWTH_END = 0.55;
 const PLAY_AT = 0.35;
 
+// object-position für den Desktop-Crop: oberer/mittlerer Bereich, Köpfe im Bild
+const DESKTOP_CROP_POSITION = "50% 35%";
+
 /** Matches the horizontal padding of sections below: px-5 / sm:px-8 / lg:px-10 */
 function sectionPadding(viewportWidth: number): number {
   if (viewportWidth >= 1024) return 40;
@@ -55,6 +58,7 @@ function ShowcaseVideo({
             opacity: i === activeIdx ? 1 : 0,
             transition: `opacity ${FADE_MS}ms ease-in-out`,
             zIndex: i === activeIdx ? 1 : 0,
+            objectPosition: DESKTOP_CROP_POSITION,
           }}
           muted
           playsInline
@@ -368,15 +372,32 @@ export function VideoShowcase(): ReactNode {
     return () => activeVideo.removeEventListener("timeupdate", handleTimeUpdate);
   }, [activeIdx, prefersReducedMotion]);
 
-  const fullWidth =
-    Math.min(viewport.w, MAX_WIDTH) - sectionPadding(viewport.w) * 2 + OVERSCAN;
+  const isMobile = viewport.w < 640;
+
+  // fullHeight ist in beiden Modi gleich
   const fullHeight = viewport.h - NAV_OFFSET - BOTTOM_GAP + OVERSCAN;
+
+  // Desktop: Querformat wie bisher
+  const fullWidthDesktop =
+    Math.min(viewport.w, MAX_WIDTH) - sectionPadding(viewport.w) * 2 + OVERSCAN;
+
+  // Mobil: Hochformat 9:16, passt in verfügbare Höhe, nie breiter als Viewport
+  const fullWidthMobile = Math.min(
+    Math.round(fullHeight * (9 / 16)),
+    viewport.w - sectionPadding(viewport.w) * 2 + OVERSCAN
+  );
+
+  const fullWidth = isMobile ? fullWidthMobile : fullWidthDesktop;
+
+  // Peek-Breite: auf Mobil proportional zum 9:16-Format
+  const peekWidth = isMobile ? Math.round(PEEK_HEIGHT * (9 / 16)) : PEEK_WIDTH;
+
   const peekY = viewport.h - PEEK_VISIBLE - NAV_OFFSET;
 
   const width = useTransform(
     scrollProgress,
     [0, GROWTH_END],
-    [PEEK_WIDTH, fullWidth]
+    [peekWidth, fullWidth]
   );
   const height = useTransform(
     scrollProgress,
