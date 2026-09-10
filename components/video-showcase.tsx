@@ -6,8 +6,15 @@ import { motion, useMotionValue, useTransform } from "motion/react";
 import { ArrowDown, Play } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 
-const VIDEO_SRC = "/video/hero-bjj.mp4";
-const VIDEO_POSTER = "/video/hero-poster.jpg";
+// ── Clips: Reihenfolge hier tauschen um showcase-1/2 umzukehren ──────────────
+const CLIPS = [
+  { mp4: "/video/showcase-1.mp4", webm: "/video/showcase-1.webm" },
+  { mp4: "/video/showcase-2.mp4", webm: "/video/showcase-2.webm" },
+] as const;
+const POSTER = "/video/showcase-poster.jpg";
+const FADE_LEAD = 0.9;  // s vor Clipende: Crossfade starten
+const FADE_MS   = 800;  // ms Überblendungsdauer
+
 const MAX_WIDTH = 1440;
 const CAPTION = "Watch the film — JJK Academy";
 
@@ -27,25 +34,41 @@ function sectionPadding(viewportWidth: number): number {
 }
 
 function ShowcaseVideo({
-  videoRef,
+  videoRef0,
+  videoRef1,
+  activeIdx,
   controls = false,
 }: {
-  videoRef: RefObject<HTMLVideoElement | null>;
+  videoRef0: RefObject<HTMLVideoElement | null>;
+  videoRef1: RefObject<HTMLVideoElement | null>;
+  activeIdx: number;
   controls?: boolean;
 }): ReactNode {
   return (
-    <video
-      ref={videoRef}
-      className="h-full w-full object-cover"
-      src={VIDEO_SRC}
-      poster={VIDEO_POSTER}
-      muted
-      loop
-      playsInline
-      controls={controls}
-      preload="metadata"
-      aria-label="BJJ training at JJK Academy"
-    />
+    <div className="relative h-full w-full">
+      {CLIPS.map((clip, i) => (
+        <video
+          key={i}
+          ref={i === 0 ? videoRef0 : videoRef1}
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{
+            opacity: i === activeIdx ? 1 : 0,
+            transition: `opacity ${FADE_MS}ms ease-in-out`,
+            zIndex: i === activeIdx ? 1 : 0,
+          }}
+          muted
+          playsInline
+          preload={i === 0 ? "auto" : "metadata"}
+          poster={i === 0 ? POSTER : undefined}
+          controls={controls && i === activeIdx}
+          aria-label="JJK Academy training video"
+          aria-hidden={i !== activeIdx ? true : undefined}
+        >
+          <source src={clip.webm} type="video/webm" />
+          <source src={clip.mp4} type="video/mp4" />
+        </video>
+      ))}
+    </div>
   );
 }
 
@@ -86,9 +109,12 @@ const CATCH_EASE = (t: number): number => 1 - Math.pow(1 - t, 3);
 export function VideoShowcase(): ReactNode {
   const prefersReducedMotion = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef0 = useRef<HTMLVideoElement>(null);
+  const videoRef1 = useRef<HTMLVideoElement>(null);
   const [viewport, setViewport] = useState({ w: 1280, h: 800 });
   const scrollProgress = useMotionValue(0);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const activeIdxRef = useRef(0);
 
   /**
    * Viewport-Messung und Scroll-Fortschritt in EINEM Handler, an mehr als
@@ -262,6 +288,86 @@ export function VideoShowcase(): ReactNode {
     };
   }, [prefersReducedMotion]);
 
+  // ── IntersectionObserver + Play/Pause ─────────────────────────────────────
+  // Steuert BEIDE Video-Elemente: aktives abspielen, inaktives pausiert lassen.
+  // Kein scroll/resize-Listener — nur Video-Events und scrollProgress-Abo.
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    const video0 = videoRef0.current;
+    const video1 = videoRef1.current;
+    if (!video0 || !video1) return;
+
+    let inView = false;
+    const sync = (): void => {
+      const shouldPlay = inView && scrollProgress.get() >= PLAY_AT;
+      const active   = activeIdxRef.current === 0 ? video0 : video1;
+      const inactive = activeIdxRef.current === 0 ? video1 : video0;
+      if (shouldPlay) {
+        if (active.paused) void active.play().catch(() => undefined);
+      } else {
+        if (!active.paused)   active.pause();
+        if (!inactive.paused) inactive.pause();
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        inView = entries[0]?.isIntersecting ?? false;
+        sync();
+      },
+      { threshold: 0 }
+    );
+    observer.observe(video0);
+
+    const unsubscribe = scrollProgress.on("change", sync);
+    return () => {
+      observer.disconnect();
+      unsubscribe();
+    };
+  }, [scrollProgress, prefersReducedMotion]);
+
+  // ── Crossfade: Clip-Wechsel kurz vor Clipende ─────────────────────────────
+  // Läuft ausschließlich an timeupdate des aktiven Clips — kein Scroll-/
+  // Resize-Listener. Wenn activeIdx wechselt, räumt der vorherige Effect-Lauf
+  // seinen Listener auf und der neue setzt einen frischen Listener auf den
+  // neuen aktiven Clip.
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    const activeVideo = activeIdx === 0 ? videoRef0.current : videoRef1.current;
+    if (!activeVideo) return;
+
+    let fading = false;
+    const handleTimeUpdate = (): void => {
+      if (fading) return;
+      if (!isFinite(activeVideo.duration) || activeVideo.duration <= 0) return;
+      if (activeVideo.duration - activeVideo.currentTime > FADE_LEAD) return;
+
+      fading = true;
+      const nextIdx = activeIdx === 0 ? 1 : 0;
+      const nextVideo = nextIdx === 0 ? videoRef0.current : videoRef1.current;
+      if (!nextVideo) return;
+
+      // Nächsten Clip vorbereiten und starten
+      nextVideo.currentTime = 0;
+      nextVideo.preload = "auto"; // auf Mobilgeräten Puffern anstoßen
+      void nextVideo.play().catch(() => undefined);
+
+      // Opacity-Überblendung via React-State (CSS transition)
+      activeIdxRef.current = nextIdx;
+      setActiveIdx(nextIdx);
+
+      // Nach Überblendung alten Clip pausieren und zurückspulen
+      const prevVideo = activeVideo;
+      setTimeout(() => {
+        prevVideo.pause();
+        prevVideo.currentTime = 0;
+      }, FADE_MS);
+    };
+
+    activeVideo.addEventListener("timeupdate", handleTimeUpdate);
+    return () => activeVideo.removeEventListener("timeupdate", handleTimeUpdate);
+  }, [activeIdx, prefersReducedMotion]);
+
   const fullWidth =
     Math.min(viewport.w, MAX_WIDTH) - sectionPadding(viewport.w) * 2 + OVERSCAN;
   const fullHeight = viewport.h - NAV_OFFSET - BOTTOM_GAP + OVERSCAN;
@@ -295,37 +401,6 @@ export function VideoShowcase(): ReactNode {
   const pinTop = useTransform(scrollProgress, (v) => (v >= 1 ? "auto" : "0px"));
   const pinBottom = useTransform(scrollProgress, (v) => (v >= 1 ? "0px" : "auto"));
 
-  useEffect(() => {
-    if (prefersReducedMotion) return;
-    const video = videoRef.current;
-    if (!video) return;
-
-    let inView = false;
-    const sync = (): void => {
-      const shouldPlay = inView && scrollProgress.get() >= PLAY_AT;
-      if (shouldPlay) {
-        if (video.paused) void video.play().catch(() => undefined);
-      } else if (!video.paused) {
-        video.pause();
-      }
-    };
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        inView = entries[0]?.isIntersecting ?? false;
-        sync();
-      },
-      { threshold: 0 }
-    );
-    observer.observe(video);
-
-    const unsubscribe = scrollProgress.on("change", sync);
-    return () => {
-      observer.disconnect();
-      unsubscribe();
-    };
-  }, [scrollProgress, prefersReducedMotion]);
-
   if (prefersReducedMotion) {
     return (
       <section
@@ -341,7 +416,7 @@ export function VideoShowcase(): ReactNode {
           className="relative w-full overflow-hidden rounded-3xl bg-black"
           style={{ maxWidth: MAX_WIDTH, aspectRatio: "16 / 9" }}
         >
-          <ShowcaseVideo videoRef={videoRef} controls />
+          <ShowcaseVideo videoRef0={videoRef0} videoRef1={videoRef1} activeIdx={0} controls />
         </div>
       </section>
     );
@@ -387,7 +462,7 @@ export function VideoShowcase(): ReactNode {
           style={{ x: "-50%", y, top: NAV_OFFSET, width, height }}
           className="absolute left-1/2 overflow-hidden rounded-3xl bg-black"
         >
-          <ShowcaseVideo videoRef={videoRef} />
+          <ShowcaseVideo videoRef0={videoRef0} videoRef1={videoRef1} activeIdx={activeIdx} />
           <motion.div
             style={{ x: "-50%", opacity: scrollHintOpacity }}
             aria-hidden="true"

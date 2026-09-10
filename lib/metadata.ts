@@ -5,7 +5,7 @@ export const siteConfig = {
   description:
     "Brazilian Jiu-Jitsu in the heart of Graz. World-class coaching, a family of training partners, and a mat that turns beginners into black belts. Book your free trial class.",
   url: "https://jjk-academy.com",
-  ogImage: "/video/hero-poster.jpg",
+  ogImage: "/video/showcase-poster.jpg",
   creator: "@jjkacademy",
   authors: [{ name: "Jiu-Jitsu Kaisen Academy", url: "https://jjk-academy.com" }],
   keywords: [
