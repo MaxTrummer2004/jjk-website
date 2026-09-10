@@ -5,7 +5,7 @@ export const siteConfig = {
   description:
     "Brazilian Jiu-Jitsu in the heart of Graz. World-class coaching, a family of training partners, and a mat that turns beginners into black belts. Book your free trial class.",
   url: "https://jjk-academy.com",
-  ogImage: "/video/showcase-poster.jpg",
+  ogImage: "/img/og-image.jpg",
   creator: "@jjkacademy",
   authors: [{ name: "Jiu-Jitsu Kaisen Academy", url: "https://jjk-academy.com" }],
   keywords: [
@@ -53,7 +53,7 @@ export const baseMetadata: Metadata = {
     description: siteConfig.description,
     siteName: siteConfig.name,
     images: [
-      { url: siteConfig.ogImage, width: 1600, height: 900, alt: siteConfig.name },
+      { url: siteConfig.ogImage, width: 1200, height: 630, alt: siteConfig.name },
     ],
   },
   twitter: {
@@ -96,7 +96,7 @@ export function createMetadata({
       description: description ?? siteConfig.description,
       url,
       images: [
-        { url: ogImage, width: 1600, height: 900, alt: title ?? siteConfig.name },
+        { url: ogImage, width: 1200, height: 630, alt: title ?? siteConfig.name },
       ],
     },
     twitter: {
