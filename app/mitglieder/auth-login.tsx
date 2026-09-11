@@ -1,10 +1,33 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion } from "motion/react";
 import Watercolor from "@/components/watercolor";
+import { lenisRef } from "@/lib/lenis";
 import { AuthForm } from "./auth-form";
 
 export function AuthLogin() {
+  // Auth-Seite: nie scrollbar, immer oben starten. Beim Client-Nav von der
+  // (evtl. runtergescrollten) Startseite haelt Lenis die alte Scroll-Position
+  // und animiert nach jedem window.scrollTo dorthin zurueck — deshalb ueber
+  // Lenis auf 0 setzen UND Lenis stoppen. overflow:hidden sperrt zusaetzlich
+  // (auch mobil, wo Lenis nicht laeuft). Beim Verlassen wieder freigeben.
+  useEffect(() => {
+    const html = document.documentElement;
+    const prevOverflow = html.style.overflow;
+    const lenis = lenisRef.current;
+    window.scrollTo(0, 0);
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true });
+      lenis.stop();
+    }
+    html.style.overflow = "hidden";
+    return () => {
+      html.style.overflow = prevOverflow;
+      lenisRef.current?.start();
+    };
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
