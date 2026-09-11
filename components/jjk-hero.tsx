@@ -368,8 +368,8 @@ export function JJKHero(): ReactNode {
                 <Image
                   src="/img/logo-emblem.png"
                   alt=""
-                  width={2212}
-                  height={2250}
+                  width={2043}
+                  height={2212}
                   priority
                   className="block h-auto w-full select-none"
                 />
