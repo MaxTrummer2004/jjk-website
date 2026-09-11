@@ -1,30 +1,32 @@
 "use client";
 
-import { useEffect, useLayoutEffect } from "react";
+import { useLayoutEffect } from "react";
 import { motion } from "motion/react";
 import Watercolor from "@/components/watercolor";
 import { lenisRef } from "@/lib/lenis";
 import { AuthForm } from "./auth-form";
 
 export function AuthLogin() {
-  // useLayoutEffect: läuft synchron vor dem ersten Paint — kein Flackern auf
-  // Mobile, wo useEffect zu spät käme. Overflow auf html UND body, weil Mobile
-  // Safari manchmal body als Scroll-Container nimmt.
+  // useLayoutEffect: läuft synchron vor dem ersten Paint.
+  // Reihenfolge ist entscheidend: Lenis stoppen → scrollen → overflow sperren.
+  // Lenis zuerst, sonst kämpft es gegen window.scrollTo.
+  // overflow:hidden erst danach, weil manche Browser scrollTo ignorieren wenn
+  // der Container bereits overflow:hidden hat.
   useLayoutEffect(() => {
     const html = document.documentElement;
     const body = document.body;
     const prevHtmlOverflow = html.style.overflow;
     const prevBodyOverflow = body.style.overflow;
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
+    const lenis = lenisRef.current;
+    if (lenis) {
+      lenis.stop();
+      lenis.scrollTo(0, { immediate: true });
+    }
     html.scrollTop = 0;
     body.scrollTop = 0;
     window.scrollTo(0, 0);
-    const lenis = lenisRef.current;
-    if (lenis) {
-      lenis.scrollTo(0, { immediate: true });
-      lenis.stop();
-    }
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
     return () => {
       html.style.overflow = prevHtmlOverflow;
       body.style.overflow = prevBodyOverflow;

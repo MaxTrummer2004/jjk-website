@@ -298,7 +298,7 @@ export function SiteNav(): ReactNode {
               e.preventDefault();
               closeMenu();
               navigateWithTransition(
-                (href) => router.push(href),
+                (href) => router.push(href, { scroll: false }),
                 "/mitglieder",
                 () => flushSync(() => { triggerPageTransition(); }),
               );
