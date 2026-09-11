@@ -2,9 +2,10 @@
 
 import { useReducedMotion } from "@/lib/motion";
 import { lenisRef } from "@/lib/lenis";
+import { isOpeningDone, isOpeningDoneOnServer, subscribeOpening } from "@/lib/opening";
 import { motion, useMotionValue, useTransform } from "motion/react";
 import { ArrowDown, Play } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from "react";
 
 // ── Clips: Reihenfolge hier tauschen um showcase-1/2 umzukehren ──────────────
 const CLIPS = [
@@ -112,6 +113,16 @@ const CATCH_EASE = (t: number): number => 1 - Math.pow(1 - t, 3);
 
 export function VideoShowcase(): ReactNode {
   const prefersReducedMotion = useReducedMotion();
+  // Die Videobox ist `fixed z-20` und liegt damit UEBER dem Hero — waehrend des
+  // Intro-Loaders waeren Caption ("Watch the film") und die Peek-Box also schon
+  // sichtbar. Sie sollen erst auftauchen, wenn der Intro-Verlauf durch ist
+  // (opening done, gesetzt in jjk-hero.tsx am Ende des Verlaufs). Bei
+  // Ruecknavigation/reduced-motion ist opening sofort done → sofort sichtbar.
+  const openingDone = useSyncExternalStore(
+    subscribeOpening,
+    isOpeningDone,
+    isOpeningDoneOnServer
+  );
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef0 = useRef<HTMLVideoElement>(null);
   const videoRef1 = useRef<HTMLVideoElement>(null);
@@ -451,8 +462,8 @@ export function VideoShowcase(): ReactNode {
       className="pointer-events-none relative z-20 [margin-top:-100svh] h-[180svh]"
     >
       <motion.div
-        style={{ position: pinPosition, top: pinTop, bottom: pinBottom, left: 0, right: 0 }}
-        className="z-20 h-lvh overflow-hidden"
+        style={{ position: pinPosition, top: pinTop, bottom: pinBottom, left: 0, right: 0, opacity: openingDone ? 1 : 0 }}
+        className="z-20 h-lvh overflow-hidden transition-opacity duration-700 ease-out"
       >
         {/* z-20 direkt hier (nicht nur auf der Section aussen): `position:
             fixed`-Kindelemente stapeln sich zwar innerhalb des
