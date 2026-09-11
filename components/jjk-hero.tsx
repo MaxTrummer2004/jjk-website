@@ -392,35 +392,17 @@ export function JJKHero(): ReactNode {
             </motion.div>
           </div>
 
-          {/* Kanji bleibt — aber klein und UNTER dem Emblem. Der englische
-              Schriftzug steht schon im Emblem-Ring und in der H1; die japanische
-              Zeile ist der einzige nicht-doppelte Textbaustein hier. */}
-          <motion.p
-            {...fadeUp(0.16)}
-            lang="ja"
-            aria-hidden="true"
-            className="text-foreground/50 mt-4 text-xs tracking-[0.35em] uppercase"
-            style={{ fontFamily: "var(--font-jp)" }}
-          >
-            柔術廻戦
-          </motion.p>
           {/* Kein Textschatten mehr: der Grund ist im Hero dunkel (brightness
               0.04), helle Schrift steht kontrastreich; das Wasserzeichen hinter
               dem Text ist weg. jjk-aberrate bewusst NICHT auf der H1. */}
           <motion.h1
-            {...fadeUp(0.24)}
-            className="text-foreground mt-2 text-[clamp(44px,7.5vw,84px)] leading-[1.02] font-medium tracking-tight text-balance"
+            {...fadeUp(0.16)}
+            className="text-foreground mt-6 text-[clamp(44px,7.5vw,84px)] leading-[1.02] font-medium tracking-tight text-balance"
             style={{ fontFamily: "var(--font-display)" }}
           >
             Jiu-Jitsu Kaisen Academy
           </motion.h1>
-          <motion.p
-            {...fadeUp(0.34)}
-            className="text-foreground-dim mt-6 max-w-md text-base leading-relaxed"
-          >
-            {siteConfig.tagline}
-          </motion.p>
-          <motion.div {...fadeUp(0.44)} className="mt-9 flex items-center gap-3">
+          <motion.div {...fadeUp(0.28)} className="mt-9 flex items-center gap-3">
             <MagneticLink
               href="#pricing"
               reduce={prefersReducedMotion}
