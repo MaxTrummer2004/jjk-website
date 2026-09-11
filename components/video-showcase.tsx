@@ -28,8 +28,11 @@ const BOTTOM_GAP = 24;
 const GROWTH_END = 0.55;
 const PLAY_AT = 0.35;
 
-// object-position für den Desktop-Crop: oberer/mittlerer Bereich, Köpfe im Bild
-const DESKTOP_CROP_POSITION = "50% 35%";
+// object-position für den Crop. Am Handy (9:16 aus Querformat) sitzt der
+// Ausschnitt bei 35% gut. Am Desktop (16:9-Crop) zeigte 35% zu viel Decke —
+// tiefer ansetzen, damit die Leute statt der Decke im Bild sind.
+const DESKTOP_CROP_POSITION = "50% 60%";
+const MOBILE_CROP_POSITION = "50% 35%";
 
 /** Matches the horizontal padding of sections below: px-5 / sm:px-8 / lg:px-10 */
 function sectionPadding(viewportWidth: number): number {
@@ -40,9 +43,11 @@ function sectionPadding(viewportWidth: number): number {
 
 function ShowcaseVideo({
   videoRef,
+  cropPosition,
   controls = false,
 }: {
   videoRef: RefObject<HTMLVideoElement | null>;
+  cropPosition: string;
   controls?: boolean;
 }): ReactNode {
   return (
@@ -50,7 +55,7 @@ function ShowcaseVideo({
       <video
         ref={videoRef}
         className="absolute inset-0 h-full w-full object-cover"
-        style={{ objectPosition: DESKTOP_CROP_POSITION }}
+        style={{ objectPosition: cropPosition }}
         muted
         loop
         playsInline
@@ -389,7 +394,7 @@ export function VideoShowcase(): ReactNode {
           className="relative w-full overflow-hidden rounded-3xl bg-black"
           style={{ maxWidth: MAX_WIDTH, aspectRatio: "16 / 9" }}
         >
-          <ShowcaseVideo videoRef={videoRef} controls />
+          <ShowcaseVideo videoRef={videoRef} cropPosition={DESKTOP_CROP_POSITION} controls />
         </div>
       </section>
     );
@@ -435,7 +440,10 @@ export function VideoShowcase(): ReactNode {
           style={{ x: "-50%", y, top: NAV_OFFSET, width, height }}
           className="absolute left-1/2 overflow-hidden rounded-3xl bg-black"
         >
-          <ShowcaseVideo videoRef={videoRef} />
+          <ShowcaseVideo
+            videoRef={videoRef}
+            cropPosition={isMobile ? MOBILE_CROP_POSITION : DESKTOP_CROP_POSITION}
+          />
           <motion.div
             style={{ x: "-50%", opacity: scrollHintOpacity }}
             aria-hidden="true"
