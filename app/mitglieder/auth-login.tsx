@@ -1,29 +1,33 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { motion } from "motion/react";
 import Watercolor from "@/components/watercolor";
 import { lenisRef } from "@/lib/lenis";
 import { AuthForm } from "./auth-form";
 
 export function AuthLogin() {
-  // Auth-Seite: nie scrollbar, immer oben starten. Beim Client-Nav von der
-  // (evtl. runtergescrollten) Startseite haelt Lenis die alte Scroll-Position
-  // und animiert nach jedem window.scrollTo dorthin zurueck — deshalb ueber
-  // Lenis auf 0 setzen UND Lenis stoppen. overflow:hidden sperrt zusaetzlich
-  // (auch mobil, wo Lenis nicht laeuft). Beim Verlassen wieder freigeben.
-  useEffect(() => {
+  // useLayoutEffect: läuft synchron vor dem ersten Paint — kein Flackern auf
+  // Mobile, wo useEffect zu spät käme. Overflow auf html UND body, weil Mobile
+  // Safari manchmal body als Scroll-Container nimmt.
+  useLayoutEffect(() => {
     const html = document.documentElement;
-    const prevOverflow = html.style.overflow;
-    const lenis = lenisRef.current;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    html.scrollTop = 0;
+    body.scrollTop = 0;
     window.scrollTo(0, 0);
+    const lenis = lenisRef.current;
     if (lenis) {
       lenis.scrollTo(0, { immediate: true });
       lenis.stop();
     }
-    html.style.overflow = "hidden";
     return () => {
-      html.style.overflow = prevOverflow;
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
       lenisRef.current?.start();
     };
   }, []);
