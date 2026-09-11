@@ -5,13 +5,48 @@
 let introAlreadyPlayed = false;
 
 import { MagneticLink } from "@/components/magnetic-link";
-import { IntroLoader } from "@/components/intro-loader";
 import { softEase, useReducedMotion } from "@/lib/motion";
 import { setOpeningDone } from "@/lib/opening";
 import Watercolor from "@/components/watercolor";
 import { siteConfig } from "@/lib/config";
-import { AnimatePresence, motion, useMotionValue, useTransform } from "motion/react";
+import Image from "next/image";
+import { animate, motion, useMotionValue, useTransform } from "motion/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+
+// ── Der durchgehende Verlauf Loader → Hero ──────────────────────────────────
+// Frueher: zwei getrennte Ebenen. Der Loader (heller Grund, schwarz-weisser
+// Watercolor, Logo mit Zaehler) lag als eigenes Overlay ueber dem Hero und
+// wurde per AnimatePresence AUSgeblendet, waehrend der Hero mit einem ZWEITEN
+// Watercolor-Canvas EINblendete. Zwei WebGL-Instanzen nacheinander, ein harter
+// Schnitt dazwischen.
+//
+// Jetzt: EIN Canvas, der durchgehend steht; seine Farbwerte werden ueber eine
+// blend-MotionValue (0..1) im Shader interpoliert (kein Re-Render pro Frame,
+// siehe watercolor.tsx). Das Logo ist DASSELBE Element vom Zaehler bis in den
+// Hero — es wird nie ab- und wieder aufgebaut, nur seine Groesse/Deckkraft
+// verlaeuft. Der Hero-Text blendet gestaffelt darueber ein. Es gibt keinen
+// Schnitt mehr, nur einen Farb- und Text-Verlauf.
+//
+// Logo-Lesbarkeit im Hero: Das Logo ist eine schwarze Zeichnung. Auf dem hellen
+// Loader-Grund klar, auf dem dunklen Hero-Grund (brightness 0.04) sonst
+// unsichtbar. Gewaehlter Weg: ein dezenter Ember-Gluehschein (var(--ember))
+// HINTER der Zeichnung, dessen Deckkraft mit dem blend hochlaeuft. Die schwarzen
+// Linien stehen dann als Silhouette gegen die warme Glut — lesbar, ohne die
+// Zeichnung selbst umzufaerben (das braeuchte filter: invert, hier verboten).
+// Nicht Weg (a) "Wand bleibt hinter dem Logo heller": der Shader ist ein
+// Vollflaechenfeld mit einer Uniform-Farbe, ein lokal hellerer Fleck waere ein
+// zweiter Shader-Pfad. Nicht Weg (c) "Zeichnung ins Helle": eine PNG umzufaerben
+// geht nur ueber filter — ausgeschlossen.
+
+// Zielgroesse des Logos im Hero, als Anteil seiner vollen Zeichenbreite. Das
+// Element ist immer clamp(320px,60vw,680px) breit (kein Layout-Wechsel), die
+// sichtbare Groesse kommt aus transform: scale. Im Hero etwas kleiner — es tritt
+// hinter den Text zurueck.
+const LOGO_HERO_SCALE = 0.82;
+// Dauer des Farb-/Logo-Verlaufs (Vorgabe 1,2–1,6 s).
+const TRANSITION_DURATION = 1.6;
+
+type Phase = "counting" | "transition" | "done";
 
 /**
  * ── Der Scroll-Fade ──────────────────────────────────────────────────────
@@ -27,12 +62,13 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  */
 export function JJKHero(): ReactNode {
   const prefersReducedMotion = useReducedMotion();
-  const [revealed, setRevealed] = useState(introAlreadyPlayed);
-  const [loading, setLoading] = useState(!introAlreadyPlayed);
+  const [phase, setPhase] = useState<Phase>(introAlreadyPlayed ? "done" : "counting");
   const [progress, setProgress] = useState(introAlreadyPlayed ? 100 : 0);
-  // introExited: true sobald AnimatePresence.onExitComplete gefeuert hat.
-  // Hero-Canvas mountet erst dann — keine zwei WebGL-Layer gleichzeitig.
-  const [introExited, setIntroExited] = useState(introAlreadyPlayed);
+  const [revealed, setRevealed] = useState(introAlreadyPlayed);
+  // blend fuehrt den Farb- und Logo-Verlauf. 0 = Loader-Zustand (hell, s/w),
+  // 1 = Hero-Zustand (dunkel, rot). Als MotionValue: der Watercolor liest ihn
+  // pro Frame in useFrame, ohne dass React rendert.
+  const blend = useMotionValue(introAlreadyPlayed || prefersReducedMotion ? 1 : 0);
   const heroRef = useRef<HTMLElement>(null);
   const scrollFraction = useMotionValue(0);
   // Ab hier ist die Opacity (siehe scrollFade unten) schon laengst bei 0 —
@@ -41,6 +77,8 @@ export function JJKHero(): ReactNode {
   // Hero weiter zum Video scrollt, konkurriert dieses unsichtbare Rendern
   // mit der Scroll-getriebenen Berechnung der Video-Box um den Hauptthread
   // und laesst den Swipe ruckeln/haengenbleiben ("ein Swipe reicht nicht").
+  // Statt den Canvas ab-/aufzubauen (er ist jetzt EINER und muss stehen
+  // bleiben) wird er per paused-Prop stillgelegt — frameloop="never".
   // Etwas Puffer (0.6 statt exakt 0.5) gegen Flackern an der Fade-Grenze.
   const [showBackground, setShowBackground] = useState(true);
 
@@ -102,53 +140,84 @@ export function JJKHero(): ReactNode {
     v < 0.5 ? "auto" : "none"
   );
 
-  // ── Intro-Loader ────────────────────────────────────────────────────────
-  // Overflow sperren, solange Loader laeuft.
+  // ── blend-abgeleitete Ebenen (transform/opacity only) ─────────────────────
+  // Heller Loader-Grund faded weg, sobald der Verlauf laeuft.
+  const lightOpacity = useTransform(blend, [0, 1], [1, 0]);
+  // Ember-Gluehschein hinter dem Logo kommt mit dem Verlauf hoch.
+  const glowOpacity = useTransform(blend, [0, 0.35, 1], [0, 0, 0.5]);
+  // Logo tritt beim Verlauf leicht zurueck (scale). Waehrend des Zaehlens (Phase
+  // "counting") wird die Groesse dagegen aus progress berechnet, siehe unten.
+  const logoScaleT = useTransform(blend, [0, 1], [1, LOGO_HERO_SCALE]);
+
+  // ── Scroll-Sperre ─────────────────────────────────────────────────────────
+  // Waehrend des gesamten Verlaufs (counting + transition) kein Scrollen;
+  // sobald phase="done", sofort wieder frei (Cleanup stellt overflow her).
   useEffect(() => {
-    if (!loading) return;
+    if (phase === "done") return;
     const el = document.documentElement;
     const prev = el.style.overflow;
     el.style.overflow = "hidden";
     return () => { el.style.overflow = prev; };
-  }, [loading]);
+  }, [phase]);
 
-  // Nav soll warten, bis Loader fertig ist — aber nur beim ersten Laden.
-  // Bei client-seitiger Ruecknavigation ist introAlreadyPlayed true,
-  // der Loader wird gar nicht angezeigt, Nav soll sofort einfahren.
+  // Nav soll warten, bis der Verlauf durch ist — aber nur beim ersten Laden.
+  // Bei client-seitiger Ruecknavigation ist introAlreadyPlayed true; bei
+  // prefers-reduced-motion gibt es keinen Verlauf, auf den die Nav warten muss.
   useEffect(() => {
-    if (introAlreadyPlayed) return;
+    if (introAlreadyPlayed || prefersReducedMotion) return;
     setOpeningDone(false);
     return () => { setOpeningDone(true); };
-  }, []);
+  }, [prefersReducedMotion]);
 
-  // prefers-reduced-motion: sofort auf 100 springen, dann Loader-Exit (0.01s)
-  // ausloesen — onExitComplete kuemmert sich um introExited/opening/revealed.
+  // prefers-reduced-motion: kein Verlauf, direkt der Hero-Endzustand.
   useEffect(() => {
     if (!prefersReducedMotion) return;
     setProgress(100);
-    setLoading(false);
-  }, [prefersReducedMotion]);
+    blend.set(1);
+    setRevealed(true);
+    setPhase("done");
+    setOpeningDone(true);
+    introAlreadyPlayed = true;
+  }, [prefersReducedMotion, blend]);
 
   // Progress-Counter: alle 30 ms +1 bis 100 (~3 s gesamt).
   useEffect(() => {
-    if (!loading || prefersReducedMotion) return;
+    if (phase !== "counting" || prefersReducedMotion) return;
     const id = window.setInterval(() => {
       setProgress((p) => Math.min(p + 1, 100));
     }, 30);
     return () => window.clearInterval(id);
-  }, [loading, prefersReducedMotion]);
+  }, [phase, prefersReducedMotion]);
 
-  // Bei 100: kurzer Hold, dann AnimatePresence-Exit starten.
-  // setOpeningDone und setRevealed laufen in onExitComplete (nach dem Exit),
-  // damit der Hero-Canvas nie waehrend des Intro-Canvas laeuft.
+  // Bei 100: kurzer Hold, dann in die Uebergangsphase.
   useEffect(() => {
-    if (!loading || progress < 100 || prefersReducedMotion) return;
-    const holdT = window.setTimeout(() => {
-      setLoading(false);
-    }, 700);
+    if (phase !== "counting" || progress < 100 || prefersReducedMotion) return;
+    const holdT = window.setTimeout(() => setPhase("transition"), 700);
     return () => window.clearTimeout(holdT);
-  }, [loading, progress, prefersReducedMotion]);
+  }, [phase, progress, prefersReducedMotion]);
 
+  // Uebergang: blend 0→1 animieren (Farbe + Logo), Text gestaffelt darueber.
+  // Der Text startet ueber die fadeUp-Delays bei ~40% des Farbverlaufs, damit
+  // er nicht gleichzeitig mit dem Hintergrund ankommt. setOpeningDone(true)
+  // erst am Ende — dann faehrt die Nav am richtigen Punkt ein und der Scroll
+  // wird frei.
+  useEffect(() => {
+    if (phase !== "transition") return;
+    setRevealed(true);
+    const controls = animate(blend, 1, {
+      duration: TRANSITION_DURATION,
+      ease: softEase,
+      onComplete: () => {
+        introAlreadyPlayed = true;
+        setOpeningDone(true);
+        setPhase("done");
+      },
+    });
+    return () => controls.stop();
+  }, [phase, blend]);
+
+  // fadeUp: bestehende Text-Einblendung. Basis-Delay 0.5 s ~ 40% der
+  // Verlaufsdauer — der Text kommt bewusst nach dem Hintergrund.
   const fadeUp = (delay: number) => ({
     initial: false as const,
     animate: revealed
@@ -157,12 +226,16 @@ export function JJKHero(): ReactNode {
     transition: prefersReducedMotion
       ? { duration: 0.01 }
       : revealed
-        ? { duration: 0.7, ease: softEase, delay: delay + 0.35 }
+        ? { duration: 0.7, ease: softEase, delay: delay + 0.5 }
         : { duration: 0 },
   });
 
+  const counting = phase === "counting";
+  // Watercolor-Deckkraft: waehrend des Zaehlens sanft rein (voll bei progress=60),
+  // danach voll. Der Farbverlauf selbst laeuft ueber blend, nicht ueber opacity.
+  const wcOpacity = counting ? Math.min(1, progress / 60) : 1;
+
   return (
-    <>
     <section
       ref={heroRef}
       // h-svh, bewusst NICHT dvh/lvh: dvh folgt live der Adressleiste — genau
@@ -179,6 +252,9 @@ export function JJKHero(): ReactNode {
     >
       <motion.div
         style={{ position: pinPosition, top: pinTop, bottom: pinBottom, left: 0, right: 0 }}
+        // Dunkler Grund immer — er wird beim Wegscrollen (scrollFade) sichtbar
+        // und ist der Hero-Endzustand. Der helle Loader-Grund liegt als eigene
+        // Opacity-Ebene darueber (lightOpacity) und faded beim Verlauf weg.
         className="bg-background-deep z-0 flex h-svh min-h-[640px] items-center justify-center overflow-hidden"
       >
       <motion.div
@@ -188,48 +264,83 @@ export function JJKHero(): ReactNode {
         }}
         className="absolute inset-0 flex items-center justify-center"
       >
+        {/* Heller Loader-Grund — nur eine Opacity-Ebene, kein filter/kein
+            background-color-Tween (verboten). blend=0 → deckt hell, blend=1 →
+            weg, der dunkle Grund darunter kommt durch. */}
         <motion.div
-          initial={false}
-          animate={{ opacity: revealed ? 1 : 0 }}
-          transition={
-            prefersReducedMotion
-              ? { duration: 0.01 }
-              : revealed
-                ? { duration: 1.3, ease: softEase, delay: 0.15 }
-                : { duration: 0 }
-          }
+          aria-hidden="true"
+          className="absolute inset-0 bg-[#f5f3ef]"
+          style={{ opacity: lightOpacity }}
+        />
+
+        {/* EIN Watercolor-Canvas, durchgehend. blend interpoliert die Farben
+            von der hellen s/w-Fassung in die dunkle rote Hero-Fassung. paused
+            legt ihn beim Wegscrollen still (frameloop=never), zusaetzlich zum
+            internen IntersectionObserver. -inset-1 als Puffer gegen mobile
+            Adressleisten-Resizes (siehe video-showcase.tsx). */}
+        <div
           aria-hidden="true"
           className="pointer-events-none absolute -inset-1"
+          style={{ opacity: wcOpacity }}
         >
-          {/* introExited: Intro-Canvas muss vollstaendig abgebaut sein,
-              bevor dieser Hero-Canvas mountet (eine WebGL-Instanz gleichzeitig). */}
-          {showBackground && introExited && (
-            <Watercolor
-              className="absolute inset-0"
-              color1="#030304"
-              color2="#7a1a08"
-              saturation={0.65}
-              brightness={0.04}
-              opacity={1}
-              speed={0.3}
-              scale={0.8}
-              driftSpeed={0.025}
-              warpSpeed={0.05}
+          <Watercolor
+            className="absolute inset-0"
+            blend={blend}
+            color1="#f5f3ef"
+            color2="#2b2b2b"
+            saturation={0}
+            brightness={0.5}
+            color1To="#030304"
+            color2To="#7a1a08"
+            saturationTo={0.65}
+            brightnessTo={0.04}
+            opacity={1}
+            speed={0.3}
+            scale={0.8}
+            driftSpeed={0.025}
+            warpSpeed={0.05}
+            paused={!showBackground}
+          />
+        </div>
+
+        {/* Das Logo — DASSELBE Element vom Zaehler bis in den Hero. Waehrend des
+            Zaehlens haengen Deckkraft/Groesse an progress; im Uebergang uebernimmt
+            der blend-getriebene scale. Die Breite bleibt konstant (kein Layout),
+            die sichtbare Groesse kommt aus transform: scale. */}
+        <motion.div
+          aria-hidden="true"
+          className="absolute z-[5] flex items-center justify-center"
+          style={
+            counting
+              ? { opacity: progress / 100, scale: 0.96 + 0.04 * (progress / 100) }
+              : { opacity: 1, scale: logoScaleT }
+          }
+        >
+          <div className="relative flex items-center justify-center">
+            {/* Ember-Gluehschein hinter der Zeichnung — macht das schwarze Logo
+                auf dem dunklen Hero-Grund als Silhouette lesbar. Radial-Gradient
+                gibt die weiche Kante ohne filter: blur. */}
+            <motion.div
+              aria-hidden="true"
+              className="pointer-events-none absolute -inset-[28%] rounded-full"
+              style={{
+                opacity: glowOpacity,
+                background:
+                  "radial-gradient(circle at 50% 50%, var(--ember) 0%, color-mix(in srgb, var(--ember) 35%, transparent) 42%, transparent 72%)",
+              }}
             />
-          )}
-          {/* Nur opacity, kein "scale: 0.96 -> 1" mehr auf diesem Layer:
-              react-three-fiber misst den Canvas seiner Groesse einmalig beim
-              Mount ueber getBoundingClientRect() dieses Elternelements — traf
-              das genau in einen Frame der Scale-Animation (z.B. 0.968 statt
-              1), blieb der Canvas fuer immer auf dieser zu kleinen Pixelgroesse
-              haengen (gemessen: 927x894 statt 958x924), sichtbar als
-              schwarzer Rand rechts/unten, der "manchmal" auftrat, je nachdem
-              in welchem Animationsframe gemessen wurde. Ohne Transform auf
-              diesem Element misst r3f immer die volle, korrekte Groesse.
-              -inset-1 bleibt als zusaetzlicher Puffer gegen mobile
-              Adressleisten-Resizes (siehe video-showcase.tsx). */}
+            <Image
+              src="/img/logo-seal.png"
+              alt=""
+              width={620}
+              height={673}
+              priority
+              className="relative w-[clamp(320px,60vw,680px)] h-auto select-none"
+            />
+          </div>
         </motion.div>
 
+        {/* Der Hero-Text — blendet gestaffelt DARUEBER ein (z-10 > Logo z-5). */}
         <div className="relative z-10 flex max-w-3xl flex-col items-center px-6 text-center">
           <motion.p
             {...fadeUp(0.1)}
@@ -269,22 +380,22 @@ export function JJKHero(): ReactNode {
             </a>
           </motion.div>
         </div>
+
+        {/* Zaehler unten rechts — blendet aus, sobald 100 erreicht ist (darf ein
+            normales Ausblenden sein). Nach dem Verlauf (phase="done") ganz weg. */}
+        {phase !== "done" && !prefersReducedMotion && (
+          <motion.p
+            aria-hidden="true"
+            initial={false}
+            animate={{ opacity: progress >= 100 ? 0 : 1 }}
+            transition={{ duration: 0.5, ease: softEase }}
+            className="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 z-20 text-[clamp(56px,11vw,150px)] leading-none tracking-tighter tabular-nums text-black font-medium select-none"
+          >
+            {progress}
+          </motion.p>
+        )}
       </motion.div>
       </motion.div>
     </section>
-
-      {/* onExitComplete: Intro-Canvas vollstaendig abgebaut.
-          Erst jetzt darf Hero-Canvas mounten und Nav einfahren. */}
-      <AnimatePresence
-        onExitComplete={() => {
-          introAlreadyPlayed = true;
-          setIntroExited(true);
-          setOpeningDone(true);
-          setRevealed(true);
-        }}
-      >
-        {loading && <IntroLoader key="intro-loader" progress={progress} />}
-      </AnimatePresence>
-    </>
   );
 }
