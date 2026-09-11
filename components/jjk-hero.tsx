@@ -27,25 +27,22 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 // verlaeuft. Der Hero-Text blendet gestaffelt darueber ein. Es gibt keinen
 // Schnitt mehr, nur einen Farb- und Text-Verlauf.
 //
-// Logo-Lesbarkeit im Hero: Das Logo ist eine schwarze Zeichnung. Auf dem hellen
-// Loader-Grund klar, auf dem dunklen Hero-Grund (brightness 0.04) sonst
-// unsichtbar. Gewaehlter Weg: ein dezenter Ember-Gluehschein (var(--ember))
-// HINTER der Zeichnung, dessen Deckkraft mit dem blend hochlaeuft. Die schwarzen
-// Linien stehen dann als Silhouette gegen die warme Glut — lesbar, ohne die
-// Zeichnung selbst umzufaerben (das braeuchte filter: invert, hier verboten).
-// Nicht Weg (a) "Wand bleibt hinter dem Logo heller": der Shader ist ein
-// Vollflaechenfeld mit einer Uniform-Farbe, ein lokal hellerer Fleck waere ein
-// zweiter Shader-Pfad. Nicht Weg (c) "Zeichnung ins Helle": eine PNG umzufaerben
-// geht nur ueber filter — ausgeschlossen.
+// Das Logo im Hero: KEIN Wasserzeichen mehr hinter dem Text, sondern das
+// eigenstaendige Emblem (public/img/logo-emblem.png, s/w + roter Streifen)
+// OBERHALB der Ueberschrift, volle Deckkraft, ohne Scrim/Abdunkelung — das
+// Emblem bringt seinen eigenen Kontrast (schwarzer Kreis, weisse Zeichnung).
+//
+// Uebergang aus dem Loader: der Loader zeigt weiter sein grosses helles
+// logo-seal.png; im Verlauf wird daraus das Emblem an seiner neuen (kleineren,
+// hoeheren) Position. Beides liegt im selben, in-flow gemessenen Slot; Groesse
+// und Position verlaufen ueber transform (y/scale, blend-getrieben), die beiden
+// Assets werden per Opacity gecrossfadet — kein hartes Umschalten. Der Slot
+// wird UNtransformiert vermessen (natuerliche Position im Textblock), daraus
+// die Loader-Transform berechnet, die das Emblem waehrend des Zaehlens gross in
+// die Viewport-Mitte hebt.
 
-// Zielgroesse des Logos im Hero, als Anteil seiner vollen Zeichenbreite. Das
-// Element ist immer clamp(320px,60vw,680px) breit (kein Layout-Wechsel), die
-// sichtbare Groesse kommt aus transform: scale. Im Hero etwas kleiner — es tritt
-// hinter den Text zurueck.
-const LOGO_HERO_SCALE = 0.82;
-// Deckkraft des Logo-Wasserzeichens im Hero. Bewusst niedrig — das Logo ist
-// die UNTERSTE Ebene, der Text zaehlt. Nachjustierbar (Vorgabe 0.12–0.18).
-const HERO_LOGO_OPACITY = 0.15;
+// Emblem-Breite im Hero (Endzustand). Richtwert; als Konstante nachjustierbar.
+const EMBLEM_WIDTH = "clamp(150px, 24vh, 300px)";
 // Dauer des Farb-/Logo-Verlaufs (Vorgabe 1,2–1,6 s).
 const TRANSITION_DURATION = 1.6;
 
@@ -84,6 +81,43 @@ export function JJKHero(): ReactNode {
   // bleiben) wird er per paused-Prop stillgelegt — frameloop="never".
   // Etwas Puffer (0.6 statt exakt 0.5) gegen Flackern an der Fade-Grenze.
   const [showBackground, setShowBackground] = useState(true);
+
+  // ── Logo-Slot vermessen (fuer den Loader→Emblem-Verlauf) ──────────────────
+  // slotRef sitzt UNtransformiert im Textblock (natuerliche Emblem-Position).
+  // Daraus: offsetY, um das Emblem in die Viewport-Mitte zu heben, und scale,
+  // um es auf die Loader-Groesse (clamp(320,60vw,680)) zu bringen. Bei blend=0
+  // (Zaehlen) also gross+zentriert wie der alte Loader, bei blend=1 klein an
+  // seinem Platz ueber der H1. ready haelt das Logo verborgen, bis einmal
+  // gemessen wurde (kein Aufpoppen an falscher Stelle im ersten Frame).
+  const slotRef = useRef<HTMLDivElement>(null);
+  const [loaderStart, setLoaderStart] = useState({ offsetY: 0, scale: 1 });
+  const [logoReady, setLogoReady] = useState(
+    introAlreadyPlayed || prefersReducedMotion
+  );
+
+  useEffect(() => {
+    const measure = (): void => {
+      const el = slotRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0) return;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const desiredLoaderWidth = Math.min(Math.max(320, 0.6 * vw), 680);
+      const scale = desiredLoaderWidth / rect.width;
+      const offsetY = vh / 2 - (rect.top + rect.height / 2);
+      setLoaderStart((prev) =>
+        prev.offsetY === offsetY && prev.scale === scale ? prev : { offsetY, scale }
+      );
+      setLogoReady(true);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    // Schriften veraendern die Textblock-Hoehe (und damit die Slot-Position)
+    // erst nach dem Laden — dann nachmessen.
+    if (document.fonts?.ready) void document.fonts.ready.then(measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   useEffect(() => {
     const update = (): void => {
@@ -146,18 +180,12 @@ export function JJKHero(): ReactNode {
   // ── blend-abgeleitete Ebenen (transform/opacity only) ─────────────────────
   // Heller Loader-Grund faded weg, sobald der Verlauf laeuft.
   const lightOpacity = useTransform(blend, [0, 1], [1, 0]);
-  // Logo tritt beim Verlauf leicht zurueck (scale). Waehrend des Zaehlens (Phase
-  // "counting") wird die Groesse dagegen aus progress berechnet, siehe unten.
-  const logoScaleT = useTransform(blend, [0, 1], [1, LOGO_HERO_SCALE]);
-  // Crossfade der beiden Logo-Assets im Uebergang: das volle Siegel (Loader,
-  // schwarz auf hell, prominent) faded WEG, die reine Linien-Variante (Hero,
-  // heller Ton, Wasserzeichen) faded auf HERO_LOGO_OPACITY EIN. Kein
-  // Umschalten — der Wechsel liegt komplett im Farbverlauf und ist unsichtbar.
-  const loaderLogoOpacity = useTransform(blend, [0, 1], [1, 0]);
-  const heroLogoOpacity = useTransform(blend, [0, 1], [0, HERO_LOGO_OPACITY]);
-  // Scrim zwischen Logo und Text: dunkelt die Textspalte ab, kommt erst mit
-  // dem Verlauf (auf hellem Loader-Grund unnoetig).
-  const scrimOpacity = useTransform(blend, [0, 1], [0, 1]);
+  // Logo-Verlauf: von gross+zentriert (Loader) nach klein+an-Position (Hero).
+  const logoY = useTransform(blend, [0, 1], [loaderStart.offsetY, 0]);
+  const logoScale = useTransform(blend, [0, 1], [loaderStart.scale, 1]);
+  // Asset-Crossfade im Slot: Loader-Siegel faded WEG, Emblem faded EIN.
+  const loaderFadeOut = useTransform(blend, [0, 1], [1, 0]);
+  const emblemOpacity = useTransform(blend, [0, 1], [0, 1]);
 
   // ── Scroll-Sperre ─────────────────────────────────────────────────────────
   // Waehrend des gesamten Verlaufs (counting + transition) kein Scrollen;
@@ -319,91 +347,76 @@ export function JJKHero(): ReactNode {
           />
         </div>
 
-        {/* Das Logo — Wasserzeichen, UNTERSTE Ebene (z-[5], unter Scrim z-[8]
-            und Text z-10). -translate-y-[4%]: das Siegel sitzt etwas hoeher als
-            die Viewport-Mitte, damit der Textblock (H1 in der Mitte) auf die
-            OFFENE untere Haelfte der Zeichnung faellt — die dichte Hand und der
-            (jetzt entfernte) Wolkenkern liegen daueber. Konkret hinter H1: der
-            offene Bereich zwischen Handballen und Guertel; hinter der Tagline:
-            der duenne Guertel-/EST.-2026-Bereich. */}
-        <div className="pointer-events-none absolute inset-0 z-[5] flex -translate-y-[4%] items-center justify-center">
-          <motion.div
-            aria-hidden="true"
-            className="relative flex items-center justify-center"
-            style={counting ? { scale: 0.96 + 0.04 * (progress / 100) } : { scale: logoScaleT }}
-          >
-            {/* Loader-Asset: volles Siegel, prominent beim Zaehlen. */}
-            <motion.div
-              style={{ opacity: counting ? progress / 100 : loaderLogoOpacity }}
-              className="block"
-            >
-              <Image
-                src="/img/logo-seal.png"
-                alt=""
-                width={620}
-                height={673}
-                priority
-                className="block w-[clamp(320px,60vw,680px)] h-auto select-none"
-              />
-            </motion.div>
-            {/* Hero-Asset: nur Linien, heller Ton, kleiner. Crossfade darueber.
-                Die grossen hellen Wolkenflaechen sind hier raus (gen-logo-hero.py),
-                genau dort steht der Text. */}
-            <motion.div
-              style={{ opacity: heroLogoOpacity }}
-              className="absolute inset-0 flex items-center justify-center"
-            >
-              <Image
-                src="/img/logo-seal-hero.png"
-                alt=""
-                width={620}
-                height={673}
-                className="block w-[clamp(280px,46vw,560px)] h-auto select-none"
-              />
-            </motion.div>
-          </motion.div>
-        </div>
-
-        {/* Scrim zwischen Logo und Text (z-[8]): weiche radiale Abdunkelung, an
-            der Textspalte orientiert (nicht am ganzen Viewport). Kein
-            backdrop-filter (Handy-Performance) — nur ein statischer Gradient,
-            dessen Deckkraft mit dem Verlauf hochkommt. */}
-        <motion.div
-          aria-hidden="true"
-          style={{
-            opacity: scrimOpacity,
-            background:
-              "radial-gradient(ellipse 60% 55% at 50% 50%, rgba(3,3,4,0.55) 0%, rgba(3,3,4,0.34) 45%, transparent 74%)",
-          }}
-          className="pointer-events-none absolute left-1/2 top-1/2 z-[8] h-[min(72vh,540px)] w-[min(92vw,760px)] -translate-x-1/2 -translate-y-1/2"
-        />
-
-        {/* Der Hero-Text — blendet gestaffelt DARUEBER ein (z-10 > Scrim/Logo). */}
+        {/* Der Hero-Text: Emblem, Kanji, H1, Tagline, Buttons — das Emblem ist
+            das ERSTE Element ueber der Ueberschrift (volle Deckkraft, kein
+            Scrim, das Emblem bringt seinen eigenen Kontrast mit). */}
         <div className="relative z-10 flex max-w-3xl flex-col items-center px-6 text-center">
+          {/* Emblem-Slot: der aeussere div ist der UNtransformierte Messpunkt
+              (slotRef) an der natuerlichen Position im Textblock; die innere
+              Ebene traegt die blend-getriebene Transform (y/scale). Beim Zaehlen
+              gross+zentriert wie der Loader, im Hero klein an dieser Stelle.
+              logoReady haelt es verborgen, bis einmal gemessen wurde. */}
+          <div
+            ref={slotRef}
+            aria-hidden="true"
+            className="relative"
+            style={{ width: EMBLEM_WIDTH, opacity: logoReady ? 1 : 0 }}
+          >
+            <motion.div className="relative" style={{ y: logoY, scale: logoScale }}>
+              {/* Emblem — Sizer + Hero-Endzustand, volle Deckkraft. */}
+              <motion.div style={{ opacity: emblemOpacity }}>
+                <Image
+                  src="/img/logo-emblem.png"
+                  alt=""
+                  width={2055}
+                  height={2248}
+                  priority
+                  className="block h-auto w-full select-none"
+                />
+              </motion.div>
+              {/* Loader-Fassung — darueber, faded im Verlauf weg (Crossfade,
+                  kein hartes Umschalten). */}
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ opacity: counting ? progress / 100 : loaderFadeOut }}
+              >
+                <Image
+                  src="/img/logo-seal.png"
+                  alt=""
+                  width={620}
+                  height={673}
+                  priority
+                  className="block h-auto w-full select-none"
+                />
+              </motion.div>
+            </motion.div>
+          </div>
+
+          {/* Kanji bleibt — aber klein und UNTER dem Emblem. Der englische
+              Schriftzug steht schon im Emblem-Ring und in der H1; die japanische
+              Zeile ist der einzige nicht-doppelte Textbaustein hier. */}
           <motion.p
-            {...fadeUp(0.1)}
+            {...fadeUp(0.16)}
             lang="ja"
             aria-hidden="true"
-            className="text-foreground/60 mb-2 text-sm tracking-[0.3em] uppercase"
+            className="text-foreground/50 mt-4 text-xs tracking-[0.35em] uppercase"
             style={{ fontFamily: "var(--font-jp)" }}
           >
             柔術廻戦
           </motion.p>
-          {/* Dezenter, weicher Schatten als letzte Absicherung — kein harter
-              Schatten (passt nicht zum flachen Papier-Look). jjk-aberrate hier
-              bewusst NICHT: chromatische Aberration auf unruhigem Grund macht es
-              schlechter lesbar. */}
+          {/* Kein Textschatten mehr: der Grund ist im Hero dunkel (brightness
+              0.04), helle Schrift steht kontrastreich; das Wasserzeichen hinter
+              dem Text ist weg. jjk-aberrate bewusst NICHT auf der H1. */}
           <motion.h1
-            {...fadeUp(0.2)}
-            className="text-foreground mt-1 text-[clamp(44px,7.5vw,84px)] leading-[1.02] font-medium tracking-tight text-balance"
-            style={{ fontFamily: "var(--font-display)", textShadow: "0 1px 14px rgba(3,3,4,0.6)" }}
+            {...fadeUp(0.24)}
+            className="text-foreground mt-2 text-[clamp(44px,7.5vw,84px)] leading-[1.02] font-medium tracking-tight text-balance"
+            style={{ fontFamily: "var(--font-display)" }}
           >
             Jiu-Jitsu Kaisen Academy
           </motion.h1>
           <motion.p
-            {...fadeUp(0.32)}
+            {...fadeUp(0.34)}
             className="text-foreground-dim mt-6 max-w-md text-base leading-relaxed"
-            style={{ textShadow: "0 1px 10px rgba(3,3,4,0.6)" }}
           >
             {siteConfig.tagline}
           </motion.p>
