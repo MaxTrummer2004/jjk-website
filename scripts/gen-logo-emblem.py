@@ -2,9 +2,7 @@
 """
 gen-logo-emblem.py  —  Emblem-Fassung des Logos fuer den Hero.
 
-Quelle: Bilder/"LOGO - Z (1).pdf", SEITE 7 — schwarzer Kreis, weiss
-ausgefuellte Hand, weisser Schriftring "JIU JITSU KAISEN ACADEMY",
-EST. 2026, roter Guertelstreifen, dunkle Tuschewolken.
+Quelle: Bilder/"LOGO - Z (1).pdf", SEITE 3.
 
 Rendern bei 300 dpi (pymupdf) und den WEISSEN RAND um das Motiv transparent
 machen — aber NUR den aussen liegenden Rand, nicht die weisse Hand/Schrift
@@ -27,7 +25,7 @@ SRC = ROOT / "Bilder" / "LOGO - Z (1).pdf"
 DST_PNG = ROOT / "public" / "img" / "logo-emblem.png"
 DST_WEBP = ROOT / "public" / "img" / "logo-emblem.webp"
 
-PAGE_INDEX = 6      # Seite 7 (0-basiert)
+PAGE_INDEX = 2      # Seite 3 (0-basiert)
 DPI = 300
 SENTINEL = (255, 0, 255)   # Magenta — kommt im Logo nicht vor
 FLOOD_THRESH = 60          # Toleranz fuer "weiss" beim Flood-Fill
