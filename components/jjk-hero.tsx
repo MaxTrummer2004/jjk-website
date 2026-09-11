@@ -43,6 +43,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 // sichtbare Groesse kommt aus transform: scale. Im Hero etwas kleiner — es tritt
 // hinter den Text zurueck.
 const LOGO_HERO_SCALE = 0.82;
+// Deckkraft des Logo-Wasserzeichens im Hero. Bewusst niedrig — das Logo ist
+// die UNTERSTE Ebene, der Text zaehlt. Nachjustierbar (Vorgabe 0.12–0.18).
+const HERO_LOGO_OPACITY = 0.15;
 // Dauer des Farb-/Logo-Verlaufs (Vorgabe 1,2–1,6 s).
 const TRANSITION_DURATION = 1.6;
 
@@ -143,11 +146,18 @@ export function JJKHero(): ReactNode {
   // ── blend-abgeleitete Ebenen (transform/opacity only) ─────────────────────
   // Heller Loader-Grund faded weg, sobald der Verlauf laeuft.
   const lightOpacity = useTransform(blend, [0, 1], [1, 0]);
-  // Ember-Gluehschein hinter dem Logo kommt mit dem Verlauf hoch.
-  const glowOpacity = useTransform(blend, [0, 0.35, 1], [0, 0, 0.5]);
   // Logo tritt beim Verlauf leicht zurueck (scale). Waehrend des Zaehlens (Phase
   // "counting") wird die Groesse dagegen aus progress berechnet, siehe unten.
   const logoScaleT = useTransform(blend, [0, 1], [1, LOGO_HERO_SCALE]);
+  // Crossfade der beiden Logo-Assets im Uebergang: das volle Siegel (Loader,
+  // schwarz auf hell, prominent) faded WEG, die reine Linien-Variante (Hero,
+  // heller Ton, Wasserzeichen) faded auf HERO_LOGO_OPACITY EIN. Kein
+  // Umschalten — der Wechsel liegt komplett im Farbverlauf und ist unsichtbar.
+  const loaderLogoOpacity = useTransform(blend, [0, 1], [1, 0]);
+  const heroLogoOpacity = useTransform(blend, [0, 1], [0, HERO_LOGO_OPACITY]);
+  // Scrim zwischen Logo und Text: dunkelt die Textspalte ab, kommt erst mit
+  // dem Verlauf (auf hellem Loader-Grund unnoetig).
+  const scrimOpacity = useTransform(blend, [0, 1], [0, 1]);
 
   // ── Scroll-Sperre ─────────────────────────────────────────────────────────
   // Waehrend des gesamten Verlaufs (counting + transition) kein Scrollen;
@@ -309,64 +319,91 @@ export function JJKHero(): ReactNode {
           />
         </div>
 
-        {/* Das Logo — DASSELBE Element vom Zaehler bis in den Hero. Waehrend des
-            Zaehlens haengen Deckkraft/Groesse an progress; im Uebergang uebernimmt
-            der blend-getriebene scale. Die Breite bleibt konstant (kein Layout),
-            die sichtbare Groesse kommt aus transform: scale. */}
+        {/* Das Logo — Wasserzeichen, UNTERSTE Ebene (z-[5], unter Scrim z-[8]
+            und Text z-10). -translate-y-[4%]: das Siegel sitzt etwas hoeher als
+            die Viewport-Mitte, damit der Textblock (H1 in der Mitte) auf die
+            OFFENE untere Haelfte der Zeichnung faellt — die dichte Hand und der
+            (jetzt entfernte) Wolkenkern liegen daueber. Konkret hinter H1: der
+            offene Bereich zwischen Handballen und Guertel; hinter der Tagline:
+            der duenne Guertel-/EST.-2026-Bereich. */}
+        <div className="pointer-events-none absolute inset-0 z-[5] flex -translate-y-[4%] items-center justify-center">
+          <motion.div
+            aria-hidden="true"
+            className="relative flex items-center justify-center"
+            style={counting ? { scale: 0.96 + 0.04 * (progress / 100) } : { scale: logoScaleT }}
+          >
+            {/* Loader-Asset: volles Siegel, prominent beim Zaehlen. */}
+            <motion.div
+              style={{ opacity: counting ? progress / 100 : loaderLogoOpacity }}
+              className="block"
+            >
+              <Image
+                src="/img/logo-seal.png"
+                alt=""
+                width={620}
+                height={673}
+                priority
+                className="block w-[clamp(320px,60vw,680px)] h-auto select-none"
+              />
+            </motion.div>
+            {/* Hero-Asset: nur Linien, heller Ton, kleiner. Crossfade darueber.
+                Die grossen hellen Wolkenflaechen sind hier raus (gen-logo-hero.py),
+                genau dort steht der Text. */}
+            <motion.div
+              style={{ opacity: heroLogoOpacity }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <Image
+                src="/img/logo-seal-hero.png"
+                alt=""
+                width={620}
+                height={673}
+                className="block w-[clamp(280px,46vw,560px)] h-auto select-none"
+              />
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Scrim zwischen Logo und Text (z-[8]): weiche radiale Abdunkelung, an
+            der Textspalte orientiert (nicht am ganzen Viewport). Kein
+            backdrop-filter (Handy-Performance) — nur ein statischer Gradient,
+            dessen Deckkraft mit dem Verlauf hochkommt. */}
         <motion.div
           aria-hidden="true"
-          className="absolute z-[5] flex items-center justify-center"
-          style={
-            counting
-              ? { opacity: progress / 100, scale: 0.96 + 0.04 * (progress / 100) }
-              : { opacity: 1, scale: logoScaleT }
-          }
-        >
-          <div className="relative flex items-center justify-center">
-            {/* Ember-Gluehschein hinter der Zeichnung — macht das schwarze Logo
-                auf dem dunklen Hero-Grund als Silhouette lesbar. Radial-Gradient
-                gibt die weiche Kante ohne filter: blur. */}
-            <motion.div
-              aria-hidden="true"
-              className="pointer-events-none absolute -inset-[28%] rounded-full"
-              style={{
-                opacity: glowOpacity,
-                background:
-                  "radial-gradient(circle at 50% 50%, var(--ember) 0%, color-mix(in srgb, var(--ember) 35%, transparent) 42%, transparent 72%)",
-              }}
-            />
-            <Image
-              src="/img/logo-seal.png"
-              alt=""
-              width={620}
-              height={673}
-              priority
-              className="relative w-[clamp(320px,60vw,680px)] h-auto select-none"
-            />
-          </div>
-        </motion.div>
+          style={{
+            opacity: scrimOpacity,
+            background:
+              "radial-gradient(ellipse 60% 55% at 50% 50%, rgba(3,3,4,0.55) 0%, rgba(3,3,4,0.34) 45%, transparent 74%)",
+          }}
+          className="pointer-events-none absolute left-1/2 top-1/2 z-[8] h-[min(72vh,540px)] w-[min(92vw,760px)] -translate-x-1/2 -translate-y-1/2"
+        />
 
-        {/* Der Hero-Text — blendet gestaffelt DARUEBER ein (z-10 > Logo z-5). */}
+        {/* Der Hero-Text — blendet gestaffelt DARUEBER ein (z-10 > Scrim/Logo). */}
         <div className="relative z-10 flex max-w-3xl flex-col items-center px-6 text-center">
           <motion.p
             {...fadeUp(0.1)}
             lang="ja"
             aria-hidden="true"
-            className="text-foreground/50 mb-2 text-sm tracking-[0.3em] uppercase"
+            className="text-foreground/60 mb-2 text-sm tracking-[0.3em] uppercase"
             style={{ fontFamily: "var(--font-jp)" }}
           >
             柔術廻戦
           </motion.p>
+          {/* Dezenter, weicher Schatten als letzte Absicherung — kein harter
+              Schatten (passt nicht zum flachen Papier-Look). jjk-aberrate hier
+              bewusst NICHT: chromatische Aberration auf unruhigem Grund macht es
+              schlechter lesbar. */}
           <motion.h1
             {...fadeUp(0.2)}
             className="text-foreground mt-1 text-[clamp(44px,7.5vw,84px)] leading-[1.02] font-medium tracking-tight text-balance"
-            style={{ fontFamily: "var(--font-display)" }}
+            style={{ fontFamily: "var(--font-display)", textShadow: "0 1px 14px rgba(3,3,4,0.6)" }}
           >
             Jiu-Jitsu Kaisen Academy
           </motion.h1>
           <motion.p
             {...fadeUp(0.32)}
-            className="text-muted-foreground mt-6 max-w-md text-base leading-relaxed"
+            className="text-foreground-dim mt-6 max-w-md text-base leading-relaxed"
+            style={{ textShadow: "0 1px 10px rgba(3,3,4,0.6)" }}
           >
             {siteConfig.tagline}
           </motion.p>
