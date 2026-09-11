@@ -297,6 +297,12 @@ export function SiteNav(): ReactNode {
             onClick={(e) => {
               e.preventDefault();
               closeMenu();
+              // Toolbar auf aktueller Seite reappear lassen, BEVOR wir navigieren.
+              // Toolbar verschwindet beim Scrollen nach unten; beim Klick käme sie
+              // sonst auf der Auth-Seite zurück und pushed den Viewport. Wir scrollen
+              // hier auf 0 — unter dem Cover-Div, also unsichtbar — damit die Toolbar
+              // schon oben ist wenn die Auth-Seite erscheint.
+              window.scrollTo(0, 0);
               navigateWithTransition(
                 (href) => router.push(href, { scroll: false }),
                 "/mitglieder",
