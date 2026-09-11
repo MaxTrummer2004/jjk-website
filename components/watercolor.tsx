@@ -6,9 +6,8 @@
  * Im Hero als Overlay über dem BJJ-Video, mix-blend-mode: overlay.
  */
 
-import React, { useRef, useMemo, useCallback, useState, useEffect } from "react";
+import React, { useRef, useMemo, useCallback, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import type { MotionValue } from "motion/react";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
 
@@ -32,20 +31,6 @@ export interface WatercolorProps {
   opacity?: number;
   cursorInteraction?: boolean;
   cursorIntensity?: number;
-  // ── Farbverlauf ohne Re-Render ────────────────────────────────────────────
-  // blend (0..1) interpoliert im Shader von (color1/color2/saturation/
-  // brightness) nach (color1To/color2To/saturationTo/brightnessTo). Als
-  // MotionValue uebergeben, damit die Animation pro Frame in useFrame gelesen
-  // wird — kein React-Render pro Bild. Ohne blend: statisch wie bisher.
-  color1To?: string;
-  color2To?: string;
-  saturationTo?: number;
-  brightnessTo?: number;
-  blend?: MotionValue<number> | number;
-  // paused: haelt den frameloop an (frameloop="never"), zusaetzlich zum
-  // internen IntersectionObserver. Der Shader rechnet dann nicht weiter,
-  // wenn er nicht gebraucht wird.
-  paused?: boolean;
 }
 
 const VERTEX_SHADER = `
@@ -142,10 +127,7 @@ interface WatercolorSceneProps {
   speed: number; scale: number; octaves: number; persistence: number;
   lacunarity: number; driftSpeed: number; warpSpeed: number;
   col1Rgb: [number, number, number]; col2Rgb: [number, number, number];
-  col1ToRgb: [number, number, number]; col2ToRgb: [number, number, number];
   colorGain: number; saturation: number; brightness: number; opacity: number;
-  saturationTo: number; brightnessTo: number;
-  blend: MotionValue<number> | number | null;
   pointer: [number, number]; cursorInteraction: boolean; cursorIntensity: number;
 }
 
@@ -175,31 +157,10 @@ const WatercolorScene: React.FC<WatercolorSceneProps> = (props) => {
     u.uOctaves!.value = props.octaves; u.uPersist!.value = props.persistence;
     u.uLacun!.value = props.lacunarity; u.uDrift!.value = props.driftSpeed;
     u.uWarp!.value = props.warpSpeed;
-    // blend pro Frame lesen (MotionValue oder Zahl); null = statisch.
-    const raw = props.blend == null
-      ? null
-      : (typeof props.blend === "number" ? props.blend : props.blend.get());
-    if (raw === null) {
-      (u.uCol1!.value as THREE.Vector3).set(...props.col1Rgb);
-      (u.uCol2!.value as THREE.Vector3).set(...props.col2Rgb);
-      u.uSat!.value = props.saturation;
-      u.uBright!.value = props.brightness;
-    } else {
-      const b = raw < 0 ? 0 : raw > 1 ? 1 : raw;
-      (u.uCol1!.value as THREE.Vector3).set(
-        props.col1Rgb[0] + (props.col1ToRgb[0] - props.col1Rgb[0]) * b,
-        props.col1Rgb[1] + (props.col1ToRgb[1] - props.col1Rgb[1]) * b,
-        props.col1Rgb[2] + (props.col1ToRgb[2] - props.col1Rgb[2]) * b,
-      );
-      (u.uCol2!.value as THREE.Vector3).set(
-        props.col2Rgb[0] + (props.col2ToRgb[0] - props.col2Rgb[0]) * b,
-        props.col2Rgb[1] + (props.col2ToRgb[1] - props.col2Rgb[1]) * b,
-        props.col2Rgb[2] + (props.col2ToRgb[2] - props.col2Rgb[2]) * b,
-      );
-      u.uSat!.value = props.saturation + (props.saturationTo - props.saturation) * b;
-      u.uBright!.value = props.brightness + (props.brightnessTo - props.brightness) * b;
-    }
-    u.uGain!.value = props.colorGain; u.uAlpha!.value = props.opacity;
+    (u.uCol1!.value as THREE.Vector3).set(...props.col1Rgb);
+    (u.uCol2!.value as THREE.Vector3).set(...props.col2Rgb);
+    u.uGain!.value = props.colorGain; u.uSat!.value = props.saturation;
+    u.uBright!.value = props.brightness; u.uAlpha!.value = props.opacity;
     u.uCursorActive!.value = props.cursorInteraction ? 1 : 0;
     u.uCursorIntensity!.value = props.cursorIntensity;
     const ease = 1 - Math.exp(-delta / 0.15);
@@ -228,38 +189,11 @@ const Watercolor: React.FC<WatercolorProps> = ({
   color1 = "#0a0a0a", color2 = "#e0e0e0",
   colorGain = 1, saturation = 0, brightness = 0.15, opacity = 1,
   cursorInteraction = false, cursorIntensity = 1,
-  color1To, color2To, saturationTo, brightnessTo, blend, paused = false,
 }) => {
   const col1Rgb = useMemo(() => parseHexColor(color1), [color1]);
   const col2Rgb = useMemo(() => parseHexColor(color2), [color2]);
-  // Ziel-Farben fuer den blend; ohne To-Wert = gleiche Farbe (kein Verlauf).
-  const col1ToRgb = useMemo(
-    () => (color1To ? parseHexColor(color1To) : parseHexColor(color1)),
-    [color1To, color1],
-  );
-  const col2ToRgb = useMemo(
-    () => (color2To ? parseHexColor(color2To) : parseHexColor(color2)),
-    [color2To, color2],
-  );
-  const satTo = saturationTo ?? saturation;
-  const brightTo = brightnessTo ?? brightness;
   const containerRef = useRef<HTMLDivElement>(null);
   const [pointer, setPointer] = useState<[number, number]>([0.5, 0.5]);
-
-  // IntersectionObserver: der Shader soll nicht weiterrechnen, wenn der Canvas
-  // aus dem Bild ist. Zusammen mit paused ergibt sich frameloop = active.
-  const [inView, setInView] = useState(true);
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(
-      (entries) => setInView(!!entries[0]?.isIntersecting),
-      { rootMargin: "0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  const active = !paused && inView;
 
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!cursorInteraction) return;
@@ -278,17 +212,14 @@ const Watercolor: React.FC<WatercolorProps> = ({
       <Canvas
         className="absolute inset-0 h-full w-full"
         orthographic
-        frameloop={active ? "always" : "never"}
         camera={{ position: [0, 0, 1], zoom: 1, left: -1, right: 1, top: 1, bottom: -1 }}
         gl={{ antialias: true, alpha: true }}
       >
         <WatercolorScene
           speed={speed} scale={scale} octaves={octaves} persistence={persistence}
           lacunarity={lacunarity} driftSpeed={driftSpeed} warpSpeed={warpSpeed}
-          col1Rgb={col1Rgb} col2Rgb={col2Rgb} col1ToRgb={col1ToRgb} col2ToRgb={col2ToRgb}
-          colorGain={colorGain}
+          col1Rgb={col1Rgb} col2Rgb={col2Rgb} colorGain={colorGain}
           saturation={saturation} brightness={brightness} opacity={opacity}
-          saturationTo={satTo} brightnessTo={brightTo} blend={blend ?? null}
           pointer={pointer} cursorInteraction={cursorInteraction} cursorIntensity={cursorIntensity}
         />
       </Canvas>
