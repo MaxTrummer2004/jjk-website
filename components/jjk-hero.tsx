@@ -197,27 +197,33 @@ export function JJKHero(): ReactNode {
   }, [phase, progress, prefersReducedMotion]);
 
   // Uebergang: blend 0→1 animieren (Farbe + Logo), Text gestaffelt darueber.
-  // Der Text startet ueber die fadeUp-Delays bei ~40% des Farbverlaufs, damit
-  // er nicht gleichzeitig mit dem Hintergrund ankommt. setOpeningDone(true)
-  // erst am Ende — dann faehrt die Nav am richtigen Punkt ein und der Scroll
-  // wird frei.
+  // Der Text ist HELL (text-foreground). Er darf erst erscheinen, wenn der
+  // Grund dunkel genug ist — sonst helle Schrift auf noch hellem Grund, also
+  // unlesbar. Deshalb NICHT an einem festen Timer haengen, sondern an einer
+  // blend-Schwelle: revealed erst ab blend >= 0.6 (Grund schon deutlich
+  // dunkel). setOpeningDone(true) erst am Ende — dann faehrt die Nav am
+  // richtigen Punkt ein und der Scroll wird frei.
   useEffect(() => {
     if (phase !== "transition") return;
-    setRevealed(true);
+    const unsub = blend.on("change", (v) => {
+      if (v >= 0.6) setRevealed(true);
+    });
     const controls = animate(blend, 1, {
       duration: TRANSITION_DURATION,
       ease: softEase,
       onComplete: () => {
+        setRevealed(true);
         introAlreadyPlayed = true;
         setOpeningDone(true);
         setPhase("done");
       },
     });
-    return () => controls.stop();
+    return () => { unsub(); controls.stop(); };
   }, [phase, blend]);
 
-  // fadeUp: bestehende Text-Einblendung. Basis-Delay 0.5 s ~ 40% der
-  // Verlaufsdauer — der Text kommt bewusst nach dem Hintergrund.
+  // fadeUp: bestehende Text-Einblendung. Der zeitliche Versatz zum Hintergrund
+  // kommt jetzt aus der blend-Schwelle (revealed), nicht aus dem Delay — hier
+  // nur noch die kleine Staffelung der Zeilen untereinander.
   const fadeUp = (delay: number) => ({
     initial: false as const,
     animate: revealed
@@ -226,7 +232,7 @@ export function JJKHero(): ReactNode {
     transition: prefersReducedMotion
       ? { duration: 0.01 }
       : revealed
-        ? { duration: 0.7, ease: softEase, delay: delay + 0.5 }
+        ? { duration: 0.7, ease: softEase, delay: delay + 0.1 }
         : { duration: 0 },
   });
 
