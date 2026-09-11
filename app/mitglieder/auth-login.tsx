@@ -1,48 +1,31 @@
 "use client";
 
-import { useLayoutEffect } from "react";
+import { useEffect } from "react";
 import { motion } from "motion/react";
 import Watercolor from "@/components/watercolor";
 import { lenisRef } from "@/lib/lenis";
 import { AuthForm } from "./auth-form";
 
 export function AuthLogin() {
-  // useLayoutEffect: läuft synchron vor dem ersten Paint.
-  // Reihenfolge ist entscheidend: Lenis stoppen → scrollen → overflow sperren.
-  // Lenis zuerst, sonst kämpft es gegen window.scrollTo.
-  // overflow:hidden erst danach, weil manche Browser scrollTo ignorieren wenn
-  // der Container bereits overflow:hidden hat.
-  useLayoutEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-    const prevHtmlOverflow = html.style.overflow;
-    const prevBodyOverflow = body.style.overflow;
+  // position:fixed macht window.scrollY irrelevant — kein Scroll-Reset nötig.
+  // Lenis trotzdem stoppen damit es nicht im Hintergrund weiterläuft.
+  useEffect(() => {
     const lenis = lenisRef.current;
-    if (lenis) {
-      lenis.stop();
-      lenis.scrollTo(0, { immediate: true });
-    }
-    html.scrollTop = 0;
-    body.scrollTop = 0;
-    window.scrollTo(0, 0);
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
-    return () => {
-      html.style.overflow = prevHtmlOverflow;
-      body.style.overflow = prevBodyOverflow;
-      lenisRef.current?.start();
-    };
+    if (lenis) lenis.stop();
+    return () => { lenisRef.current?.start(); };
   }, []);
 
   return (
+    // fixed inset-0: unabhängig von Window-Scroll und Toolbar-Position.
+    // overflow-auto: Auth-Form kann intern scrollen wenn Viewport zu klein.
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="relative flex min-h-svh w-full items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 flex items-center justify-center overflow-auto p-4 sm:p-6"
     >
       {/* Roter Watercolor-Hintergrund — ersetzt das Unsplash-Foto aus Auth 3 */}
-      <div className="pointer-events-none absolute inset-0">
+      <div className="pointer-events-none fixed inset-0">
         <Watercolor
           className="absolute inset-0"
           color1="#030304"
