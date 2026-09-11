@@ -13,13 +13,18 @@
  * threading a provider through the tree for it would be more moving parts than
  * the fact deserves.
  *
- * It starts DONE. Pages without a hero — and the server render, which has no
- * idea — should behave as though the opening is over rather than waiting for
- * something that will never happen. The hero marks it undone while it is
- * mounted and done again when it lands or unmounts.
+ * It starts NOT done — both on the server and on the first client paint. The
+ * only readers (components/site-nav.tsx, components/video-showcase.tsx) live on
+ * the home page, which always has the hero, and the hero resolves this: it marks
+ * it done when the intro finishes (or immediately for reduced motion / on a
+ * client-side return, where the module value is already `true` from the earlier
+ * run). Starting NOT done is what keeps the nav and the video HIDDEN in the very
+ * first painted frame after a hard reload — otherwise they flash in for one
+ * frame before the hero's effect runs and hides them again. (If a hero-less page
+ * ever needs to read this, it would have to flip it done itself.)
  */
 
-let done = true;
+let done = false;
 const listeners = new Set<() => void>();
 
 export function subscribeOpening(cb: () => void): () => void {
@@ -33,9 +38,10 @@ export function isOpeningDone(): boolean {
   return done;
 }
 
-/** For `useSyncExternalStore` — there is no opening on the server. */
+/** For `useSyncExternalStore` — SSR renders the intro as NOT yet done, so the
+ *  nav/video are hidden in the initial HTML and don't flash on reload. */
 export function isOpeningDoneOnServer(): boolean {
-  return true;
+  return false;
 }
 
 export function setOpeningDone(value: boolean): void {
