@@ -21,6 +21,11 @@
      und damit unter der Schwelle, ab der eine Kante ueberhaupt sichtbar wird —
      die Karte KONNTE sich nicht abheben. #1a1613 liegt bei L* 8,0, dL* 6,0. */
   --card-plate: #1a1613;
+  /* Die Platte eine Stufe heller, fuer Hover auf klickbaren Flaechen.
+     NICHT --card-raised nehmen: das ist mit L* 7,6 dunkler als die Platte
+     (8,0) und kuehl — ein Knopf wuerde beim Hovern abdunkeln und ins Blaue
+     kippen, also das Gegenteil von "reagiert". #241d19 liegt bei L* 11,4. */
+  --card-plate-hot: #241d19;
   --muted: #111218;
   --muted-foreground: #aba49a;
   /* Mit der helleren Platte oben faellt der Abstand Karte/Rand von dL* 7,7 auf
@@ -79,6 +84,7 @@
   --color-card: var(--card);
   --color-card-raised: var(--card-raised);
   --color-card-plate: var(--card-plate);
+  --color-card-plate-hot: var(--card-plate-hot);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);

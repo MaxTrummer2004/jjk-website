@@ -309,11 +309,17 @@ export function SiteNav(): ReactNode {
                 () => flushSync(() => { triggerPageTransition(); }),
               );
             }}
-            className="hidden h-13 items-center rounded-full px-6 text-sm font-medium transition-opacity hover:opacity-85 md:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
-            style={{
-              backgroundColor: "var(--accent)",
-              color: "var(--accent-foreground)",
-            }}
+            // Traegt dieselbe Platte wie die Karten (--card-plate) statt der
+            // vollen --accent-Flaeche, damit der Kopf zum Rest der Seite passt.
+            // Der Rand ist dabei nicht Zierde: ohne ihn hat eine Flaeche auf
+            // dL* 6,0 keine Kante und liest sich nicht mehr als Schaltflaeche.
+            // hover war vorher opacity-85 — ein dunkler Knopf, der blasser
+            // wird, sinkt in den Grund statt zu antworten; deshalb glimmt jetzt
+            // der Rand auf (--border-hot), die Richtung stimmt damit wieder.
+            // Flaeche bewusst als Klasse, nicht im style-Attribut: ein inline
+            // gesetztes backgroundColor schlaegt jede Klasse, und hover: waere
+            // damit wirkungslos.
+            className="hidden h-13 items-center rounded-full border border-border bg-card-plate px-6 text-sm font-medium text-foreground transition-colors hover:border-border-hot hover:bg-card-plate-hot md:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
           >
             Für Mitglieder
           </Link>
