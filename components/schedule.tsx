@@ -76,7 +76,7 @@ function DayCard({ col }: { col: (typeof schedule)[number] }) {
 
 const STACK_SHARED = {
   borderRadius: 10,
-  cardColor: "#0f0e0d",
+  cardColor: "var(--card-plate)",
   shadowOpacity: 0.55,
   visibleCount: 4,
   depthScale: 0.06,

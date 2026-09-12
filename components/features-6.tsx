@@ -166,7 +166,7 @@ function CardFace({
       <TiltCard reducedMotion={reducedMotion}>
         <div
           className="relative flex h-full w-full flex-col overflow-hidden px-5 pt-5 pb-6"
-          style={{ backgroundColor: "#0f0e0d" }}
+          style={{ backgroundColor: "var(--card-plate)" }}
         >
           {/* Decorative kanji — slow idle drift (y-transform only) */}
           <motion.span
@@ -244,7 +244,7 @@ function ModalTop({ card }: { card: CardData }): ReactNode {
   return (
     <div
       className="relative flex min-h-52 flex-col overflow-hidden px-8 pt-8 pb-7"
-      style={{ backgroundColor: "#0f0e0d" }}
+      style={{ backgroundColor: "var(--card-plate)" }}
     >
       {/* Large kanji */}
       <span
@@ -368,7 +368,7 @@ function MobileCarousel({
                 width: "80vw",
                 aspectRatio: "4/3",
                 scrollSnapAlign: "center",
-                backgroundColor: "#0f0e0d",
+                backgroundColor: "var(--card-plate)",
               }}
               aria-label={`${program.title} – Details anzeigen`}
             >
@@ -507,7 +507,7 @@ export default function Features6(): ReactNode {
               <CardFace card={card} reducedMotion={reducedMotion} />
             )}
             renderModalTop={(card) => <ModalTop card={card} />}
-            modalBgColor="#0f0e0d"
+            modalBgColor="var(--card-plate)"
             gradientColor="#5a0a0a"
             backdropGradientPosition="50% 0%"
             animationSpeed="normal"
@@ -560,7 +560,7 @@ export default function Features6(): ReactNode {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     className="pointer-events-auto relative max-h-[80vh] w-full max-w-lg overflow-hidden rounded-2xl"
-                    style={{ backgroundColor: "#0f0e0d" }}
+                    style={{ backgroundColor: "var(--card-plate)" }}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="relative">

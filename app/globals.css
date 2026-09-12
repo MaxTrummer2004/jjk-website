@@ -14,9 +14,20 @@
   --background-deep: #030304;
   --card: #0d0e13;
   --card-raised: #14151b;
+  /* Die deckende Kartenflaeche — Programme, Stundenplan, CTA. Stand vorher als
+     #0f0e0d sechsmal einzeln in den Komponenten; sechs Kopien einer Farbe sind
+     sechs Gelegenheiten auseinanderzudriften, deshalb hier.
+     Gemessen gegen --background (L* 2,0): #0f0e0d lag bei L* 4,6, also dL* 2,6
+     und damit unter der Schwelle, ab der eine Kante ueberhaupt sichtbar wird —
+     die Karte KONNTE sich nicht abheben. #1a1613 liegt bei L* 8,0, dL* 6,0. */
+  --card-plate: #1a1613;
   --muted: #111218;
   --muted-foreground: #aba49a;
-  --border: #241f1f;
+  /* Mit der helleren Platte oben faellt der Abstand Karte/Rand von dL* 7,7 auf
+     4,3 — der alte Rand #241f1f wuerde also SCHWAECHER wirken, nicht staerker.
+     #3a2e26 (L* 19,9) stellt ihn auf dL* 11,9 und zieht auch die Flaechen ab,
+     die absichtlich durchscheinend bleiben (Preise, FAQ). */
+  --border: #3a2e26;
   --border-hot: #3d1c1c;
 
   /* --- Ink --------------------------------------------------------------- */
@@ -67,6 +78,7 @@
   --color-foreground-dim: var(--foreground-dim);
   --color-card: var(--card);
   --color-card-raised: var(--card-raised);
+  --color-card-plate: var(--card-plate);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
@@ -3854,7 +3866,9 @@ p,
   transition: background 0.3s ease-out;
 }
 .jjk-slot + .jjk-slot {
-  border-top: 1px solid rgba(36, 31, 31, 0.6);
+  /* rgb von --border mit Alpha — color-mix, damit die Zahl nicht ein zweites
+     Mal dasteht und beim naechsten Farbwechsel stehen bleibt. */
+  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
 }
 .jjk-slot::before {
   content: "";
@@ -4264,7 +4278,7 @@ p,
    reaches the gaps and the whole effect is invisible. Half alpha: the lines are
    still lines when the pointer is elsewhere. */
 .jjk-spot .jjk-week {
-  background: rgba(36, 31, 31, 0.34);
+  background: color-mix(in srgb, var(--border) 34%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -23,7 +23,7 @@ export default function Cta9() {
     >
       <motion.div
         style={{
-          backgroundColor: "#0a0a0a",
+          backgroundColor: "var(--card-plate)",
           ...(reduced ? {} : { scale, y: panelY }),
         }}
         className="flex flex-col items-center overflow-hidden rounded-[40px] px-6 pt-28 pb-16 text-center sm:pt-36 sm:pb-20"
