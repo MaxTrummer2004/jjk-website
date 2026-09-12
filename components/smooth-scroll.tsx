@@ -18,7 +18,21 @@ const LENIS_OPTIONS = {
 // Running Lenis on mobile (touchMultiplier:2, duration:1.6) fights the browser
 // when the user reverses scroll direction — the in-flight Lenis animation
 // resists the new gesture until it finishes, causing a visible stutter/lock.
-const DESKTOP_MQ = "(min-width: 640px)";
+//
+// Die Abfrage war `(min-width: 640px)` und damit eine BREITE — die sagt aber
+// nichts darueber, womit jemand scrollt. Jedes Touch-Geraet ab 640 CSS-Pixeln
+// bekam Lenis: Tablets immer, und jedes Handy im Querformat (iPhone SE quer
+// 667px, iPhone 14 quer 844px). Dort trat genau der oben beschriebene Lock
+// auf, und zwar auf der ganzen Seite — als "das Wischen wird oft blockiert".
+//
+// `pointer: fine` + `hover: hover` fragt stattdessen das, was der Kommentar
+// oben ohnehin meint: haengt an dem Geraet eine Maus. Ein Touch-Laptop erfuellt
+// beides und behaelt Lenis; ein Tablet oder ein gedrehtes Handy nicht mehr.
+//
+// Das Video bleibt davon unberuehrt: video-showcase.tsx bezieht seinen
+// Fortschritt aus einem eigenen passiven window-Scroll-Listener (dort Zeile
+// 178), nicht aus Lenis — Pin und Wachstum haengen nicht daran.
+const DESKTOP_MQ = "(hover: hover) and (pointer: fine)";
 
 function startLenis(): () => void {
   const lenis = new Lenis(LENIS_OPTIONS);
