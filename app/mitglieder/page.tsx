@@ -14,12 +14,17 @@ import { DismissTransition } from "@/components/dismiss-transition";
 
 export const dynamic = "force-dynamic";
 
-interface MemberRow {
+// `type`, nicht `interface`: nur Type-Aliase bekommen von TypeScript eine
+// implizite Index-Signatur. Als `interface` erfuellt MemberRow den Constraint
+// `SqlRow = Record<string, unknown>` in lib/db.ts nicht — sql<MemberRow>`...`
+// scheitert dann an TS2344, waehrend das anonyme Objekt eine Zeile weiter
+// unten durchgeht.
+type MemberRow = {
   id: number;
   name: string;
   username: string;
   joined_at: string;
-}
+};
 
 function BackLink(): ReactNode {
   return (
