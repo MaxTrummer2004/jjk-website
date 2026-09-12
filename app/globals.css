@@ -3781,8 +3781,13 @@ p,
   text-indent: 0.18em;
   text-transform: uppercase;
   color: var(--foreground);
-  background: rgba(211, 32, 42, 0.09);
-  border: 1px solid var(--border-hot);
+  /* Ruhend dieselbe Platte wie Karten und Kopfleiste, nicht mehr die rote
+     Waesche — auf Ansage, damit die Seite eine Flaechensprache hat statt zwei.
+     Zinnober ist damit nicht weg, sondern wandert in die Reaktion: der Faden
+     unten (::after) waechst weiterhin in --accent auf. Eine Farbe, die nur
+     erscheint wenn man etwas tut, ist immer noch die einzige Farbe. */
+  background: var(--card-plate);
+  border: 1px solid var(--border);
   transition:
     color 0.35s ease-out,
     background 0.35s ease-out,
@@ -3799,9 +3804,9 @@ p,
   transition: scale 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .jjk-btn:hover {
-  color: var(--accent-foreground);
-  background: rgba(211, 32, 42, 0.19);
-  border-color: var(--accent);
+  color: var(--foreground);
+  background: var(--card-plate-hot);
+  border-color: var(--border-hot);
 }
 .jjk-btn:hover::after {
   scale: 1 1;
@@ -3813,7 +3818,7 @@ p,
 }
 .jjk-btn-quiet:hover {
   color: var(--foreground);
-  background: rgba(211, 32, 42, 0.08);
+  background: var(--card-plate);
 }
 
 /* ---- The week ----------------------------------------------------------- */

@@ -124,7 +124,7 @@ export function SiteNav(): ReactNode {
         <div className="flex items-center gap-3">
           <NavLogo />
           <nav
-            className="bg-background border-border hidden h-13 items-center gap-1 rounded-full border p-1.5 md:flex"
+            className="bg-card-plate border-border hidden h-13 items-center gap-1 rounded-full border p-1.5 md:flex"
             aria-label="Hauptnavigation"
           >
             {PILL_LINKS.map((link) => (
@@ -132,7 +132,7 @@ export function SiteNav(): ReactNode {
                 key={link.href}
                 href={link.href}
                 onClick={(e) => { e.preventDefault(); goToSection(link.href); }}
-                className="text-muted-foreground hover:text-foreground flex h-10 items-center rounded-full px-5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+                className="text-muted-foreground hover:text-foreground hover:bg-card-plate-hot flex h-10 items-center rounded-full px-5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
               >
                 {link.label}
               </a>
@@ -161,15 +161,11 @@ export function SiteNav(): ReactNode {
               initial={false}
               animate={{ opacity: menuOpen ? 1 : 0 }}
               transition={{ duration: 0.35, ease: softEase }}
-              className="bg-background border-border pointer-events-none absolute inset-0 rounded-[28px] border"
+              className="bg-card-plate border-border pointer-events-none absolute inset-0 rounded-[28px] border"
             />
             <div className="relative">
               <div
-                style={{
-                  backgroundColor: "var(--card)",
-                  color: "var(--foreground)",
-                }}
-                className="flex h-13 w-full items-center justify-end gap-2 rounded-full pr-1.5 pl-1.5 md:justify-between md:pr-2"
+                className="bg-card-plate text-foreground flex h-13 w-full items-center justify-end gap-2 rounded-full pr-1.5 pl-1.5 md:justify-between md:pr-2"
               >
                 <button
                   ref={toggleRef}
@@ -177,7 +173,7 @@ export function SiteNav(): ReactNode {
                   onClick={() => setMenuOpen((open) => !open)}
                   aria-expanded={menuOpen}
                   aria-label={menuOpen ? "Menü schließen" : "Menü öffnen"}
-                  className="flex items-center gap-2.5 rounded-full px-3 py-1.5 text-sm font-medium transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+                  className="hover:bg-card-plate-hot flex items-center gap-2.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
                 >
                   <MenuIcon open={menuOpen} />
                   <MorphLabel value={menuOpen ? "Schließen" : "Menü"} />
