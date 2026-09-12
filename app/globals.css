@@ -3704,22 +3704,29 @@ p,
    ground, and then the ground was pointless — the panel would be a frame around
    nothing. At 0.72 to 0.94 down its length the paper is still there behind the
    type, dimmest exactly where the type is densest. */
+/* Die Zahlen sind so gewaehlt, dass die Flaeche NACH der Ueberblendung mit dem
+   Grund dort landet, wo --card-plate steht — nicht die Zahl selbst, sondern das
+   Ergebnis. Bei Alpha 0.72 ueber rgb(6,6,7) heisst das rgba(34,28,24): 34*0.72
+   + 6*0.28 = 26, also die 26 aus #1a1613. Die alten Werte waren ausserdem kuehl
+   (Blau ueber Rot) und standen damit quer zu den warmen Platten.
+   Der Verlauf nach unten bleibt, samt Begruendung oben: dL* faellt von 6,0 am
+   Kopf auf 4,2 am Fuss, dunkler genau dort, wo der Text am dichtesten steht. */
 .jjk-slab {
   position: relative;
   background: linear-gradient(
     170deg,
-    rgba(13, 14, 19, 0.72) 0%,
-    rgba(7, 7, 10, 0.88) 62%,
-    rgba(5, 5, 8, 0.94) 100%
+    rgba(34, 28, 24, 0.72) 0%,
+    rgba(26, 22, 18, 0.88) 62%,
+    rgba(23, 20, 17, 0.94) 100%
   );
   transition: background 0.45s ease-out;
 }
 .jjk-slab-hot:hover {
   background: linear-gradient(
     170deg,
-    rgba(22, 18, 20, 0.76) 0%,
-    rgba(12, 8, 9, 0.9) 62%,
-    rgba(9, 6, 7, 0.95) 100%
+    rgba(44, 34, 29, 0.78) 0%,
+    rgba(34, 25, 22, 0.9) 62%,
+    rgba(29, 22, 19, 0.95) 100%
   );
 }
 
