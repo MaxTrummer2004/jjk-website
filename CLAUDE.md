@@ -127,9 +127,34 @@ jedes Skript hat einen Kopfkommentar, der erklärt, warum es so rechnet.
     gen-figures.py         mock-1..12, hand-sign-1..4       ← _scout/assets/met-*
     gen-curtain.py         curtain-fire.webp                ← _scout/assets/heiji-*
     gen-kanji-paths.py     lib/kanji-paths.ts
+    gen-fonts.py           public/fonts/*.woff2  — alle vier Schriften
 
 Quellen sind gemeinfrei, Belege in `_scout/assets/SOURCES.md`.
 Neu erzeugen: `python3 scripts/<datei>.py` aus dem Projektverzeichnis.
+
+**Die Schriften laufen genauso.** `gen-fonts.py` laedt die vier Familien aus
+dem google/fonts-Repo, schneidet sie auf die Zeichen zu, die im Quelltext
+tatsaechlich vorkommen, und legt sie unter `public/fonts/` ab; `app/layout.tsx`
+bindet sie ueber `next/font/local` ein. Zwei Dinge folgen daraus:
+
+* Die Seite ruft Google an keiner Stelle mehr auf, weder beim Besucher noch
+  beim Bauen. Vorher gingen zwei japanische Schnitte per `<link>` ans
+  Google-CDN, also die IP jedes Besuchers an Google.
+* **Wer ein neues Kanji oder Sonderzeichen in sichtbaren Text schreibt, muss
+  das Skript neu laufen lassen.** Sonst faellt genau dieses eine Zeichen auf
+  eine Systemschrift zurueck. Das Skript bricht laut ab, wenn es so etwas
+  findet, und unterscheidet dabei Kommentar von gerendertem Text.
+
+Es gibt **eine** Anzeigeschrift, und es ist dieselbe wie fuer die Kanji:
+Shippori Mincho B1. Sie geht auf die Tokyo Tsukiji Type Foundry No. 5 zurueck,
+also auf das 19. Jahrhundert; ihr ExtraBold ist vom Hersteller fuer
+Ueberschriften gezeichnet; die Variante B1 hat gemalte Ecken und Tinte, die ins
+Papier laeuft. Oswald, die schmale amerikanische Grotesk aus dem Template, ist
+raus. Damit ist auch der Versalsatz der Ueberschriften weg: Shippori laeuft in
+Versalien das 1,44-fache von Oswald bei 9 % kleinerer Versalhoehe, im
+Gemischtsatz nur das 1,10-fache. Versalien gehoeren jetzt ganz der Mono
+(Augenbrauen, Etiketten, Legenden). Alle zehn Sektionsueberschriften teilen
+eine Klasse: `.jjk-section-title`.
 
 ---
 

@@ -59,7 +59,7 @@ export function LegalPage({ title, eyebrow, lead, children }: LegalPageProps): R
           <p className="font-mono text-[0.68rem] font-medium uppercase tracking-[0.24em] text-accent">
             {eyebrow}
           </p>
-          <h1 className="font-display mt-4 text-4xl uppercase leading-[0.95] tracking-[0.02em] text-foreground sm:text-5xl">
+          <h1 className="jjk-section-title mt-4">
             {title}
           </h1>
           <p className="mt-5 text-base leading-relaxed text-foreground-dim">{lead}</p>

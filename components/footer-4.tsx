@@ -76,7 +76,7 @@ export default function Footer4() {
         >
           <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
             <motion.div variants={item} className="py-12">
-              <h2 className="font-display text-3xl uppercase leading-[1.02] tracking-[0.02em] text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
+              <h2 className="jjk-section-title">
                 Komm zu uns trainieren.
                 <br />
                 Eine Mitgliedschaft, alles dabei.

@@ -313,7 +313,7 @@ export function Schedule() {
 
         {/* Mobile: stacked layout */}
         <div className="md:hidden">
-          <Intro headingClass="font-display jjk-aberrate max-w-2xl text-4xl leading-[0.95] text-foreground sm:text-5xl" />
+          <Intro headingClass="jjk-section-title max-w-2xl" />
           <div className="mt-10">
             <ScheduleStack
               cardWidth={240}
@@ -332,7 +332,7 @@ export function Schedule() {
 
           {/* Left: text */}
           <div className="shrink-0 md:w-[42%]">
-            <Intro headingClass="font-display jjk-aberrate text-5xl leading-[0.95] text-foreground lg:text-6xl" />
+            <Intro headingClass="jjk-section-title" />
           </div>
 
           {/* Right: cards */}

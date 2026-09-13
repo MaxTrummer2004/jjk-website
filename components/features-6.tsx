@@ -483,7 +483,7 @@ export default function Features6(): ReactNode {
           delay={70}
           duration={0.7}
           blur
-          className="font-display jjk-aberrate max-w-2xl text-4xl leading-[0.95] text-foreground sm:text-5xl lg:text-6xl"
+          className="jjk-section-title max-w-2xl"
         />
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
           Ob du zum ersten Mal auf einer Matte stehst oder seit Jahren

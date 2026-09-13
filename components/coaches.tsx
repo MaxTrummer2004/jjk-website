@@ -47,7 +47,7 @@ export function Coaches(): ReactNode {
           delay={70}
           duration={0.7}
           blur
-          className="font-display jjk-aberrate max-w-3xl text-4xl leading-[0.95] text-foreground sm:text-5xl lg:text-6xl"
+          className="jjk-section-title max-w-3xl"
         />
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
           Jeder von ihnen bringt eigene Stärken auf die Matte und holt damit

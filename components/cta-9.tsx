@@ -35,7 +35,7 @@ export default function Cta9() {
           align="center"
         />
 
-        <h2 className="jjk-close-line">
+        <h2 className="jjk-section-title jjk-close-line">
           Komm auf ein
           <br />
           Training vorbei

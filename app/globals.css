@@ -51,18 +51,40 @@
   --ring: #d3202a;
 
   /* --- Type -------------------------------------------------------------- */
-  --font-display: var(--font-oswald), "Arial Narrow", sans-serif;
-  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  /* Selbst gehostet, nicht mehr vom Google-CDN: --font-shippori und
-     --font-yuji setzt next/font/local in app/layout.tsx, die Dateien baut
-     scripts/gen-fonts.py. Die Ersatzkette steht bewusst hier und nicht im
-     localFont-Aufruf — sie gilt fuer beide Token, und ein Ort ist besser als
-     zwei. (Der alte Kommentar hier behauptete, next/font habe kein
-     japanisches Subset. Das gilt nur fuer next/font/google.) */
+  /* --- Die Anzeigeschrift IST die japanische Schrift ---------------------
+     Hier standen zwei Familien: Oswald fuer alles Lateinische, Shippori
+     Mincho fuer die Kanji. Zwei Anzeigeschriften auf einer Seite, die von
+     einer einzigen gemalten Handrolle handelt.
+
+     Oswald ist laut eigener Beschreibung "a reworking of the classic style
+     historically represented by the 'Alternate Gothic' sans serif typefaces",
+     gezeichnet, um "better fit the pixel grid of standard digital screens".
+     Eine amerikanische schmale Grotesk fuers Bildschirmraster. Sie kam mit
+     dem Template.
+
+     Shippori Mincho B1 basiert auf der "Tokyo Tsukiji Type Foundry No. 5
+     Mincho" — der Giesserei, die den japanischen Mincho-Stil im 19.
+     Jahrhundert gepraegt hat, also in der Zeit, in der diese Seite spielt.
+     Ihr ExtraBold ist "originally designed for titles and headlines", und
+     die Variante B1 hat gegenueber der Grundschrift "rounded corners and ink
+     pooling": gemalte Ecken, und Tinte, die ins Papier laeuft. Ihr
+     lateinisches Alphabet ist mitgezeichnet (aus Zen Old Mincho), nicht
+     angeflanscht.
+
+     Also gibt es jetzt eine Anzeigeschrift, und --font-display zeigt auf
+     dieselbe Kette wie --font-jp. Die Kette steht hier und nicht im
+     localFont-Aufruf, damit sie an einem Ort steht.
+
+     Selbst gehostet, nicht vom CDN: --font-shippori und --font-yuji setzt
+     next/font/local in app/layout.tsx, die Dateien baut
+     scripts/gen-fonts.py. (Der alte Kommentar hier behauptete, next/font
+     habe kein japanisches Subset. Das gilt nur fuer next/font/google.) */
   --font-jp:
     var(--font-shippori), "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN",
     "MS PMincho", serif;
+  --font-display: var(--font-jp);
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --font-brush:
     var(--font-yuji), var(--font-shippori), "Yu Mincho", serif;
 
@@ -174,12 +196,26 @@ p,
    TYPOGRAPHY
    ========================================================================== */
 
+/* Die Anzeigeschrift, wo immer sie Woerter traegt.
+   GEMISCHTSATZ, nicht mehr VERSALIEN, und das ist gemessen statt geraten.
+   Shippori Mincho laeuft im Versalsatz das 1,41- bis 1,52-fache von Oswald
+   (fuenf echte Ueberschriften dieser Seite nachgerechnet), und ihre
+   Versalhoehe ist dabei noch 9 % kleiner — 737 gegen 810 von 1000 Einheiten.
+   Versalien und Mincho zusammen heisst also: breiter UND kleiner. Im
+   Gemischtsatz sind es nur 1,10x, und die Schrift steht so, wie sie
+   gezeichnet ist. Der Versalsatz ist damit nicht verschwunden, er ist
+   umgezogen: er gehoert jetzt ganz der Mono (Augenbrauen, Etiketten,
+   Legenden), die ihn ohnehin schon trug.
+
+   Die negative Laufweite war eine Oswald-Korrektur — eine schmale Grotesk
+   braucht das, eine Mincho nicht. Und 0.92 Zeilenhoehe ging nur, solange
+   keine Unterlaengen vorkamen; im Gemischtsatz stossen sonst g und p in die
+   naechste Zeile. */
 .font-display {
   font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: -0.01em;
-  text-transform: uppercase;
-  line-height: 0.92;
+  letter-spacing: 0;
+  line-height: 1.05;
 }
 
 /* ---- Kanji title, 呪術廻戦-logo treatment -------------------------------
@@ -3782,9 +3818,13 @@ p,
   font-family: var(--font-display);
   font-size: 0.95rem;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-indent: 0.18em;
-  text-transform: uppercase;
+  /* Gesperrte Versalien waren Oswalds Sache. "Probetraining buchen" misst in
+     Shippori-Versalien mit 0.18em Sperrung 272 px statt 208 px — ein Drittel
+     mehr, und der Knopf hat 2,1em Polster an jeder Seite. Im Gemischtsatz mit
+     0.02em sind es 168 px, also SCHMALER als vorher. Gemessen, nicht
+     geschaetzt. */
+  letter-spacing: 0.02em;
+  text-indent: 0.02em;
   color: var(--foreground);
   /* Ruhend dieselbe Platte wie Karten und Kopfleiste, nicht mehr die rote
      Waesche — auf Ansage, damit die Seite eine Flaechensprache hat statt zwei.
@@ -3864,9 +3904,9 @@ p,
   font-family: var(--font-display);
   font-size: 1.4rem;
   font-weight: 600;
-  letter-spacing: 0.2em;
-  text-indent: 0.2em;
-  text-transform: uppercase;
+  /* "Donnerstag": Versalien 218 px, Gemischtsatz 137 px. */
+  letter-spacing: 0.04em;
+  text-indent: 0.04em;
   color: var(--foreground);
 }
 .jjk-day-jp {
@@ -3980,9 +4020,11 @@ p,
   padding-top: 1.5rem;
   font-family: var(--font-display);
   font-size: 1.9rem;
-  line-height: 1;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  /* Explizit: die Familie liefert 600, 700 und 800. Ohne Angabe stuende hier
+     400, das es nicht gibt, und der Browser suchte sich das naechste aus. */
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 0;
   color: var(--foreground);
 }
 .jjk-name-role {
@@ -4016,8 +4058,8 @@ p,
 .jjk-tier-name {
   font-family: var(--font-display);
   font-size: 1.6rem;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   color: var(--foreground);
 }
 .jjk-tier-line {
@@ -4035,6 +4077,7 @@ p,
   margin-top: 1.8rem;
   font-family: var(--font-display);
   font-size: 3.4rem;
+  font-weight: 700;
   line-height: 1;
   color: var(--foreground);
 }
@@ -4184,21 +4227,20 @@ p,
   text-align: center;
 }
 .jjk-close-line {
-  font-family: var(--font-display);
-  font-size: clamp(2.1rem, 5.2vw, 4.4rem);
-  line-height: 1.02;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: #f6efdf;
-  /* The same polarity the hero's wordmark ended up with, and for the same
-     reason: this one stands on the fire too, and a dark letter on flame is the
-     low-contrast case. Cream core, dark stroke, paint-order so the stroke does
-     not eat the letterform from the inside. */
-  -webkit-text-stroke: 0.028em rgba(8, 7, 10, 0.9);
-  paint-order: stroke fill;
-  text-shadow:
-    0 0.03em 0.16em rgba(8, 7, 10, 0.7),
-    0 0 0.6em rgba(8, 7, 10, 0.55);
+  /* Erbt alles von .jjk-section-title — hier steht nur noch, was diese eine
+     Ueberschrift von den anderen unterscheidet, und das ist die Mitte.
+
+     Weg sind: VERSALIEN, die hart codierte Farbe #f6efdf, eine
+     -webkit-text-stroke und zwei text-shadow. Die Begruendung dafuer stand
+     direkt darunter — "this one stands on the fire too", Kontur und Halo als
+     Schutz gegen einen hellen, flackernden Grund. Cta9 steht aber auf
+     `var(--card-plate)`, einer flachen dunklen Tafel (siehe components/
+     cta-9.tsx, das style-Attribut am Panel). Der Grund ist weggefallen, der
+     Schutz war geblieben — und war das Einzige, was diese Ueberschrift anders
+     aussehen liess als alle anderen. */
+  text-align: center;
+  margin-inline: auto;
+  max-width: 18ch;
 }
 
 /* ---- The colophon ------------------------------------------------------- */
@@ -6146,9 +6188,9 @@ p,
 .jjk-legal h2 {
   font-family: var(--font-display);
   font-size: 1.5rem;
-  line-height: 1.15;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
   color: var(--foreground);
   /* Die Nummer der Ueberschrift liegt links im Rand, wo Platz ist, statt in
      der Zeile, wo sie den Anfang jedes Titels um dieselbe Stelle verschiebt.
@@ -6356,4 +6398,52 @@ p,
   border: 1px solid var(--border);
   padding: 0.08em 0.4em;
   white-space: nowrap;
+}
+
+/* ==========================================================================
+   DIE SEKTIONSUEBERSCHRIFT — EINE, NICHT DREI
+   ==========================================================================
+
+   Die Seite hatte drei Arten, eine Ueberschrift zu setzen, und man sah es:
+
+     (a) Programme, Stundenplan, Trainer, Preise, FAQ
+         `font-display jjk-aberrate text-4xl sm:text-5xl lg:text-6xl`
+         Satzschreibung, Farbe --foreground, dazu ein rot/cyan-Farbsaum.
+
+     (b) Der Schluss (.jjk-close-line)
+         VERSALIEN, clamp(2.1rem … 4.4rem), Farbe #f6efdf hart codiert,
+         -webkit-text-stroke plus zwei Schlagschatten.
+
+     (c) Fuss und Rechtsseiten
+         VERSALIEN, Tailwind-Stufen 3xl bis 6xl, sonst nichts.
+
+   (b) war der auffaellige Fall, und der Grund dafuer ist weggefallen: der
+   Kommentar an .jjk-close-line sagt "this one stands on the fire too" und
+   begruendet damit Kontur und Halo. Cta9 steht aber laengst auf
+   `var(--card-plate)` — einer flachen, dunklen Tafel. Eine Kontur, die gegen
+   Flammen verteidigt, die es nicht mehr gibt, ist nur noch ein Umriss.
+
+   Der Farbsaum aus (a) faellt ebenfalls, und zwar mit der Begruendung, die in
+   dieser Datei schon steht (siehe .jjk-scroll-latin): ein rot/cyan-Saum
+   kostet ueberall Lesbarkeit, und Cyan kommt in dieser Palette nicht vor —
+   "Zinnober ist die einzige Farbe". Zurueckholen ist eine Zeile: `jjk-aberrate`
+   wieder an die Ueberschrift haengen.
+
+   Die Groesse ist die bisherige, nur stufenlos: 2,25 rem ist genau `text-4xl`
+   (der alte Wert am Handy), 3,75 rem genau `text-6xl` (der alte Wert am PC).
+   Dazwischen laeuft es jetzt durch, statt an zwei Haltepunkten zu springen. */
+
+.jjk-section-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  /* 2,25 rem ist genau text-4xl (der alte Wert am Handy), 3,75 rem genau
+     text-6xl (der alte Wert am PC). Dazwischen laeuft es jetzt durch, statt
+     an zwei Haltepunkten zu springen. Die Groesse bleibt, weil der
+     Gemischtsatz nur 1,10x breiter ist als der alte Versalsatz — das
+     faengt `text-wrap: balance` ab. */
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  line-height: 1.05;
+  letter-spacing: 0;
+  color: var(--foreground);
+  text-wrap: balance;
 }

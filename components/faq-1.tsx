@@ -40,7 +40,7 @@ export default function FAQ1() {
               delay={70}
               duration={0.7}
               blur
-              className="font-display jjk-aberrate text-4xl leading-[0.95] text-foreground sm:text-5xl lg:text-6xl"
+              className="jjk-section-title"
             />
             <p className="mt-5 max-w-sm text-lg leading-relaxed text-foreground-dim">
               Alles, was vor der ersten Einheit gefragt wird. Wenn deine Frage
