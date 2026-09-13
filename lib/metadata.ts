@@ -4,10 +4,10 @@ export const siteConfig = {
   name: "JJK — Jiu-Jitsu Kaisen Academy",
   description:
     "Brazilian Jiu-Jitsu mitten in Graz. Trainer, die unterrichten wollen, Partner, die dich besser machen, und eine Matte, auf der aus Anfängern Schwarzgurte werden. Probetraining jederzeit möglich.",
-  url: "https://jjk-academy.com",
+  url: "https://jjk.academy",
   ogImage: "/img/og-image.jpg",
   creator: "@jjkacademy",
-  authors: [{ name: "Jiu-Jitsu Kaisen Academy", url: "https://jjk-academy.com" }],
+  authors: [{ name: "Jiu-Jitsu Kaisen Academy", url: "https://jjk.academy" }],
   keywords: [
     "Brazilian Jiu-Jitsu",
     "BJJ Graz",

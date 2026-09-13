@@ -11,7 +11,7 @@ export const siteConfig = {
   fullName: "Jiu-Jitsu Kaisen Academy",
   description:
     "Brazilian Jiu-Jitsu mitten in Graz. Trainer, die unterrichten wollen, Partner, die dich besser machen, und eine Matte, auf der aus Anfängern Schwarzgurte werden.",
-  url: "https://jjk-academy.com",
+  url: "https://jjk.academy",
   email: "info@jjk.academy",
   phone: "+43 699 17261640",
   address: {
