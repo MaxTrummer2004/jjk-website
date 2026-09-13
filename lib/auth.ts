@@ -22,6 +22,19 @@ function getSecret(): Uint8Array {
   return new TextEncoder().encode(secret);
 }
 
+/**
+ * bcryptjs steht seit dem Upgrade auf 3.x (vorher 2.4.3). Das war die Frage,
+ * an der es haengt: BLEIBEN BESTEHENDE HASHES PRUEFBAR? Ja — geprueft, nicht
+ * vermutet. Ein mit 2.4.3 erzeugter Hash ($2a$10$…) verifiziert unter 3.0.3
+ * sowohl mit compare() als auch mit compareSync() gegen das richtige Passwort
+ * true und gegen ein falsches false. Das Format ist dasselbe geblieben; neu
+ * erzeugte Hashes tragen nur das Praefix $2b$ statt $2a$, was beide Versionen
+ * lesen.
+ *
+ * Mitgegangen ist @types/bcryptjs: 3.x bringt eigene Typen mit, das
+ * DefinitelyTyped-Paket waere ab jetzt eine zweite, aeltere Deklaration
+ * derselben Modulnamen.
+ */
 export function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
 }

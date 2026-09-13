@@ -54,12 +54,17 @@
   --font-display: var(--font-oswald), "Arial Narrow", sans-serif;
   --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  /* Loaded via <link> in the layout — next/font's manifest has no Japanese
-     subset for these families, so it would strip every kanji glyph. */
+  /* Selbst gehostet, nicht mehr vom Google-CDN: --font-shippori und
+     --font-yuji setzt next/font/local in app/layout.tsx, die Dateien baut
+     scripts/gen-fonts.py. Die Ersatzkette steht bewusst hier und nicht im
+     localFont-Aufruf — sie gilt fuer beide Token, und ein Ort ist besser als
+     zwei. (Der alte Kommentar hier behauptete, next/font habe kein
+     japanisches Subset. Das gilt nur fuer next/font/google.) */
   --font-jp:
-    "Shippori Mincho B1", "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN",
+    var(--font-shippori), "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN",
     "MS PMincho", serif;
-  --font-brush: "Yuji Syuku", "Shippori Mincho B1", "Yu Mincho", serif;
+  --font-brush:
+    var(--font-yuji), var(--font-shippori), "Yu Mincho", serif;
 
   /* --- The seal ---------------------------------------------------------
      A square that has been cut by hand and inked by hand: every edge is off by
@@ -6106,3 +6111,249 @@ p,
 }
 
 
+
+/* ==========================================================================
+   DIE RECHTSSEITEN
+   ==========================================================================
+
+   Impressum und Datenschutz sind die einzigen Seiten des Projekts, die
+   nichts darstellen und nur gelesen werden. Deshalb gilt hier genau eine
+   Regel, die sonst nirgends gilt: nichts bewegt sich, nichts leuchtet,
+   nichts liegt uebereinander. Eine Spalte Text auf dem tiefen Grund.
+
+   Die Breite ist nicht gegriffen. 52 rem aussen minus 2x 2 rem Polster
+   ergeben rund 48 rem Satzbreite; bei 1 rem Grundgroesse und der Geist-Sans
+   sind das ~85 Zeichen pro Zeile — das obere Ende dessen, was sich ohne
+   Zeilenverlust lesen laesst (Bringhurst nennt 45-75, fuer Bildschirm wird
+   bis 90 gerechnet). Enger waere fuer eine Datenschutzerklaerung mit vielen
+   Aufzaehlungen zu schmal.
+
+   Der Abstand VOR einer Ueberschrift ist deutlich groesser als der danach.
+   Das ist der ganze Trick an einem langen Rechtstext: so gehoert die
+   Ueberschrift sichtbar zu dem, was unter ihr steht, und nicht zu dem, was
+   ueber ihr aufgehoert hat. */
+
+.jjk-legal {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--foreground-dim);
+}
+
+.jjk-legal > section {
+  margin-top: 4rem;
+}
+
+.jjk-legal h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--foreground);
+  /* Die Nummer der Ueberschrift liegt links im Rand, wo Platz ist, statt in
+     der Zeile, wo sie den Anfang jedes Titels um dieselbe Stelle verschiebt.
+     Unter 40 rem Breite ist dort kein Rand mehr — dann rueckt sie zurueck in
+     den Fluss, siehe die Medienabfrage weiter unten. */
+  position: relative;
+}
+
+.jjk-legal h2::before {
+  content: counter(jjk-legal-section) ".";
+  counter-increment: jjk-legal-section;
+  position: absolute;
+  right: calc(100% + 0.9rem);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 2.1;
+  color: var(--accent);
+}
+
+.jjk-legal {
+  counter-reset: jjk-legal-section;
+}
+
+.jjk-legal h3 {
+  margin-top: 2.25rem;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--foreground);
+}
+
+.jjk-legal p,
+.jjk-legal ul,
+.jjk-legal ol,
+.jjk-legal dl {
+  margin-top: 1rem;
+}
+
+.jjk-legal h2 + p,
+.jjk-legal h3 + p {
+  margin-top: 0.75rem;
+}
+
+.jjk-legal ul,
+.jjk-legal ol {
+  padding-left: 1.35rem;
+}
+
+.jjk-legal ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+/* Ein Strich, kein Punkt: die ganze Seite kennt keine Kreise, und ein
+   Aufzaehlungspunkt waere die einzige runde Form im Dokument. */
+.jjk-legal ul > li {
+  position: relative;
+  padding-left: 1.35rem;
+}
+
+.jjk-legal ul > li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.85em;
+  width: 0.6rem;
+  height: 1px;
+  background: var(--accent);
+  opacity: 0.75;
+}
+
+.jjk-legal li + li {
+  margin-top: 0.45rem;
+}
+
+.jjk-legal ol {
+  list-style: decimal;
+}
+
+.jjk-legal ol > li::marker {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+/* Die Adressbloecke im Impressum. <dl> statt <p> mit <br>, weil es
+   Bezeichnung und Wert sind und nicht Zeilen. */
+.jjk-legal dl {
+  display: grid;
+  grid-template-columns: minmax(9rem, max-content) 1fr;
+  gap: 0.5rem 1.5rem;
+}
+
+.jjk-legal dt {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  padding-top: 0.35em;
+}
+
+.jjk-legal dd {
+  margin: 0;
+  color: var(--foreground);
+}
+
+.jjk-legal a {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  text-underline-offset: 0.22em;
+  transition: color 0.2s ease;
+}
+
+.jjk-legal a:hover {
+  color: var(--accent);
+}
+
+.jjk-legal strong {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+/* Der Platzhalter. Siehe components/legal-page.tsx — er soll auffallen, und
+   zwar von weitem: solange einer davon auf der Seite steht, ist das Dokument
+   nicht gueltig. */
+.jjk-legal-todo {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--accent-bright);
+  text-decoration: underline dotted;
+  text-decoration-color: color-mix(in srgb, var(--accent-bright) 55%, transparent);
+  text-underline-offset: 0.25em;
+  white-space: normal;
+}
+
+/* Ein Kasten fuer den Hinweis ganz oben, dass das Dokument noch Platzhalter
+   traegt. Flach, wie alles hier: eine Kante und eine Flaeche, kein Schatten. */
+.jjk-legal-notice {
+  margin-top: 3rem;
+  border: 1px solid var(--border-hot);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  padding: 1.1rem 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--foreground-dim);
+}
+
+.jjk-legal-notice strong {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-bright);
+}
+
+.jjk-legal-stand {
+  margin-top: 4rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 40rem) {
+  /* Kein Aussenrand mehr: die Nummer wandert zurueck in die Zeile. */
+  .jjk-legal h2::before {
+    position: static;
+    display: inline;
+    margin-right: 0.5rem;
+    line-height: inherit;
+  }
+
+  .jjk-legal dl {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+
+  .jjk-legal dt {
+    padding-top: 0.9rem;
+  }
+}
+
+/* Bezeichner aus dem Code (Cookie-Name, Tabellennamen) stehen im Datenschutz
+   als <code>. Kein Kasten, nur die Mono-Schrift und eine Spur heller: es ist
+   ein Wort im Satz, kein Codeblock. */
+.jjk-legal code {
+  font-family: var(--font-mono);
+  font-size: 0.87em;
+  letter-spacing: 0.01em;
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--card-plate) 80%, transparent);
+  border: 1px solid var(--border);
+  padding: 0.08em 0.4em;
+  white-space: nowrap;
+}

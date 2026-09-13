@@ -51,3 +51,9 @@ _backup_pre_rebuild/
 
 # Rohmaterial Trainerfotos — nicht im Repo
 Bilder/
+
+# ── Schrift-Rohmaterial ─────────────────────────────────────────────────────
+# Die vollstaendigen TTFs von Google Fonts (~50 MB) sind EINGABE fuer
+# scripts/gen-fonts.py, nicht Auslieferung. Ausgeliefert werden die Subsets
+# unter public/fonts/, und die gehoeren ins Repo.
+scripts/.font-cache/

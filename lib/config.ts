@@ -38,26 +38,6 @@ export const nav = {
   cta: { label: "Probetraining buchen", href: "#pricing" },
 } as const;
 
-/** Rolling marquee under the hero */
-export const marquee = [
-  "Gi",
-  "No-Gi",
-  "Fundamentals",
-  "Competition Team",
-  "Kids & Teens",
-  "Women's Class",
-  "Open Mat",
-  "Self-Defense",
-  "Strength & Conditioning",
-] as const;
-
-export const stats = [
-  { value: 500, suffix: "+", label: "Active members" },
-  { value: 12, suffix: "", label: "Champions produced" },
-  { value: 15, suffix: "", label: "Years on the mats" },
-  { value: 40, suffix: "+", label: "Classes every week" },
-] as const;
-
 /**
  * Why anybody does this — four claims, and the picture that answers each one.
  *
@@ -151,29 +131,6 @@ export const programs = [
   },
 ] as const;
 
-export const features = [
-  {
-    title: "Real self-defense",
-    blurb:
-      "Leverage beats strength. Learn to control and neutralise a bigger opponent — the reason Jiu-Jitsu is trusted worldwide.",
-  },
-  {
-    title: "World-class coaching",
-    blurb:
-      "A full-time black-belt team that has cornered athletes on the biggest stages in the sport.",
-  },
-  {
-    title: "Get in the best shape",
-    blurb:
-      "Every round is functional conditioning. Burn fat, build grip strength and move better — without a single boring treadmill.",
-  },
-  {
-    title: "A team, not a gym",
-    blurb:
-      "The mat is a family. Train hard, laugh often, and leave every session with 20 people in your corner.",
-  },
-] as const;
-
 export type ScheduleClass = {
   time: string;
   name: string;
@@ -230,33 +187,6 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
     ],
   },
 ];
-
-export const testimonials = [
-  {
-    quote:
-      "I walked in unable to touch my toes and terrified of sparring. A year later I'm a blue belt with the best group of friends I've ever had.",
-    name: "Jonas R.",
-    detail: "Blue Belt · 1.5 years",
-  },
-  {
-    quote:
-      "The coaching detail here is unreal. Every round I learn something. My kids trained here first — now the whole family is on the mats.",
-    name: "Priya M.",
-    detail: "Purple Belt · 3 years",
-  },
-  {
-    quote:
-      "I came for self-defense and stayed for the team. Lost 14 kg, gained a spine. JJK genuinely changed my life.",
-    name: "Deniz A.",
-    detail: "White Belt · 8 months",
-  },
-  {
-    quote:
-      "As a woman starting martial arts at 34, I was nervous. The women's class made it feel like home from day one.",
-    name: "Sofia L.",
-    detail: "Blue Belt · 2 years",
-  },
-] as const;
 
 /**
  * Was es kostet, und es gibt genau zwei Dinge.

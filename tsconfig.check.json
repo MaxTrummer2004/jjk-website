@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": { "incremental": false, "tsBuildInfoFile": null },
-  "include": ["next-env.d.ts", "app/**/*.ts", "app/**/*.tsx", "components/plate.tsx", "components/spotlight-grid.tsx", "components/schedule.tsx", "components/coaches.tsx", "components/pricing-2.tsx", "components/faq-1.tsx", "components/cta-9.tsx", "components/footer-4.tsx", "components/custom-cursor.tsx", "components/providers.tsx", "components/lit-wall.tsx", "components/room.tsx", "components/features-3.tsx", "components/features-6.tsx", "components/scroll-opening.tsx", "components/image-reveal.tsx", "lib/**/*.ts", "lib/**/*.tsx"]
+  "include": ["next-env.d.ts", "app/**/*.ts", "app/**/*.tsx", "components/legal-page.tsx", "components/click-stack.tsx", "components/site-nav.tsx", "components/plate.tsx", "components/spotlight-grid.tsx", "components/schedule.tsx", "components/coaches.tsx", "components/pricing-2.tsx", "components/faq-1.tsx", "components/cta-9.tsx", "components/footer-4.tsx", "components/custom-cursor.tsx", "components/providers.tsx", "components/lit-wall.tsx", "components/room.tsx", "components/features-3.tsx", "components/features-6.tsx", "components/scroll-opening.tsx", "components/image-reveal.tsx", "lib/**/*.ts", "lib/**/*.tsx"]
 }

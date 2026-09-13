@@ -17,6 +17,7 @@
 
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 const COLUMNS = [
   {
@@ -35,6 +36,8 @@ const COLUMNS = [
       { text: "Probetraining", href: "#pricing" },
       { text: "FAQ", href: "#faq" },
       { text: "Kontakt", href: "#contact" },
+      { text: "Impressum", href: "/impressum" },
+      { text: "Datenschutz", href: "/datenschutz" },
     ],
   },
   {
@@ -121,16 +124,32 @@ export default function Footer4() {
                           {column.title}
                         </h4>
                         <ul className="space-y-3">
-                          {column.links.map((link) => (
-                            <li key={link.text}>
-                              <a
-                                href={link.href}
-                                className="text-base text-foreground-dim transition-colors hover:text-accent"
-                              >
-                                {link.text}
-                              </a>
-                            </li>
-                          ))}
+                          {/* Anker (#schedule) bleiben ein <a> — sie sollen
+                              den Router gar nicht erst anfassen. Alles, was
+                              mit / beginnt, ist eine echte Route und laeuft
+                              deshalb als <Link>, sonst laedt die Seite beim
+                              Klick auf "Impressum" komplett neu. */}
+                          {column.links.map((link) =>
+                            link.href.startsWith("/") ? (
+                              <li key={link.text}>
+                                <Link
+                                  href={link.href}
+                                  className="text-base text-foreground-dim transition-colors hover:text-accent"
+                                >
+                                  {link.text}
+                                </Link>
+                              </li>
+                            ) : (
+                              <li key={link.text}>
+                                <a
+                                  href={link.href}
+                                  className="text-base text-foreground-dim transition-colors hover:text-accent"
+                                >
+                                  {link.text}
+                                </a>
+                              </li>
+                            ),
+                          )}
                         </ul>
                       </div>
                     ))}
@@ -147,13 +166,20 @@ export default function Footer4() {
               <div className="mt-6 flex flex-col gap-4 text-sm text-muted-foreground sm:flex-row sm:items-center">
                 <p>©2026 Jiu-Jitsu Kaisen Academy</p>
                 <span className="hidden sm:inline">·</span>
-                <a href="#" className="transition-colors hover:text-foreground">
-                  Datenschutz
-                </a>
+                {/* Beide Links standen auf href="#" und liefen damit ins
+                    Leere — der "Datenschutz"-Link war die auffaelligste
+                    Luecke der Seite, weil eine oeffentliche Vereinswebsite
+                    in Oesterreich beides braucht (ECG/MedienG bzw. DSGVO).
+                    "AGB" ist ersatzlos weg: der Verein hat keine, und ein
+                    Link auf ein Dokument, das es nicht gibt, ist schlechter
+                    als kein Link. */}
+                <Link href="/impressum" className="transition-colors hover:text-foreground">
+                  Impressum
+                </Link>
                 <span className="hidden sm:inline">·</span>
-                <a href="#" className="transition-colors hover:text-foreground">
-                  AGB
-                </a>
+                <Link href="/datenschutz" className="transition-colors hover:text-foreground">
+                  Datenschutz
+                </Link>
                 {/* Not optional. The hero backdrop is rendered from
                     OpenStreetMap road, rail and building data
                     (scripts/gen-graz-map.py), and ODbL requires the credit on

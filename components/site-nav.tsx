@@ -25,9 +25,13 @@ const PILL_LINKS = [
 
 const PRIMARY_LINKS = nav.links;
 
+// Beide zeigten auf #contact — also auf den Fuss der Startseite, der weder
+// ein Impressum noch eine Datenschutzerklaerung enthaelt. Jetzt auf die
+// echten Seiten, und als <Link>, damit sie ueber den Router laufen wie
+// "Fuer Mitglieder" und nicht als voller Neuladevorgang.
 const LEGAL_LINKS = [
-  { label: "Impressum", href: "#contact" },
-  { label: "Datenschutz", href: "#contact" },
+  { label: "Impressum", href: "/impressum" },
+  { label: "Datenschutz", href: "/datenschutz" },
 ];
 
 const SOCIAL_LINKS = [
@@ -239,16 +243,20 @@ export function SiteNav(): ReactNode {
                             Sonstiges
                           </motion.span>
                           {LEGAL_LINKS.map((link, i) => (
-                            <motion.a
+                            <motion.div
                               key={link.href + link.label}
-                              href={link.href}
-                              onClick={closeMenu}
                               custom={8 + i}
                               variants={ITEM_VARIANTS}
-                              className="text-foreground/80 hover:text-foreground w-fit text-sm font-medium transition-colors focus-visible:outline-none"
+                              className="w-fit"
                             >
-                              {link.label}
-                            </motion.a>
+                              <Link
+                                href={link.href}
+                                onClick={closeMenu}
+                                className="text-foreground/80 hover:text-foreground text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+                              >
+                                {link.label}
+                              </Link>
+                            </motion.div>
                           ))}
                         </div>
 
