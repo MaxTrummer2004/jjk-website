@@ -5982,13 +5982,44 @@ p,
      Seite bewegt sich waehrend des Uebergangs ueberhaupt nicht. */
 
   /* ---- Kein horizontales Verschieben der Seite ----------------------------
-     Irgendein Element ueberlaeuft den Viewport. overflow-x: hidden auf
-     BEIDEN Elementen: html allein genuegt nicht, weil Browser die Eigenschaft
-     unterschiedlich an den Viewport propagieren.
-     Kein sticky-Problem auf Touch: alle lg:sticky-Regeln greifen erst ab
-     1 024 px — also nie auf einem Handy. */
-  html,
-  body {
+     Hier stand die Regel auf BEIDEN Elementen (html UND body), mit der
+     Begruendung, html allein propagiere nicht zuverlaessig an den Viewport.
+     Genau dieses Paar war die Scroll-Blockade auf dem Handy — und zwar
+     ausgerechnet, weil die Propagation sehr wohl definiert ist:
+
+     CSS Overflow 3, § Overflow Viewport Propagation: der Viewport uebernimmt
+     das overflow des Wurzelelements, und das Element, VON dem propagiert wird,
+     verhaelt sich danach selbst wie `visible`. Ist die Wurzel `visible`, wird
+     stattdessen vom body propagiert.
+
+     Damit ist genau eine der drei Schreibweisen kaputt:
+       nur html — propagiert, html wird visible, body bleibt visible → EIN
+                    Scrollport, naemlich der Viewport.
+       nur body — html ist visible, also propagiert body, body wird visible
+                    → ebenfalls EIN Scrollport.
+       BEIDE    — html propagiert und wird visible; body ist damit nicht mehr
+                    die Propagationsquelle und BEHAELT sein eigenes
+                    overflow-x: hidden. Und weil eine nicht-`visible` Achse die
+                    andere von `visible` auf `auto` hochrechnet, ist body ein
+                    echter Scroll-Container mit overflow-y: auto — ein ZWEITER
+                    Scrollport ueber der ganzen Seite, verschachtelt im
+                    Viewport. Auf Touch konkurrieren beide um dieselbe Geste:
+                    der erste Wisch nach jedem Stillstand verpufft, der zweite
+                    traegt. Und die Adressleiste klappt nicht mehr ein, weil
+                    nicht mehr der Viewport scrollt.
+
+     Der Nebenschaden derselben Zeile: `position: sticky` sucht sich den
+     naechsten Scrollport, und das war ab hier body statt des Viewports. Der
+     alte Kommentar hielt das fuer unmoeglich ("alle lg:sticky-Regeln greifen
+     erst ab 1 024 px") — in genau diesem Media-Query steht aber
+     `.jjk-gate-stage { position: sticky }`.
+
+     Also nur noch html. Der Schutz gegen horizontales Verschieben bleibt
+     vollstaendig: der Wert landet weiterhin auf dem Viewport, nur eben ohne
+     zweiten Scroll-Container darunter. Der urspruengliche Ueberlaeufer — das
+     `-mx-4`-Karussell in features-6 — ist ohnehin seit langem eine Ebene
+     tiefer eingefangen (dort `overflow-x-hidden` auf der Section selbst). */
+  html {
     overflow-x: hidden;
   }
 
