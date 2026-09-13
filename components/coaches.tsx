@@ -50,7 +50,7 @@ export function Coaches(): ReactNode {
           className="font-display jjk-aberrate max-w-3xl text-4xl leading-[0.95] text-foreground sm:text-5xl lg:text-6xl"
         />
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
-          Jeder von ihnen bringt eigene Stärken auf die Matte — und holt damit
+          Jeder von ihnen bringt eigene Stärken auf die Matte und holt damit
           das Beste aus dir heraus.
         </p>
       </div>

@@ -15,7 +15,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = createMetadata({
-  title: `${siteConfig.fullName} — Brazilian Jiu-Jitsu in Graz`,
+  title: `${siteConfig.fullName} · Brazilian Jiu-Jitsu in Graz`,
   description: siteConfig.description,
   path: "/",
 });

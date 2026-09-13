@@ -58,7 +58,7 @@ export function AuthLogin() {
             JJK Academy
           </h2>
           <p className="max-w-[25ch] text-lg leading-snug tracking-tight text-foreground/80">
-            Jiu-Jitsu Kaisen — die Kunst, die sanft beginnt und hart macht.
+            Jiu-Jitsu Kaisen. Die Kunst, die sanft beginnt und hart macht.
           </p>
         </motion.div>
       </div>

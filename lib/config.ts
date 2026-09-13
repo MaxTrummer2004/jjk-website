@@ -295,7 +295,7 @@ export const pricing = [
       "Gi und No-Gi",
       "Open Mat und Seminare",
       "Ein Leih-Gi, so lange du einen brauchst",
-      "Monatlich — jederzeit pausieren oder kündigen",
+      "Monatlich, jederzeit pausieren oder kündigen",
     ],
     cta: "Mitglied werden",
     featured: true,
@@ -304,7 +304,7 @@ export const pricing = [
 
 export const faqs = [
   {
-    question: "Ich habe noch nie trainiert — ist das ein Problem?",
+    question: "Ich habe noch nie trainiert. Ist das ein Problem?",
     answer:
       "Im Gegenteil, das ist der Normalfall. Die Fundamentals-Stunden sind für komplette Anfänger gebaut. Du bekommst geduldige Trainingspartner und wirst am ersten Tag in kein hartes Sparring geworfen.",
   },
@@ -326,11 +326,11 @@ export const faqs = [
   {
     question: "Gibt es einen langen Vertrag?",
     answer:
-      "Keine Bindung. Die Mitgliedschaft läuft monatlich, du kannst jederzeit pausieren oder kündigen. Komm gerne zuerst zu einem Probetraining — 20 €, und es folgt nichts daraus.",
+      "Keine Bindung. Die Mitgliedschaft läuft monatlich, du kannst jederzeit pausieren oder kündigen. Komm gerne zuerst zu einem Probetraining. Es kostet 20 €, und es folgt nichts daraus.",
   },
   {
     question: "Wie oft sollte ich trainieren?",
     answer:
-      "Zweimal die Woche reicht für stetigen Fortschritt. Viele kommen öfter, weil es ihnen taugt — die Mitgliedschaft deckt alles ab, das ist ganz dir überlassen.",
+      "Zweimal die Woche reicht für stetigen Fortschritt. Viele kommen öfter, weil es ihnen taugt. Die Mitgliedschaft deckt alles ab, das ist ganz dir überlassen.",
   },
 ] as const;

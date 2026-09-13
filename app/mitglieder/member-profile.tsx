@@ -392,7 +392,7 @@ export function MemberProfile({
               </table>
             </div>
             <p className="mt-3 text-xs text-foreground-dim">
-              Zuverlässigkeit zählt, wie oft abgestimmt wurde — jede 5. verpasste Abstimmung wird verziehen.
+              Zuverlässigkeit zählt, wie oft abgestimmt wurde. Jede 5. verpasste Abstimmung wird verziehen.
             </p>
 
           </motion.div>

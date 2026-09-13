@@ -370,7 +370,7 @@ function MobileCarousel({
                 scrollSnapAlign: "center",
                 backgroundColor: "var(--card-plate)",
               }}
-              aria-label={`${program.title} – Details anzeigen`}
+              aria-label={`${program.title}: Details anzeigen`}
             >
               {/* Decorative kanji — parallax target; plain span so scroll can override transform */}
               <span
@@ -487,7 +487,7 @@ export default function Features6(): ReactNode {
         />
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
           Ob du zum ersten Mal auf einer Matte stehst oder seit Jahren
-          trainierst — hier findest du dein Programm.
+          trainierst: Hier findest du dein Programm.
         </p>
 
         {/* Mobile: horizontal scroll-snap carousel (below sm) */}

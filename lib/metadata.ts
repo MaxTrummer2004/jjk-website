@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const siteConfig = {
-  name: "JJK — Jiu-Jitsu Kaisen Academy",
+  name: "JJK · Jiu-Jitsu Kaisen Academy",
   description:
     "Brazilian Jiu-Jitsu mitten in Graz. Trainer, die unterrichten wollen, Partner, die dich besser machen, und eine Matte, auf der aus Anfängern Schwarzgurte werden. Probetraining jederzeit möglich.",
   url: "https://jjk.academy",
