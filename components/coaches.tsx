@@ -38,9 +38,9 @@ export function Coaches(): ReactNode {
   return (
     <section id="coaches" className="w-full">
       <div className="mx-auto w-full max-w-[1400px] px-4 pt-28 sm:px-6 sm:pt-36 lg:px-8">
-        <KanjiLabel kanji="師範" furigana="しはん" gloss="Coaches" />
+        <KanjiLabel kanji="師範" furigana="しはん" gloss="Trainer" />
         <StaggeredText
-          text="Trainers who love to teach"
+          text="Trainer, die fürs BJJ leben"
           as="h2"
           segmentBy="words"
           direction="bottom"
@@ -50,8 +50,8 @@ export function Coaches(): ReactNode {
           className="font-display jjk-aberrate max-w-3xl text-4xl leading-[0.95] text-foreground sm:text-5xl lg:text-6xl"
         />
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
-          Four people, one standard. Every class on the timetable is led by one
-          of them — never by whoever happened to be free.
+          Jeder von ihnen bringt eigene Stärken auf die Matte — und holt damit
+          das Beste aus dir heraus.
         </p>
       </div>
 

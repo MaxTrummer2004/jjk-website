@@ -99,9 +99,9 @@ export function Schedule() {
 
         {/* Mobile: stacked layout */}
         <div className="md:hidden">
-          <KanjiLabel kanji="時間割" furigana="じかんわり" gloss="Schedule" />
+          <KanjiLabel kanji="時間割" furigana="じかんわり" gloss="Stundenplan" />
           <StaggeredText
-            text="Find your mat time"
+            text="Finde deine Mattenzeit"
             as="h2"
             segmentBy="words"
             direction="bottom"
@@ -111,7 +111,7 @@ export function Schedule() {
             className="font-display jjk-aberrate max-w-2xl text-4xl leading-[0.95] text-foreground sm:text-5xl"
           />
           <p className="mt-5 text-lg leading-relaxed text-foreground-dim">
-            Six days, twenty classes. Walk into any Fundamentals class — no booking, no notice.
+            Sechs Tage, zwanzig Einheiten. In jede Fundamentals-Stunde kannst du einfach hereinkommen.
           </p>
           <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3">
             {Object.entries(KIND).map(([key, k]) => (
@@ -125,7 +125,7 @@ export function Schedule() {
             <ClickStack items={items} cardWidth={240} cardHeight={360} spreadX={22} spreadY={-18} shadowBlur={40} {...STACK_SHARED} />
           </div>
           <p className="mt-4 text-center font-mono text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground/50">
-            Click to browse days
+            Klicken und durch die Tage blättern
           </p>
         </div>
 
@@ -134,9 +134,9 @@ export function Schedule() {
 
           {/* Left: text */}
           <div className="shrink-0 md:w-[42%]">
-            <KanjiLabel kanji="時間割" furigana="じかんわり" gloss="Schedule" />
+            <KanjiLabel kanji="時間割" furigana="じかんわり" gloss="Stundenplan" />
             <StaggeredText
-              text="Find your mat time"
+              text="Finde deine Mattenzeit"
               as="h2"
               segmentBy="words"
               direction="bottom"
@@ -146,7 +146,7 @@ export function Schedule() {
               className="font-display jjk-aberrate text-5xl leading-[0.95] text-foreground lg:text-6xl"
             />
             <p className="mt-5 text-lg leading-relaxed text-foreground-dim">
-              Six days, twenty classes. Walk into any Fundamentals class — no booking, no notice.
+              Sechs Tage, zwanzig Einheiten. In jede Fundamentals-Stunde kannst du einfach hereinkommen.
             </p>
             <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3">
               {Object.entries(KIND).map(([key, k]) => (
@@ -157,7 +157,7 @@ export function Schedule() {
               ))}
             </div>
             <p className="mt-10 font-mono text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground/50">
-              Click to browse days
+              Klicken und durch die Tage blättern
             </p>
           </div>
 

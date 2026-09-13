@@ -31,30 +31,30 @@ export default function Cta9() {
         <KanjiLabel
           kanji="一本"
           furigana="いっぽん"
-          gloss="Step on the mat"
+          gloss="Auf die Matte"
           align="center"
         />
 
         <h2 className="jjk-close-line">
-          Come and take
+          Komm auf ein
           <br />
-          a class
+          Training vorbei
         </h2>
 
         <div className="jjk-rule mx-auto mt-8 w-40" aria-hidden="true" />
 
         <p className="mx-auto mt-8 max-w-md text-lg leading-relaxed text-foreground-dim">
-          One trial class is €20 — shorts, a t-shirt, and we lend you the
-          rest. The membership is €60 a month and contains everything on the
-          timetable.
+          Ein Probetraining kostet 20 € — kurze Hose, T-Shirt, den Rest leihen
+          wir dir. Die Mitgliedschaft kostet 60 € im Monat und enthält alles
+          aus dem Stundenplan.
         </p>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <a id="cursor-cta" href="#contact" className="jjk-btn">
-            Book a trial class
+            Probetraining buchen
           </a>
           <a href="#schedule" className="jjk-btn jjk-btn-quiet">
-            See the timetable
+            Stundenplan
           </a>
         </div>
       </motion.div>

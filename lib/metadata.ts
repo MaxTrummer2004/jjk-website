@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const siteConfig = {
   name: "JJK — Jiu-Jitsu Kaisen Academy",
   description:
-    "Brazilian Jiu-Jitsu in the heart of Graz. World-class coaching, a family of training partners, and a mat that turns beginners into black belts. Book your free trial class.",
+    "Brazilian Jiu-Jitsu mitten in Graz. Trainer, die unterrichten wollen, Partner, die dich besser machen, und eine Matte, auf der aus Anfängern Schwarzgurte werden. Probetraining jederzeit möglich.",
   url: "https://jjk-academy.com",
   ogImage: "/img/og-image.jpg",
   creator: "@jjkacademy",
@@ -11,13 +11,13 @@ export const siteConfig = {
   keywords: [
     "Brazilian Jiu-Jitsu",
     "BJJ Graz",
-    "Jiu-Jitsu gym",
-    "grappling",
-    "no-gi",
-    "martial arts Graz",
-    "self-defense",
-    "kids BJJ",
-    "competition team",
+    "Jiu-Jitsu Graz",
+    "Grappling Graz",
+    "No-Gi",
+    "Kampfsport Graz",
+    "Selbstverteidigung Graz",
+    "Kinder BJJ",
+    "Wettkampfteam",
     "JJK",
   ],
 } as const;
@@ -47,7 +47,7 @@ export const baseMetadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
-    locale: "en_US",
+    locale: "de_AT",
     url: siteConfig.url,
     title: siteConfig.name,
     description: siteConfig.description,

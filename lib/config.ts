@@ -9,16 +9,15 @@
 export const siteConfig = {
   name: "JJK",
   fullName: "Jiu-Jitsu Kaisen Academy",
-  tagline: "The gentle art, forged hard.",
   description:
-    "Brazilian Jiu-Jitsu in the heart of Graz. World-class coaching, a family of training partners, and a mat that turns beginners into black belts.",
+    "Brazilian Jiu-Jitsu mitten in Graz. Trainer, die unterrichten wollen, Partner, die dich besser machen, und eine Matte, auf der aus Anfängern Schwarzgurte werden.",
   url: "https://jjk-academy.com",
-  email: "hello@jjk-academy.com",
-  phone: "+49 30 1234 5678",
+  email: "info@jjk.academy",
+  phone: "+43 699 17261640",
   address: {
-    street: "Kasernenstraße",
-    city: "Graz, Austria",
-    maps: "https://maps.google.com/?q=Kasernenstraße+Graz",
+    street: "Kasernstraße 4",
+    city: "8010 Graz",
+    maps: "https://maps.google.com/?q=Kasernstraße+4+8010+Graz",
   },
   social: {
     instagram: "https://instagram.com",
@@ -30,13 +29,13 @@ export const siteConfig = {
 
 export const nav = {
   links: [
-    { label: "Programs", href: "#programs" },
-    { label: "Schedule", href: "#schedule" },
-    { label: "Coaches", href: "#coaches" },
-    { label: "Pricing", href: "#pricing" },
-    { label: "FAQ", href: "#faq" },
+    { label: "Programme", href: "#programs" },
+    { label: "Stundenplan", href: "#schedule" },
+    { label: "Trainer", href: "#coaches" },
+    { label: "Preise", href: "#pricing" },
+    { label: "Fragen", href: "#faq" },
   ],
-  cta: { label: "Book a trial class", href: "#pricing" },
+  cta: { label: "Probetraining buchen", href: "#pricing" },
 } as const;
 
 /** Rolling marquee under the hero */
@@ -105,50 +104,50 @@ export const programs = [
   {
     title: "Fundamentals",
     kanji: "基本",
-    level: "White → Blue",
+    level: "Weiß → Blau",
     blurb:
-      "Start here. No experience needed.",
-    tag: "Beginner",
+      "Hier fängst du an. Vorkenntnisse braucht es keine.",
+    tag: "Einsteiger",
   },
   {
     title: "Advanced Gi",
     kanji: "上級",
-    level: "Blue & up",
+    level: "Ab Blau",
     blurb:
-      "Systems, live rounds, a sharper A-game.",
-    tag: "All belts",
+      "Systeme, harte Runden, ein schärferes A-Game.",
+    tag: "Alle Gürtel",
   },
   {
     title: "No-Gi / Grappling",
     kanji: "寝技",
-    level: "All levels",
+    level: "Alle Stufen",
     blurb:
-      "Fast and modern. Wrestling, scrambles, leg locks.",
-    tag: "All levels",
+      "Schnell und modern. Wrestling, Scrambles, Leg Locks.",
+    tag: "Alle Stufen",
   },
   {
-    title: "Competition Team",
+    title: "Wettkampfteam",
     kanji: "試合",
-    level: "By invite",
+    level: "Auf Einladung",
     blurb:
-      "Camps, hard rounds, podiums.",
-    tag: "Athletes",
+      "Camps, harte Runden, Podeste.",
+    tag: "Athleten",
   },
   {
-    title: "Kids & Teens",
+    title: "Kinder & Jugend",
     kanji: "少年",
-    level: "Ages 4–15",
+    level: "4 bis 15 Jahre",
     blurb:
-      "Confidence, discipline, no bullying.",
-    tag: "Youth",
+      "Selbstvertrauen, Disziplin, kein Mobbing.",
+    tag: "Jugend",
   },
   {
-    title: "Women's Class",
+    title: "Frauenklasse",
     kanji: "女子",
-    level: "All levels",
+    level: "Alle Stufen",
     blurb:
-      "Women only. Self-defense at its core.",
-    tag: "Women only",
+      "Nur Frauen. Selbstverteidigung im Kern.",
+    tag: "Nur Frauen",
   },
 ] as const;
 
@@ -182,7 +181,7 @@ export type ScheduleClass = {
 };
 export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   {
-    day: "Mon",
+    day: "Mo",
     classes: [
       { time: "07:00", name: "Morning Gi", kind: "gi" },
       { time: "17:30", name: "Kids", kind: "kids" },
@@ -191,7 +190,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
     ],
   },
   {
-    day: "Tue",
+    day: "Di",
     classes: [
       { time: "12:00", name: "No-Gi Lunch", kind: "nogi" },
       { time: "18:00", name: "Women's Class", kind: "gi" },
@@ -199,7 +198,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
     ],
   },
   {
-    day: "Wed",
+    day: "Mi",
     classes: [
       { time: "07:00", name: "Morning Gi", kind: "gi" },
       { time: "17:30", name: "Kids", kind: "kids" },
@@ -208,7 +207,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
     ],
   },
   {
-    day: "Thu",
+    day: "Do",
     classes: [
       { time: "12:00", name: "No-Gi Lunch", kind: "nogi" },
       { time: "19:00", name: "Advanced Gi", kind: "gi" },
@@ -216,7 +215,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
     ],
   },
   {
-    day: "Fri",
+    day: "Fr",
     classes: [
       { time: "17:30", name: "Kids", kind: "kids" },
       { time: "19:00", name: "Fundamentals", kind: "gi" },
@@ -224,7 +223,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
     ],
   },
   {
-    day: "Sat",
+    day: "Sa",
     classes: [
       { time: "10:00", name: "Competition", kind: "nogi" },
       { time: "11:30", name: "Open Mat", kind: "open" },
@@ -273,65 +272,65 @@ export const testimonials = [
  */
 export const pricing = [
   {
-    name: "Trial class",
+    name: "Probetraining",
     price: "20",
-    period: "one class",
-    tagline: "Come and see",
+    period: "eine Einheit",
+    tagline: "Schau es dir an",
     features: [
-      "One full class, any programme on the timetable",
-      "A gi lent for the session",
-      "Turn up fifteen minutes early",
-      "Nothing follows from it",
+      "Eine volle Einheit, jedes Programm aus dem Plan",
+      "Einen Gi leihen wir dir für die Einheit",
+      "Komm fünfzehn Minuten früher",
+      "Es folgt nichts daraus",
     ],
-    cta: "Book a trial class",
+    cta: "Probetraining buchen",
     featured: false,
   },
   {
-    name: "Membership",
+    name: "Mitgliedschaft",
     price: "60",
-    period: "per month",
-    tagline: "Everything on the mat",
+    period: "pro Monat",
+    tagline: "Alles dabei",
     features: [
-      "Every class on the timetable, as often as you like",
-      "Gi and No-Gi",
-      "Open mat and seminars",
-      "A loaner gi for as long as you need one",
-      "Month to month — pause or cancel any time",
+      "Jede Einheit im Plan, so oft du willst",
+      "Gi und No-Gi",
+      "Open Mat und Seminare",
+      "Ein Leih-Gi, so lange du einen brauchst",
+      "Monatlich — jederzeit pausieren oder kündigen",
     ],
-    cta: "Join the academy",
+    cta: "Mitglied werden",
     featured: true,
   },
 ] as const;
 
 export const faqs = [
   {
-    question: "I've never trained before — is that okay?",
+    question: "Ich habe noch nie trainiert — ist das ein Problem?",
     answer:
-      "Absolutely, it's the norm. Our Fundamentals classes are built for total beginners. You'll be paired with patient training partners and never thrown into hard sparring on day one.",
+      "Im Gegenteil, das ist der Normalfall. Die Fundamentals-Stunden sind für komplette Anfänger gebaut. Du bekommst geduldige Trainingspartner und wirst am ersten Tag in kein hartes Sparring geworfen.",
   },
   {
-    question: "What do I need for my first class?",
+    question: "Was brauche ich für die erste Einheit?",
     answer:
-      "Just shorts and a t-shirt, plus water. We'll lend you a gi if you want to try a kimono class. Come 15 minutes early and we'll show you around.",
+      "Kurze Hose, T-Shirt, Wasser. Einen Gi leihen wir dir, wenn du eine Gi-Stunde probieren willst. Komm 15 Minuten früher, dann zeigen wir dir alles.",
   },
   {
-    question: "Do I need to be fit or flexible to start?",
+    question: "Muss ich fit oder beweglich sein, um anzufangen?",
     answer:
-      "No. Jiu-Jitsu gets you in shape — not the other way around. You set the pace, and every round is a workout that meets you where you are.",
+      "Nein. Jiu-Jitsu bringt dich in Form, nicht umgekehrt. Du bestimmst das Tempo, und jede Runde holt dich dort ab, wo du gerade stehst.",
   },
   {
-    question: "How old do kids have to be?",
+    question: "Ab welchem Alter dürfen Kinder mittrainieren?",
     answer:
-      "Our Kids & Teens program runs from ages 4 to 15, split into age-appropriate groups led by dedicated youth coaches.",
+      "Kinder & Jugend läuft von 4 bis 15, in altersgerechten Gruppen mit eigenen Jugendtrainern.",
   },
   {
-    question: "Is there a long contract?",
+    question: "Gibt es einen langen Vertrag?",
     answer:
-      "No lock-in. The membership is month to month and you can pause or cancel any time. Come for a single trial class first — €20, and nothing follows from it.",
+      "Keine Bindung. Die Mitgliedschaft läuft monatlich, du kannst jederzeit pausieren oder kündigen. Komm gerne zuerst zu einem Probetraining — 20 €, und es folgt nichts daraus.",
   },
   {
-    question: "How often should I train?",
+    question: "Wie oft sollte ich trainieren?",
     answer:
-      "Two classes a week is plenty to make steady progress. Many members train more because they love it — with Unlimited, that's entirely up to you.",
+      "Zweimal die Woche reicht für stetigen Fortschritt. Viele kommen öfter, weil es ihnen taugt — die Mitgliedschaft deckt alles ab, das ist ganz dir überlassen.",
   },
 ] as const;

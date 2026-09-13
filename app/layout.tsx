@@ -44,7 +44,7 @@ export default function RootLayout({
 }>): ReactNode {
   return (
     // `dark` is hard-coded: this design only exists in the dark.
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="de" className="dark" suppressHydrationWarning>
       <head>
         {/*
           Japanese display faces come from the Google CDN rather than next/font:

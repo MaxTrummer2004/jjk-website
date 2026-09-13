@@ -18,7 +18,7 @@ const CLIP = { mp4: "/video/showcase-2.mp4", webm: "/video/showcase-2.webm" } as
 const POSTER = "/video/showcase-poster.jpg";
 
 const MAX_WIDTH = 1440;
-const CAPTION = "Watch the film — JJK Academy";
+const CAPTION = "Schau mal bei uns rein";
 
 const PEEK_VISIBLE = 24;
 const PEEK_WIDTH = 400;
@@ -62,7 +62,7 @@ function ShowcaseVideo({
         preload="auto"
         poster={POSTER}
         controls={controls}
-        aria-label="JJK Academy training video"
+        aria-label="Trainingsvideo der JJK Academy"
       >
         <source src={CLIP.webm} type="video/webm" />
         <source src={CLIP.mp4} type="video/mp4" />
@@ -383,7 +383,7 @@ export function VideoShowcase(): ReactNode {
     return (
       <section
         id="video"
-        aria-label="BJJ showcase"
+        aria-label="BJJ bei der JJK Academy"
         className="flex min-h-svh flex-col items-center justify-center gap-8 px-6 py-24"
       >
         <p className="text-foreground flex items-center gap-2.5 text-sm font-medium">
@@ -404,7 +404,7 @@ export function VideoShowcase(): ReactNode {
     <section
       ref={sectionRef}
       id="video"
-      aria-label="BJJ showcase"
+      aria-label="BJJ bei der JJK Academy"
       className="pointer-events-none relative z-20 [margin-top:-100svh] h-[180svh]"
     >
       <motion.div
@@ -450,7 +450,7 @@ export function VideoShowcase(): ReactNode {
             className="absolute bottom-5 left-1/2 flex items-center gap-2 rounded-full bg-black/55 py-2 pr-3 pl-4 text-white/90"
           >
             <span className="text-[11px] font-medium tracking-wider uppercase">
-              Scroll down
+              Weiter scrollen
             </span>
             <motion.span
               animate={{ y: [0, 3, 0] }}

@@ -474,9 +474,9 @@ export default function Features6(): ReactNode {
     // overflow-x-hidden prevents the -mx-4 carousel bleed from causing page-level horizontal scroll
     <section className="w-full overflow-x-hidden px-4 pt-28 pb-16 sm:px-6 sm:pt-36 lg:px-8 lg:pt-44">
       <div className="mx-auto w-full max-w-[1400px]">
-        <KanjiLabel kanji="稽古" furigana="けいこ" gloss="Programs" />
+        <KanjiLabel kanji="稽古" furigana="けいこ" gloss="Programme" />
         <StaggeredText
-          text="Programs for every stage"
+          text="Für alle etwas dabei"
           as="h2"
           segmentBy="words"
           direction="bottom"
@@ -486,8 +486,8 @@ export default function Features6(): ReactNode {
           className="font-display jjk-aberrate max-w-2xl text-4xl leading-[0.95] text-foreground sm:text-5xl lg:text-6xl"
         />
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
-          Six rooms, one art. Start where you are — nobody has ever walked in
-          knowing how to do this.
+          Ob du zum ersten Mal auf einer Matte stehst oder seit Jahren
+          trainierst — hier findest du dein Programm.
         </p>
 
         {/* Mobile: horizontal scroll-snap carousel (below sm) */}

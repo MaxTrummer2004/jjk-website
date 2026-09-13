@@ -408,13 +408,13 @@ export function JJKHero(): ReactNode {
               reduce={prefersReducedMotion}
               className="bg-foreground text-background inline-flex h-13 items-center rounded-full px-8 text-sm font-medium transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             >
-              Book a trial class
+              Probetraining
             </MagneticLink>
             <a
               href="#schedule"
               className="bg-background text-foreground border-border hover:bg-muted inline-flex h-13 items-center rounded-full border px-8 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             >
-              Schedule
+              Stundenplan
             </a>
           </motion.div>
         </div>

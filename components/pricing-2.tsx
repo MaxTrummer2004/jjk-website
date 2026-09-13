@@ -36,9 +36,9 @@ export default function Pricing2() {
   return (
     <section className="w-full px-4 py-28 sm:px-6 sm:py-36 lg:px-8">
       <div className="mx-auto w-full max-w-[1400px]">
-        <KanjiLabel kanji="入門" furigana="にゅうもん" gloss="Membership" />
+        <KanjiLabel kanji="入門" furigana="にゅうもん" gloss="Mitgliedschaft" />
         <StaggeredText
-          text="One membership, everything on the mat"
+          text="Eine Mitgliedschaft, alles dabei"
           as="h2"
           segmentBy="words"
           direction="bottom"
@@ -48,8 +48,9 @@ export default function Pricing2() {
           className="font-display jjk-aberrate max-w-3xl text-4xl leading-[0.95] text-foreground sm:text-5xl lg:text-6xl"
         />
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
-          No tiers, no joining fee, no lock-in. Come for a single trial class
-          first if you would rather see the room before you decide.
+          Keine Stufen, keine Aufnahmegebühr, keine Bindung. Komm gerne zu
+          einem Probetraining, wenn du den Raum sehen willst, bevor du dich
+          entscheidest.
         </p>
 
         <div className="mt-12 grid grid-cols-1 gap-px border border-border bg-border/60 sm:mt-16 lg:grid-cols-2">
@@ -63,7 +64,7 @@ export default function Pricing2() {
               className="jjk-slab jjk-slab-hot jjk-tier"
               {...(tier.featured ? { "data-featured": "" } : {})}
             >
-              {tier.featured && <span className="jjk-tier-flag">Everything</span>}
+              {tier.featured && <span className="jjk-tier-flag">Alles dabei</span>}
 
               <h3 className="jjk-tier-name">{tier.name}</h3>
               <p className="jjk-tier-line">{tier.tagline}</p>
@@ -92,7 +93,7 @@ export default function Pricing2() {
         </div>
 
         <p className="mt-8 text-base text-muted-foreground">
-          Students and under-18s train at a reduced rate — ask at the desk.
+          Schüler, Studenten und unter 18 trainieren ermäßigt — frag einfach bei uns nach.
         </p>
       </div>
     </section>

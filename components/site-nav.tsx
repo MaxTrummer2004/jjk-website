@@ -19,8 +19,8 @@ import { navigateWithTransition, triggerPageTransition } from "@/lib/page-transi
 // ---- JJK link sets -------------------------------------------------------
 
 const PILL_LINKS = [
-  { label: "Programs", href: "#programs" },
-  { label: "Schedule", href: "#schedule" },
+  { label: "Programme", href: "#programs" },
+  { label: "Stundenplan", href: "#schedule" },
 ];
 
 const PRIMARY_LINKS = nav.links;

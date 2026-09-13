@@ -31,9 +31,9 @@ export default function FAQ1() {
       <div className="mx-auto w-full max-w-[1400px]">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_1.7fr] lg:gap-20">
           <div className="lg:sticky lg:top-24 lg:self-start">
-            <KanjiLabel kanji="問答" furigana="もんどう" gloss="FAQ" />
+            <KanjiLabel kanji="問答" furigana="もんどう" gloss="Fragen" />
             <StaggeredText
-              text="Before you come"
+              text="Bevor du kommst"
               as="h2"
               segmentBy="words"
               direction="bottom"
@@ -43,8 +43,8 @@ export default function FAQ1() {
               className="font-display jjk-aberrate text-4xl leading-[0.95] text-foreground sm:text-5xl lg:text-6xl"
             />
             <p className="mt-5 max-w-sm text-lg leading-relaxed text-foreground-dim">
-              Everything people ask before their first class. If yours is not
-              here, ask us at the door.
+              Alles, was vor der ersten Einheit gefragt wird. Wenn deine Frage
+              fehlt, stell sie uns an der Tür.
             </p>
           </div>
 

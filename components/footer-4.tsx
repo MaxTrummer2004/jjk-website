@@ -20,33 +20,33 @@ import { ArrowRight } from "lucide-react";
 
 const COLUMNS = [
   {
-    title: "Train",
+    title: "Training",
     links: [
-      { text: "Programs", href: "#programs" },
-      { text: "Schedule", href: "#schedule" },
-      { text: "Coaches", href: "#coaches" },
-      { text: "Pricing", href: "#pricing" },
+      { text: "Programme", href: "#programs" },
+      { text: "Stundenplan", href: "#schedule" },
+      { text: "Trainer", href: "#coaches" },
+      { text: "Preise", href: "#pricing" },
     ],
   },
   {
     title: "Academy",
     links: [
-      { text: "About", href: "#about" },
-      { text: "Trial class", href: "#pricing" },
+      { text: "Über uns", href: "#about" },
+      { text: "Probetraining", href: "#pricing" },
       { text: "FAQ", href: "#faq" },
-      { text: "Contact", href: "#contact" },
+      { text: "Kontakt", href: "#contact" },
     ],
   },
   {
-    title: "Visit",
+    title: "Besuchen",
     links: [
-      { text: "Kasernenstraße", href: "#" },
-      { text: "Graz, Austria", href: "#" },
-      { text: "Mon–Fri 07–22h", href: "#" },
+      { text: "Kasernstraße 4", href: "#" },
+      { text: "8010 Graz", href: "#" },
+      { text: "Mo–Fr 07–22 Uhr", href: "#" },
     ],
   },
   {
-    title: "Follow",
+    title: "Folgen",
     links: [
       { text: "Instagram", href: "https://instagram.com" },
       { text: "YouTube", href: "https://youtube.com" },
@@ -74,9 +74,9 @@ export default function Footer4() {
           <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
             <motion.div variants={item} className="py-12">
               <h2 className="font-display text-3xl uppercase leading-[1.02] tracking-[0.02em] text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
-                Come train with us.
+                Komm zu uns trainieren.
                 <br />
-                One membership, everything on the mat.
+                Eine Mitgliedschaft, alles dabei.
               </h2>
             </motion.div>
           </div>
@@ -89,27 +89,27 @@ export default function Footer4() {
               >
                 <div className="border-b border-border py-10 lg:border-b-0 lg:border-r lg:pr-10">
                   <h3 className="font-mono text-[0.72rem] font-medium uppercase tracking-[0.24em] text-accent">
-                    Class updates &amp; seminar invites
+                    Stundenplan &amp; Seminar-Einladungen
                   </h3>
 
                   <div className="mt-6 flex">
                     <input
                       type="email"
-                      placeholder="you@example.com"
-                      aria-label="Email address"
+                      placeholder="du@beispiel.at"
+                      aria-label="E-Mail-Adresse"
                       className="jjk-field"
                     />
                     <button
                       type="button"
                       className="jjk-btn px-5"
-                      aria-label="Subscribe"
+                      aria-label="Anmelden"
                     >
                       <ArrowRight className="h-5 w-5" aria-hidden="true" />
                     </button>
                   </div>
 
                   <p className="mt-5 max-w-sm text-sm text-muted-foreground">
-                    One mail a month at most. Unsubscribe from any of them.
+                    Höchstens eine Mail im Monat. Abmelden geht aus jeder.
                   </p>
                 </div>
 
@@ -148,11 +148,11 @@ export default function Footer4() {
                 <p>©2026 Jiu-Jitsu Kaisen Academy</p>
                 <span className="hidden sm:inline">·</span>
                 <a href="#" className="transition-colors hover:text-foreground">
-                  Privacy Policy
+                  Datenschutz
                 </a>
                 <span className="hidden sm:inline">·</span>
                 <a href="#" className="transition-colors hover:text-foreground">
-                  Terms of Service
+                  AGB
                 </a>
                 {/* Not optional. The hero backdrop is rendered from
                     OpenStreetMap road, rail and building data
