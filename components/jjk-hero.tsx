@@ -371,6 +371,8 @@ export function JJKHero(): ReactNode {
                   width={2043}
                   height={2212}
                   priority
+                  fetchPriority="high"
+                  sizes="(max-width: 767px) 360px, 680px"
                   className="block h-auto w-full select-none"
                 />
               </motion.div>
@@ -386,6 +388,8 @@ export function JJKHero(): ReactNode {
                   width={620}
                   height={673}
                   priority
+                  fetchPriority="high"
+                  sizes="(max-width: 767px) 360px, 680px"
                   className="block h-auto w-full select-none"
                 />
               </motion.div>
