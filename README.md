@@ -1,49 +1,134 @@
 # JJK — Jiu-Jitsu Kaisen Academy
 
-Landing page for a fictional Brazilian Jiu-Jitsu gym in Berlin. Built with the
-React Bits Pro template baseline (Next.js 16, React 19, Tailwind CSS v4, Motion,
-Lenis smooth scroll, `next-themes`). Dark-first "combat academy" design with an
-electric-blue accent and a gold championship highlight.
+Website des Jiu-Jitsu Kaisen Academy, eines Brazilian-Jiu-Jitsu-Vereins in Graz.
+Öffentliche Landingpage plus geschlossener Mitgliederbereich mit Login und
+Anwesenheitserfassung.
 
-## Run
+Live: https://jjk.academy
+
+## Stack
+
+- Next.js 16 (App Router) · React 19 · TypeScript
+- Tailwind CSS v4
+- Motion (Animationen) · GSAP · Lenis (Smooth Scroll, nur Desktop)
+- three.js / @react-three/fiber für die Shader-Hintergründe
+- Neon Postgres (serverless) · jose (JWT-Sessions) · bcryptjs
+- Deployment auf Vercel
+
+Die animierten UI-Komponenten stammen aus React Bits Pro und liegen als
+Quellcode im Repo (`components/`), nicht als Abhängigkeit. Details zur
+Installation weiterer Komponenten in `SKILL.md`.
+
+## Setup
 
 ```bash
 npm install
-npm run dev      # http://localhost:3000
-# production:
+cp .env.local.example .env.local   # Werte eintragen, siehe unten
+npm run dev                        # http://localhost:3000
+```
+
+Produktion:
+
+```bash
 npm run build && npm run start
 ```
 
-## Structure
+### Umgebungsvariablen
 
-- `app/` — layout, metadata, global design tokens (`globals.css`), page assembly.
-- `lib/config.ts` — **all site content** (nav, programs, schedule, coaches,
-  pricing, testimonials, FAQs, contact). Edit here to change copy.
-- `lib/metadata.ts` — SEO / Open Graph.
-- `components/` — one file per section:
-  `header · hero · marquee · about · programs · features · stats · schedule ·
-  coaches · testimonials · pricing · faq · cta · footer`.
+`.env.local` wird nicht eingecheckt. Die Werte stehen in Vercel unter
+Settings → Environment Variables und lassen sich mit der Vercel CLI holen:
 
-## The hero video
+```bash
+vercel link
+vercel env pull .env.local
+```
 
-The hero (React Bits **Hero 12** style — background media with curved-corner
-headline blocks) uses a real BJJ clip pulled from Pexels (free license, no
-attribution required) and **self-hosted** in `public/video/`:
+Gebraucht werden die Neon-Datenbankverbindung und das Secret für die
+Session-Signierung. Ohne sie startet der Dev-Server, aber `/mitglieder`
+wirft Fehler.
 
-- `hero-bjj.mp4` — looping background footage (Pexels #8611719, ~29 MB, 1080p).
-- `hero-poster.jpg` — first-frame poster (also the OG image).
-- `img/about.jpg` — grappling still for the About section (Pexels #6765692).
+## Aufbau
 
-The video is mounted only after first paint (poster shows instantly) so the
-30 MB decode never blocks hydration, and it is paused for
-`prefers-reduced-motion` users. For production you may want to transcode a
-smaller 720p / WebM version to cut the payload.
+```
+app/
+  page.tsx          Startseite, setzt die Sections zusammen
+  layout.tsx        Fonts, Metadaten, Provider
+  globals.css       Design-Tokens und alle jjk-* Utilities
+  impressum/        Rechtsseite (statisch vorgerendert)
+  datenschutz/      Rechtsseite (statisch vorgerendert)
+  mitglieder/       Login, Profil, Anwesenheitsabstimmung, Server Actions
+lib/
+  config.ts         Sämtliche Seiteninhalte — hier wird Text geändert
+  metadata.ts       SEO und Open Graph
+  db.ts             Datenbankzugriff (members, attendance_votes)
+  auth.ts           Passwort-Hashing und JWT-Session-Cookie
+components/         Eine Datei pro Section plus die React-Bits-Komponenten
+public/             Bilder, Videos, selbst gehostete Schriften
+scripts/gen-fonts.py  Subsetting der japanischen Schriften
+```
 
-To swap the clip, drop a new file in `public/video/hero-bjj.mp4` (+ a matching
-`hero-poster.jpg`) — no code change needed.
+### Inhalte ändern
 
-## Notes
+Fast alle Texte, Programme, Stundenplan, Preise und FAQ-Einträge stehen in
+`lib/config.ts`. Für Textänderungen reicht diese Datei.
 
-- Coach cards use belt-coloured monogram tiles instead of stock headshots (no
-  fake faces). Add real photos in `components/coaches.tsx` if desired.
-- Theme toggle lives bottom-right; default is dark.
+## Sections der Startseite
+
+Hero mit Intro-Loader · Video-Showcase · Programme · Stundenplan · Trainer ·
+Preise · FAQ · Call to Action · Footer
+
+Die Seite ist bewusst **dark only** — `dark` ist in `app/layout.tsx` fest auf
+`<html>` gesetzt, es gibt keinen Theme-Wechsler. Akzentfarbe ist das JJK-Rot
+(`#d3202a`), der Gesamteindruck orientiert sich an der Ästhetik der
+Jujutsu-Kaisen-Eröffnung.
+
+## Medien
+
+- `public/video/showcase-2.mp4` — Clip in der Video-Section. `showcase-1.mp4`
+  liegt daneben und ist derzeit nicht eingebunden.
+- `public/video/showcase-poster.jpg` — Posterframe.
+- `public/img/coaches/` — Trainerfotos.
+- `public/img/logo-emblem.png`, `logo-seal.png` — Vereinslogo in zwei Fassungen.
+
+Videos sind Hochformat (576×1024). Am Handy wird das volle Format gezeigt,
+ab dem sm-Breakpoint ein Querformat-Ausschnitt (`object-fit: cover`,
+Bildausschnitt über `DESKTOP_CROP_POSITION` in `components/video-showcase.tsx`).
+
+Zum Austauschen genügt es, die Datei unter demselben Namen zu ersetzen.
+
+## Schriften
+
+Geist, Geist Mono und Oswald laufen über `next/font/google` und werden beim
+Build heruntergeladen, also vom eigenen Server ausgeliefert.
+
+Die japanischen Schriften Shippori Mincho B1 und Yuji Syuku liegen selbst
+gehostet unter `public/fonts/` und werden über `next/font/local` eingebunden —
+bewusst **kein** Google-CDN, weil dabei Besucher-IPs ohne Einwilligung an
+Google gingen.
+
+`scripts/gen-fonts.py` liest die tatsächlich im Quelltext verwendeten
+CJK-Zeichen aus und subsettet die Schriften darauf. Das drückt rund 2 MB pro
+Schnitt auf unter 110 kB. Das Skript bricht ab, wenn ein verwendetes Zeichen
+in der Schriftdatei fehlt. Nach dem Hinzufügen neuer Kanji im Code erneut
+ausführen.
+
+## Bekannte Baustellen
+
+- `next.config.ts` setzt `typescript.ignoreBuildErrors: true`. Dahinter stecken
+  7 Fehler, alle in `components/depth-card.tsx` und `components/scroll-mask.tsx`
+  — beide werden nirgends importiert. Repariert oder ausgelagert kann die
+  Flagge weg. `npx tsc --noEmit -p tsconfig.check.json` prüft nur die
+  tatsächlich verwendeten Dateien und ist sauber.
+- Impressum und Datenschutzerklärung enthalten noch Platzhalter, die mit den
+  echten Vereinsdaten gefüllt werden müssen.
+- Es gibt keine Löschroutine für Mitgliederkonten.
+- Das E-Mail-Feld im Footer hat keine Funktion.
+
+## Skripte
+
+```bash
+npm run dev          # Entwicklungsserver
+npm run build        # Produktions-Build, der eigentliche Gate
+npm run lint         # ESLint
+npm run typecheck    # tsc über das volle tsconfig
+```
