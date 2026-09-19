@@ -1,7 +1,11 @@
 import type { MetadataRoute } from "next";
-import { siteConfig } from "@/lib/metadata";
+import { siteConfig, SITE_INDEXABLE } from "@/lib/metadata";
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  // Leere Sitemap solange die Seite nicht indexiert werden soll.
+  // /mitglieder taucht hier nie auf.
+  if (!SITE_INDEXABLE) return [];
+
   const baseUrl = siteConfig.url;
 
   return [

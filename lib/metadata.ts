@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 
+// Auf true setzen, wenn die Seite öffentlich gehen soll.
+// false → noindex/nofollow auf allen Seiten; robots.txt und sitemap passen sich an.
+export const SITE_INDEXABLE = false;
+
 export const siteConfig = {
   name: "JJK · Jiu-Jitsu Kaisen Academy",
   description:
@@ -33,17 +37,24 @@ export const baseMetadata: Metadata = {
   authors: [...siteConfig.authors],
   creator: siteConfig.creator,
   publisher: siteConfig.name,
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
+  robots: SITE_INDEXABLE
+    ? {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
+      }
+    : {
+        index: false,
+        follow: false,
+        nocache: true,
+        googleBot: { index: false, follow: false },
+      },
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
