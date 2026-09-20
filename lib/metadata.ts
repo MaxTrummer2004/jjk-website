@@ -20,7 +20,7 @@ export const siteConfig = {
     "No-Gi",
     "Kampfsport Graz",
     "Selbstverteidigung Graz",
-    "Kinder BJJ",
+    "Fitnessboxen Graz",
     "Wettkampfteam",
     "JJK",
   ],

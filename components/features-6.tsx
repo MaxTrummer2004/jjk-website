@@ -31,14 +31,27 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Shield, Swords, Dumbbell, Trophy, Users, Heart } from "lucide-react";
+import { Shield, TrendingUp, Swords, Hand, Flame, Trophy, Dumbbell, Target, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { KanjiLabel } from "@/components/kanji-label";
 import StaggeredText from "@/components/staggered-text";
 import { programs } from "@/lib/config";
 import ModalCards, { type CardData } from "@/components/modal-cards";
 
-const ICONS: readonly LucideIcon[] = [Shield, Swords, Dumbbell, Trophy, Users, Heart];
+// Ein Symbol pro Programm, in der Reihenfolge von `programs` in lib/config.ts.
+// Wer dort eine Karte einfügt oder verschiebt, muss diese Liste mitziehen —
+// der Index ist die einzige Verbindung zwischen beiden.
+const ICONS: readonly LucideIcon[] = [
+  Shield,      // Anfängerkurs
+  TrendingUp,  // Intermediate
+  Swords,      // Advanced Training
+  Hand,        // Ringen für BJJ
+  Flame,       // Sparring
+  Trophy,      // Wettkampftraining
+  Dumbbell,    // Fitness
+  Target,      // Fitnessboxen
+  Users,       // Open Mat
+];
 
 const CARDS: CardData[] = programs.map((p, i) => ({
   id: String(i),

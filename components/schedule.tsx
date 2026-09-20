@@ -37,11 +37,26 @@ import { KanjiLabel } from "@/components/kanji-label";
 import StaggeredText from "@/components/staggered-text";
 import ClickStack, { type ClickStackHandle } from "@/components/click-stack";
 
+/**
+ * Die Legende sagt jetzt die EINSTIEGSSTUFE, nicht das Format.
+ *
+ * Vorher standen hier Gi / No-Gi / Kids / Open Mat. Das beantwortet die
+ * zweite Frage ("was ziehe ich an") und nicht die erste ("darf ich da
+ * überhaupt hin"). Der Trainerplan ist nach Stufen gebaut, also ist die
+ * Seite es jetzt auch: die Farbe am linken Rand einer Einheit sagt, ab
+ * welchem Level sie offen ist. Gi oder No-Gi steht als Notiz in der Zeile.
+ *
+ * Die drei BJJ-Stufen steigen in der Hitze der Palette an (Gold → Ember →
+ * Zinnober). Fitness und Fitnessboxen sind kein BJJ und bekommen deshalb
+ * bewusst kühle, entsättigte Töne — sie sollen sich aus der Stufenleiter
+ * herausheben, nicht in ihr einsortiert wirken.
+ */
 const KIND: Record<ScheduleClass["kind"], { label: string; tone: string }> = {
-  gi:   { label: "Gi",       tone: "var(--accent)" },
-  nogi: { label: "No-Gi",    tone: "var(--ember)" },
-  kids: { label: "Kids",     tone: "var(--gold)" },
-  open: { label: "Open Mat", tone: "var(--muted-foreground)" },
+  anfaenger:    { label: "ab Anfänger",     tone: "var(--gold)" },
+  intermediate: { label: "ab Intermediate", tone: "var(--ember)" },
+  advanced:     { label: "ab Advanced",     tone: "var(--accent)" },
+  fitness:      { label: "Fitness",         tone: "#6f8f8a" },
+  boxen:        { label: "Fitnessboxen",    tone: "#6d7f96" },
 };
 
 const DAY_JP: Record<string, string> = {
@@ -92,7 +107,7 @@ function DayCard({ col }: { col: (typeof schedule)[number] }) {
           return (
             <div
               key={`${c.time}-${j}`}
-              className="flex flex-col gap-0.5 px-4 py-2.5"
+              className="flex flex-col gap-0.5 px-4 py-3.5"
               style={{
                 borderLeft: `2px solid ${k.tone}`,
                 marginLeft: "1px",
@@ -105,8 +120,16 @@ function DayCard({ col }: { col: (typeof schedule)[number] }) {
               >
                 {c.time}
               </span>
-              <span className="text-foreground/80 text-xs leading-snug">
+              <span className="text-foreground/85 text-sm leading-snug font-medium">
                 {c.name}
+              </span>
+              {c.note ? (
+                <span className="text-muted-foreground text-[11px] leading-snug">
+                  {c.note}
+                </span>
+              ) : null}
+              <span className="mt-1 text-[9px] font-medium uppercase tracking-[0.18em]" style={{ color: k.tone }}>
+                {k.label}
               </span>
             </div>
           );
@@ -271,6 +294,16 @@ function ScheduleStack({
       <p className="mt-2 text-center text-sm text-muted-foreground">
         {verb} Sie eine Karte oder einen Tag, um zu blättern.
       </p>
+
+      {/* Matte frei und Dehnen stehen absichtlich nicht als eigene Zeilen im
+          Plan: es sind keine Kurse, und als Zeitschienen wuerden sie jede
+          Tageskarte um die Haelfte verlaengern, um zweimal dasselbe zu sagen.
+          Als Fussnote sind sie einmal da und gelten fuer die ganze Woche. */}
+      <p className="mx-auto mt-6 max-w-md border-t border-border pt-4 text-center text-sm leading-relaxed text-foreground-dim">
+        Vor jedem Training ist die Matte frei zum Drillen — ab 16:30, dienstags
+        und donnerstags ab 16:45. Montag, Mittwoch und Freitag um 17:15
+        gemeinsames Dehnen für BJJ.
+      </p>
     </div>
   );
 }
@@ -292,7 +325,9 @@ function Intro({ headingClass }: { headingClass: string }): ReactNode {
         className={headingClass}
       />
       <p className="mt-5 text-lg leading-relaxed text-foreground-dim">
-        Sechs Tage, zwanzig Einheiten. In jede Fundamentals-Stunde kannst du einfach hereinkommen.
+        Zwei Kurse an jedem Werktag, dazu Open Mat am Samstag. Die Farbe sagt,
+        ab welchem Level eine Einheit offen ist — in den Anfängerkurs am
+        Dienstag kannst du ohne alles hereinkommen.
       </p>
       <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3">
         {Object.entries(KIND).map(([key, k]) => (
