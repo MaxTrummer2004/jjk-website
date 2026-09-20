@@ -110,8 +110,25 @@ export default function RootLayout({
   children: ReactNode;
 }>): ReactNode {
   return (
-    // `dark` is hard-coded: this design only exists in the dark.
-    <html lang="de" className="dark" suppressHydrationWarning>
+    // `dark` ist hart codiert: dieses Design existiert nur im Dunkeln.
+    //
+    // Die vier .variable-Klassen sitzen hier auf <html>, nicht auf <body>.
+    // Grund: --font-jp/--font-display/--font-sans/--font-mono stehen in
+    // globals.css im Selektor ":root, .dark" — das trifft <html>. Sie
+    // referenzieren aber --font-shippori/--font-geist-sans/etc., die erst
+    // durch diese Klassen entstehen. Standen die Klassen auf <body> (eine
+    // Ebene tiefer), war --font-shippori zum Zeitpunkt, an dem <html>
+    // --font-jp berechnet, noch gar nicht da -> --font-jp wurde fuer die
+    // GANZE Seite ungueltig, weil vererbte Custom Properties den bereits
+    // berechneten (hier: kaputten) Wert weiterreichen, nicht bei jedem
+    // Kind neu aufloesen. Sichtbarer Effekt: jeder Text fiel auf die
+    // System-Schrift zurueck (Segoe UI/-apple-system), Geist und Shippori
+    // wurden nie gerendert, obwohl beide Dateien sauber luden.
+    <html
+      lang="de"
+      className={`dark ${geistSans.variable} ${geistMono.variable} ${shippori.variable} ${yuji.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         {/* Hier stand ein Preload auf /img/gate-hero.webp, mit
             fetchPriority="high" und damit vor allem anderen im Rennen. Die
@@ -125,9 +142,7 @@ export default function RootLayout({
             oben. Von dieser Seite darf keine Anfrage mehr an eine
             Google-Domain gehen. */}
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${shippori.variable} ${yuji.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
-      >
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <Providers>
           <SkipToContent />
           {children}
