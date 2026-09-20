@@ -23,8 +23,7 @@ const COLUMNS = [
   {
     title: "Training",
     links: [
-      { text: "Programme", href: "#programs" },
-      { text: "Stundenplan", href: "#schedule" },
+      { text: "Training", href: "#schedule" },
       { text: "Trainer", href: "#coaches" },
       { text: "Preise", href: "#pricing" },
     ],

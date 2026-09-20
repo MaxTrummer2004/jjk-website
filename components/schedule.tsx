@@ -31,11 +31,17 @@
  */
 
 import type { CSSProperties, ReactNode } from "react";
-import { Fragment, useCallback, useId, useRef, useState } from "react";
-import { schedule, type ScheduleClass } from "@/lib/config";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "motion/react";
+import { Shield, TrendingUp, Swords, Hand, Flame, Trophy, Dumbbell, Target, Users } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { programs, schedule, type ScheduleClass } from "@/lib/config";
 import { KanjiLabel } from "@/components/kanji-label";
 import StaggeredText from "@/components/staggered-text";
 import ClickStack, { type ClickStackHandle } from "@/components/click-stack";
+import SpotlightGrid from "@/components/spotlight-grid";
+import { useReducedMotion } from "@/lib/motion";
 
 /**
  * Die Legende sagt jetzt die EINSTIEGSSTUFE, nicht das Format.
@@ -62,24 +68,34 @@ import ClickStack, { type ClickStackHandle } from "@/components/click-stack";
  * traegt die Farbe zuverlaessiger als farbiger Text auf Schwarz — genau so
  * macht es auch der Plan des Trainers.
  */
+/**
+ * `text` ist derselbe Ton, aber hell genug fuer Schrift auf #07070a.
+ * Zinnober liegt dort bei rund 3:1 und faellt als Kleinschrift durch; die
+ * uebrigen vier tragen sich selbst. Nur Advanced braucht deshalb eine
+ * aufgehellte Zweitfassung — die Flaechenfarbe bleibt in beiden Faellen die
+ * Markenfarbe.
+ */
 const KIND: Record<
   ScheduleClass["kind"],
-  { label: string; tone: string; ink: string }
+  { label: string; tone: string; ink: string; text: string }
 > = {
-  anfaenger:    { label: "ab Anfänger",     tone: "var(--gold)",   ink: "#0b0b0e" },
-  intermediate: { label: "ab Intermediate", tone: "var(--ember)",  ink: "#0b0b0e" },
-  advanced:     { label: "ab Advanced",     tone: "var(--accent)", ink: "#ffffff" },
+  anfaenger:    { label: "ab Anfänger",     tone: "var(--gold)",   ink: "#0b0b0e", text: "var(--gold)" },
+  intermediate: { label: "ab Intermediate", tone: "var(--ember)",  ink: "#0b0b0e", text: "var(--ember)" },
+  advanced:     { label: "ab Advanced",     tone: "var(--accent)", ink: "#ffffff", text: "#ff5a63" },
   fitness:      { label: "Fitness",         tone: "#8fb3ad",       ink: "#0b0b0e" },
   boxen:        { label: "Fitnessboxen",    tone: "#93a6bd",       ink: "#0b0b0e" },
 };
 
+/* Die Schluessel hiessen frueher Mon/Tue/Wed — `schedule` liefert aber
+   Mo/Di/Mi. Der Lookup lief also immer ins Leere und kein einziges Kanji
+   wurde je gezeichnet. */
 const DAY_JP: Record<string, string> = {
-  Mon: "月",
-  Tue: "火",
-  Wed: "水",
-  Thu: "木",
-  Fri: "金",
-  Sat: "土",
+  Mo: "月",
+  Di: "火",
+  Mi: "水",
+  Do: "木",
+  Fr: "金",
+  Sa: "土",
 };
 
 /** Fuer die Vorlesezeile und die Positionsangabe — "Mi" ist eine Abkuerzung,
@@ -338,164 +354,400 @@ function MatFootnote({ className = "" }: { className?: string }): ReactNode {
   );
 }
 
-// ---- Wochenraster (nur ab md) --------------------------------------------
+// ---- Wochenpanel (nur ab md) ---------------------------------------------
 
 /**
  * Am Desktop ist der Kartenstapel die falsche Form.
  *
- * Die Kernfrage eines Stundenplans ist ein VERGLEICH — "wann kann ich?"
- * heisst, sechs Tage gegeneinander zu halten. Ein Stapel zeigt einen Tag und
- * verbirgt fuenf, der Vergleich muss also im Kopf des Besuchers ueber sechs
- * Klicks hinweg passieren. Auf 1400 px passen fuenf Tage zu je zwei Kursen
- * muehelos nebeneinander; genau so ist auch der Plan aufgebaut, den der
- * Trainer aushaengt.
+ * Die Kernfrage eines Stundenplans ist ein VERGLEICH — "wann kann ich?" heisst,
+ * die Tage gegeneinander zu halten. Ein Stapel zeigt einen Tag und verbirgt
+ * fuenf. Auf 1400 px passen alle sechs muehelos nebeneinander.
  *
- * Am Handy bleibt der Stapel: dort ist Flaeche knapp, und ein Raster aus
- * fuenf Spalten waere entweder unlesbar klein oder seitlich zu schieben.
+ * Gebaut ist das Panel aus dem `jjk-week`-Vokabular, das seit dem Umbau in
+ * app/globals.css liegt und bis jetzt nie verwendet wurde: EIN geteiltes Panel
+ * statt sechs nebeneinandergelegter Karten — Ein-Pixel-Fugen ueber einem Grund
+ * in Rahmenfarbe. Sechs Dinge nebeneinander sind sechs Dinge; sechs Dinge, die
+ * sich ein Raster teilen, sind ein Stundenplan. Dort steht auch schon die
+ * Verdrahtung mit dem Spotlight (`.jjk-spot .jjk-week` macht den Grund
+ * halbtransparent, sonst kaeme das Licht nie durch die Fugen).
  *
- * Beide Layouts lesen dieselbe `schedule` aus lib/config.ts — hier wird sie
- * nur anders aufgeteilt: die Werktage tragen je zwei Kurse in festen
- * Zeitschienen, der Samstag steht als eigenes Band darunter.
+ * Diese Sektion hat ausserdem die frueheren Programm-Karten aufgesogen. Die
+ * sagten dasselbe ein zweites Mal — einmal nach Programm sortiert, einmal nach
+ * Tag. Jetzt traegt der Plan beides: die Zeiten im Panel, den laengeren Text
+ * im Detailfenster hinter einem Klick.
  */
-const WEEKDAYS = schedule.filter((c) => c.day !== "Sa");
-const SATURDAY = schedule.find((c) => c.day === "Sa");
 
-/** Die Zeitschienen stehen einmal links am Rand statt in jeder Karte. Die
- *  Zeiten kommen aus den Daten, nicht aus dem Markup, damit eine Planaenderung
- *  in lib/config.ts genuegt. */
-const RAIL_LABEL = ["1. Kurs", "2. Kurs"];
+/** Reihenfolge wie in `programs`; der Index ist die einzige Verbindung. */
+const PROGRAM_ICONS: readonly LucideIcon[] = [
+  Shield, TrendingUp, Swords, Hand, Flame, Trophy, Dumbbell, Target, Users,
+];
 
-function GridCard({ c }: { c: ScheduleClass }): ReactNode {
+/** Wie viele Slots die laengste Spalte hat — kuerzere Tage bekommen unten
+ *  Fuellraum, damit alle Spalten gleich hoch schliessen. */
+const MAX_SLOTS = schedule.reduce((m, c) => Math.max(m, c.classes.length), 0);
+
+interface Detail {
+  title: string;
+  kanji: string;
+  level: string;
+  blurb: string;
+  tag: string;
+  icon: LucideIcon;
+  /** Alle Termine dieses Programms in der Woche. */
+  when: { day: string; time: string }[];
+}
+
+function buildDetail(programTitle: string): Detail | null {
+  const i = programs.findIndex((p) => p.title === programTitle);
+  if (i < 0) return null;
+  const p = programs[i]!;
+  const when: Detail["when"] = [];
+  for (const col of schedule) {
+    for (const c of col.classes) {
+      if (c.program === programTitle) {
+        when.push({ day: DAY_FULL[col.day] ?? col.day, time: c.time });
+      }
+    }
+  }
+  return {
+    title: p.title,
+    kanji: p.kanji,
+    level: p.level,
+    blurb: p.blurb,
+    tag: p.tag,
+    icon: PROGRAM_ICONS[i] ?? Shield,
+    when,
+  };
+}
+
+// ---- Eine Einheit --------------------------------------------------------
+
+/**
+ * Der Kommentar an `.jjk-slot` in globals.css ist eindeutig: die Stufe traegt
+ * die Haarlinie am linken Rand, nicht zusaetzlich noch ein Chip und ein Balken,
+ * die alle dasselbe sagen. Daran halte ich mich — das gefuellte Chip bleibt
+ * dem Handy-Stapel, wo es keine Legende ueber sich hat.
+ *
+ * Die Zeit steht in Vordergrundweiss, nicht in der Stufenfarbe. Das war die
+ * Lehre aus der letzten Runde: Zinnober auf #07070a ist als Kleinschrift
+ * unlesbar. Die Stufe steht als eigene Mono-Zeile darunter, im aufgehellten
+ * Ton (`text`), und ist damit lesbar, ohne die Zeit zu verdraengen.
+ */
+function Slot({
+  c,
+  onOpen,
+}: {
+  c: ScheduleClass;
+  onOpen: (programTitle: string) => void;
+}): ReactNode {
   const k = KIND[c.kind];
-  return (
-    <div
-      className="flex min-h-[7.5rem] flex-col gap-1.5 px-4 pt-[18px] pb-4"
-      style={{
-        background: "var(--card-plate)",
-        borderTop: `2px solid ${k.tone}`,
-      } as CSSProperties}
-    >
-      <span className="text-[1.05rem] font-semibold leading-tight text-foreground">
+  const openable = Boolean(c.program);
+
+  const body = (
+    <>
+      <span
+        className="jjk-slot-time"
+        style={{ color: "var(--foreground)", fontVariantNumeric: "tabular-nums" }}
+      >
+        {c.time}
+      </span>
+      <span className="jjk-slot-name" style={{ fontWeight: 600, fontSize: "0.95rem" }}>
         {c.name}
       </span>
       {c.note ? (
-        <span className="flex-grow text-[0.78rem] leading-relaxed text-foreground-dim">
+        <span className="mt-0.5 block text-[0.72rem] leading-snug text-muted-foreground">
           {c.note}
         </span>
-      ) : (
-        <span className="flex-grow" />
-      )}
+      ) : null}
       <span
-        className="inline-flex w-fit items-center px-1.5 py-[3px] text-[0.6rem] font-semibold uppercase tracking-[0.12em]"
-        style={{ background: k.tone, color: k.ink, borderRadius: 3 }}
+        className="mt-1.5 block font-mono text-[0.6rem] font-medium uppercase tracking-[0.14em]"
+        style={{ color: k.text }}
       >
         {k.label}
       </span>
-    </div>
+    </>
   );
-}
 
-function Rail({ index }: { index: number }): ReactNode {
-  const time = WEEKDAYS[0]?.classes[index]?.time ?? "";
+  const style = { "--slot": k.tone } as CSSProperties;
+
+  if (!openable) {
+    return (
+      <div className="jjk-slot" style={style}>
+        {body}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col justify-center gap-1.5 pr-4">
-      <span className="font-mono text-[0.68rem] font-medium uppercase tracking-[0.18em] text-accent">
-        {RAIL_LABEL[index]}
-      </span>
-      <span
-        className="font-mono text-[1.15rem] font-medium text-foreground"
-        style={{ fontVariantNumeric: "tabular-nums" }}
-      >
-        {time}
-      </span>
+    <button
+      type="button"
+      onClick={() => onOpen(c.program!)}
+      className="jjk-slot w-full cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/70"
+      style={style}
+      aria-label={`${c.name}, ${c.time}, ${k.label} — Details anzeigen`}
+    >
+      {body}
+    </button>
+  );
+}
+
+// ---- Detailfenster -------------------------------------------------------
+
+function ProgramSheet({
+  detail,
+  onClose,
+}: {
+  detail: Detail | null;
+  onClose: () => void;
+}): ReactNode {
+  // Kein `mounted`-Flag noetig: das Fenster entsteht erst durch einen Klick,
+  // also immer im Browser. Serverseitig ist `detail` null und der Portalaufruf
+  // findet nie statt — der Guard unten deckt nur den Fall ab, dass React die
+  // Komponente ohne document auswertet.
+
+  // Escape schliesst, und solange offen ist, scrollt die Seite darunter nicht
+  // weg — sonst steht das Fenster nach dem Schliessen woanders als der Slot,
+  // von dem es kam.
+  useEffect(() => {
+    if (!detail) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [detail, onClose]);
+
+  if (typeof document === "undefined") return null;
+  const Icon = detail?.icon ?? Shield;
+
+  return createPortal(
+    <AnimatePresence>
+      {detail ? (
+        <motion.div
+          key="sheet"
+          className="fixed inset-0 z-[120] flex items-center justify-center p-5"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.22 }}
+        >
+          <button
+            type="button"
+            aria-label="Schließen"
+            onClick={onClose}
+            className="absolute inset-0 cursor-default"
+            style={{
+              background:
+                "radial-gradient(120% 90% at 50% 0%, rgba(90,10,10,.55), rgba(3,3,4,.86))",
+              backdropFilter: "blur(3px)",
+            }}
+          />
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={detail.title}
+            className="relative w-full max-w-xl overflow-hidden border border-border"
+            style={{ background: "var(--card-plate)" }}
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: 8 }}
+            transition={{ type: "spring", stiffness: 320, damping: 30 }}
+          >
+            {/* Kopf — dasselbe Bild wie die frueheren Programm-Karten:
+                Kanji als Wasserzeichen, Stufe klein darueber, Symbol rechts. */}
+            <div className="relative overflow-hidden px-8 pt-7 pb-6">
+              <span
+                aria-hidden="true"
+                lang="ja"
+                className="pointer-events-none absolute -right-[0.05em] -bottom-[0.28em] select-none leading-none"
+                style={{
+                  fontFamily: "var(--font-jp)",
+                  fontSize: "11rem",
+                  color: "rgba(255,106,31,0.075)",
+                }}
+              >
+                {detail.kanji}
+              </span>
+              <div className="relative flex items-start justify-between gap-6">
+                <div>
+                  <p className="font-mono text-[0.6rem] uppercase tracking-[0.24em] text-accent">
+                    {detail.tag}
+                  </p>
+                  <h3
+                    className="mt-2.5 text-3xl font-semibold leading-tight text-foreground"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    {detail.title}
+                  </h3>
+                  <p className="mt-1.5 font-mono text-[0.64rem] uppercase tracking-[0.2em] text-muted-foreground">
+                    {detail.level}
+                  </p>
+                </div>
+                <Icon
+                  className="mt-1 shrink-0 text-accent/40"
+                  size={34}
+                  strokeWidth={1.2}
+                  aria-hidden="true"
+                />
+              </div>
+            </div>
+
+            <div className="border-t border-border px-8 py-6">
+              <p className="text-[0.95rem] leading-relaxed text-foreground-dim">
+                {detail.blurb}
+              </p>
+
+              <p className="mt-6 font-mono text-[0.6rem] uppercase tracking-[0.22em] text-muted-foreground">
+                Termine
+              </p>
+              <ul className="mt-3 flex flex-col gap-1.5">
+                {detail.when.map((w) => (
+                  <li
+                    key={`${w.day}-${w.time}`}
+                    className="flex items-baseline gap-4 text-sm"
+                  >
+                    <span className="min-w-[6.5rem] text-foreground">{w.day}</span>
+                    <span
+                      className="font-mono text-foreground-dim"
+                      style={{ fontVariantNumeric: "tabular-nums" }}
+                    >
+                      {w.time}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Schließen"
+              className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center border border-border text-foreground-dim transition-colors hover:border-border-hot hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            >
+              <span aria-hidden="true" className="text-base leading-none">
+                ×
+              </span>
+            </button>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>,
+    document.body,
+  );
+}
+
+// ---- Das Panel -----------------------------------------------------------
+
+/**
+ * Die Neigung liegt auf dem GANZEN Panel, nicht auf den einzelnen Feldern.
+ *
+ * Eine Kippung pro Feld wuerde genau die Fuge zerreissen, aus der das Panel
+ * besteht — sechs kippende Kacheln sind wieder sechs Dinge. Eine Platte, die
+ * sich als Ganzes zum Zeiger neigt, bleibt eine Platte. Entsprechend klein ist
+ * der Ausschlag: 1,6 Grad, gerade genug, dass die Oberflaeche nicht flach
+ * wirkt. Aus wie ueberall auf grobem Zeiger und bei reduzierter Bewegung.
+ */
+function TiltPlate({ children }: { children: ReactNode }): ReactNode {
+  const wrap = useRef<HTMLDivElement>(null);
+  const plate = useRef<HTMLDivElement>(null);
+  const raf = useRef<number | null>(null);
+  const to = useRef({ rx: 0, ry: 0 });
+  const at = useRef({ rx: 0, ry: 0 });
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    const el = wrap.current;
+    if (!el || reduced) return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+
+    const MAX = 1.6;
+    const tick = (): void => {
+      at.current.rx += (to.current.rx - at.current.rx) * 0.09;
+      at.current.ry += (to.current.ry - at.current.ry) * 0.09;
+      if (plate.current) {
+        plate.current.style.transform =
+          `perspective(1800px) rotateX(${at.current.rx.toFixed(3)}deg) rotateY(${at.current.ry.toFixed(3)}deg)`;
+      }
+      const done =
+        Math.abs(to.current.rx - at.current.rx) < 0.002 &&
+        Math.abs(to.current.ry - at.current.ry) < 0.002;
+      raf.current = done ? null : requestAnimationFrame(tick);
+    };
+    const kick = (): void => {
+      if (raf.current === null) raf.current = requestAnimationFrame(tick);
+    };
+    const onMove = (e: PointerEvent): void => {
+      const r = el.getBoundingClientRect();
+      to.current = {
+        rx: -((e.clientY - r.top) / r.height - 0.5) * 2 * MAX,
+        ry: ((e.clientX - r.left) / r.width - 0.5) * 2 * MAX,
+      };
+      kick();
+    };
+    const onLeave = (): void => {
+      to.current = { rx: 0, ry: 0 };
+      kick();
+    };
+
+    el.addEventListener("pointermove", onMove, { passive: true });
+    el.addEventListener("pointerleave", onLeave, { passive: true });
+    return () => {
+      if (raf.current !== null) cancelAnimationFrame(raf.current);
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+    };
+  }, [reduced]);
+
+  return (
+    <div ref={wrap}>
+      <div ref={plate} style={{ transformStyle: "preserve-3d", willChange: "transform" }}>
+        {children}
+      </div>
     </div>
   );
 }
 
-function WeekGrid(): ReactNode {
-  const sat = SATURDAY?.classes[0];
-  const satKind = sat ? KIND[sat.kind] : null;
+function WeekPanel(): ReactNode {
+  const [open, setOpen] = useState<string | null>(null);
+  const onOpen = useCallback((t: string) => setOpen(t), []);
+  const onClose = useCallback(() => setOpen(null), []);
+  const detail = open ? buildDetail(open) : null;
 
   return (
     <div className="mt-12">
-      <div
-        className="grid gap-2.5"
-        style={{ gridTemplateColumns: "150px repeat(5, minmax(0, 1fr))" }}
-      >
-        {/* Kopfzeile */}
-        <div />
-        {WEEKDAYS.map((col) => (
-          <div
-            key={col.day}
-            className="flex items-baseline gap-2.5 border-b border-border pb-2.5"
-          >
-            <span className="text-[1.35rem] font-semibold text-foreground">
-              {col.day}
-            </span>
-            <span className="text-[0.68rem] uppercase tracking-[0.16em] text-muted-foreground">
-              {DAY_FULL[col.day] ?? col.day}
-            </span>
+      <SpotlightGrid radius={330} intensity={0.55}>
+        <TiltPlate>
+          <div className="jjk-week">
+            {schedule.map((col) => (
+              <div key={col.day} className="jjk-day">
+                <div className="jjk-day-head">
+                  <span className="jjk-day-name">{DAY_FULL[col.day] ?? col.day}</span>
+                  <span className="jjk-day-jp" lang="ja" aria-hidden="true">
+                    {DAY_JP[col.day] ?? ""}
+                  </span>
+                </div>
+                {col.classes.map((c, j) => (
+                  <Slot key={`${c.time}-${j}`} c={c} onOpen={onOpen} />
+                ))}
+                {/* Fuellraum: der Samstag hat eine Einheit, die Werktage zwei.
+                    Ohne ihn zieht die Grid-Zeile alle Spalten auf dieselbe
+                    Hoehe, aber die kurze Spalte streckt ihre Slots dabei mit. */}
+                {col.classes.length < MAX_SLOTS ? (
+                  <div className="flex-grow" aria-hidden="true" />
+                ) : null}
+              </div>
+            ))}
           </div>
-        ))}
-
-        {/* Die beiden Kursschienen */}
-        {[0, 1].map((slot) => (
-          <Fragment key={slot}>
-            <Rail index={slot} />
-            {WEEKDAYS.map((col) => {
-              const c = col.classes[slot];
-              return c ? (
-                <GridCard key={`${col.day}-${slot}`} c={c} />
-              ) : (
-                <div key={`${col.day}-${slot}`} />
-              );
-            })}
-          </Fragment>
-        ))}
-      </div>
-
-      {/* Samstag als Band: eine einzelne Einheit in einer eigenen Rasterzeile
-          haette vier leere Spalten neben sich stehen lassen. */}
-      {sat && satKind ? (
-        <div
-          className="mt-2.5 flex items-center gap-7 px-6 py-5"
-          style={{
-            background: "var(--card-plate)",
-            borderLeft: `3px solid ${satKind.tone}`,
-          } as CSSProperties}
-        >
-          <div className="flex min-w-[8rem] flex-col gap-1">
-            <span
-              className="font-mono text-[0.68rem] font-medium uppercase tracking-[0.18em]"
-              style={{ color: satKind.tone }}
-            >
-              Samstag
-            </span>
-            <span
-              className="font-mono text-[1.15rem] font-medium text-foreground"
-              style={{ fontVariantNumeric: "tabular-nums" }}
-            >
-              {sat.time}
-            </span>
-          </div>
-          <div className="flex flex-grow flex-col gap-1">
-            <span className="text-[1.15rem] font-semibold text-foreground">
-              {sat.name}
-            </span>
-            {sat.note ? (
-              <span className="text-[0.8rem] text-foreground-dim">{sat.note}</span>
-            ) : null}
-          </div>
-          <span
-            className="inline-flex w-fit shrink-0 items-center px-2 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.12em]"
-            style={{ background: satKind.tone, color: satKind.ink, borderRadius: 3 }}
-          >
-            {satKind.label}
-          </span>
-        </div>
-      ) : null}
+        </TiltPlate>
+      </SpotlightGrid>
 
       <MatFootnote className="mt-8" />
+      <ProgramSheet detail={detail} onClose={onClose} />
     </div>
   );
 }
@@ -507,7 +759,7 @@ function Intro({ headingClass }: { headingClass: string }): ReactNode {
     <>
       <KanjiLabel kanji="時間割" furigana="じかんわり" gloss="Stundenplan" />
       <StaggeredText
-        text="Finde deine Mattenzeit"
+        text="Jede Einheit der Woche"
         as="h2"
         segmentBy="words"
         direction="bottom"
@@ -519,7 +771,8 @@ function Intro({ headingClass }: { headingClass: string }): ReactNode {
       <p className="mt-5 text-lg leading-relaxed text-foreground-dim">
         Zwei Kurse an jedem Werktag, dazu Open Mat am Samstag. Die Farbe sagt,
         ab welchem Level eine Einheit offen ist — in den Anfängerkurs am
-        Dienstag kannst du ohne alles hereinkommen.
+        Dienstag kannst du ohne alles hereinkommen. Klick auf eine Einheit,
+        dann steht dort, was dich erwartet.
       </p>
       <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3">
         {Object.entries(KIND).map(([key, k]) => (
@@ -559,7 +812,7 @@ export function Schedule() {
             Stapel 58 % der Breite fuer genau einen sichtbaren Tag. */}
         <div className="hidden md:block">
           <Intro headingClass="jjk-section-title max-w-3xl" />
-          <WeekGrid />
+          <WeekPanel />
         </div>
 
       </div>

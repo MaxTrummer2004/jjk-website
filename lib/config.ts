@@ -161,6 +161,16 @@ export type ScheduleClass = {
   /** Einzeiler unter dem Namen — Format, Inhalt, Zielgruppe. */
   note?: string;
   kind: "anfaenger" | "intermediate" | "advanced" | "fitness" | "boxen";
+  /**
+   * `title` des zugehoerigen Eintrags in `programs`.
+   *
+   * Die beiden Listen standen frueher als zwei getrennte Sektionen auf der
+   * Seite und sagten dasselbe zweimal — einmal nach Programm sortiert, einmal
+   * nach Tag. Jetzt ist der Wochenplan die einzige Darstellung, und dieser
+   * Schluessel holt den laengeren Text dazu ins Detailfenster. Keine Kopie der
+   * Texte, nur ein Verweis: `programs` bleibt die einzige Quelle.
+   */
+  program?: string;
 };
 
 /**
@@ -181,42 +191,42 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   {
     day: "Mo",
     classes: [
-      { time: "17:45–19:00", name: "Ringen für BJJ", note: "Takedowns & Standkampf", kind: "intermediate" },
-      { time: "19:05–20:20", name: "Sparring only", note: "Nur Rollen, kein Unterricht", kind: "intermediate" },
+      { time: "17:45–19:00", name: "Ringen für BJJ", note: "Takedowns & Standkampf", program: "Ringen für BJJ", kind: "intermediate" },
+      { time: "19:05–20:20", name: "Sparring only", note: "Nur Rollen, kein Unterricht", program: "Sparring", kind: "intermediate" },
     ],
   },
   {
     day: "Di",
     classes: [
-      { time: "17:45–19:00", name: "Anfängerkurs", note: "Gi · für alle ohne Vorkenntnisse", kind: "anfaenger" },
-      { time: "19:05–20:20", name: "Special Tuesday", note: "Freies Positionssparring", kind: "intermediate" },
+      { time: "17:45–19:00", name: "Anfängerkurs", note: "Gi · für alle ohne Vorkenntnisse", program: "Anfängerkurs", kind: "anfaenger" },
+      { time: "19:05–20:20", name: "Special Tuesday", note: "Freies Positionssparring", program: "Sparring", kind: "intermediate" },
     ],
   },
   {
     day: "Mi",
     classes: [
-      { time: "17:45–19:00", name: "Advanced Training", note: "No-Gi", kind: "advanced" },
-      { time: "19:05–20:20", name: "Wettkampftraining", note: "Turnierkämpfer & Team", kind: "advanced" },
+      { time: "17:45–19:00", name: "Advanced Training", note: "No-Gi", program: "Advanced Training", kind: "advanced" },
+      { time: "19:05–20:20", name: "Wettkampftraining", note: "Turnierkämpfer & Team", program: "Wettkampftraining", kind: "advanced" },
     ],
   },
   {
     day: "Do",
     classes: [
-      { time: "17:45–19:00", name: "Fitness", note: "Kraft & Kondition, ohne Kampfsport", kind: "fitness" },
-      { time: "19:05–20:20", name: "Intermediate", note: "Gi · Aufbau auf den Anfängerkurs", kind: "intermediate" },
+      { time: "17:45–19:00", name: "Fitness", note: "Kraft & Kondition, ohne Kampfsport", program: "Fitness", kind: "fitness" },
+      { time: "19:05–20:20", name: "Intermediate", note: "Gi · Aufbau auf den Anfängerkurs", program: "Intermediate", kind: "intermediate" },
     ],
   },
   {
     day: "Fr",
     classes: [
-      { time: "17:45–19:00", name: "Advanced Training", note: "Gi", kind: "advanced" },
-      { time: "19:05–20:20", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", kind: "boxen" },
+      { time: "17:45–19:00", name: "Advanced Training", note: "Gi", program: "Advanced Training", kind: "advanced" },
+      { time: "19:05–20:20", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen" },
     ],
   },
   {
     day: "Sa",
     classes: [
-      { time: "11:00–12:30", name: "Open Mat", note: "Gi & No-Gi · freies Rollen für alle", kind: "anfaenger" },
+      { time: "11:00–12:30", name: "Open Mat", note: "Gi & No-Gi · freies Rollen für alle", program: "Open Mat", kind: "anfaenger" },
     ],
   },
 ];

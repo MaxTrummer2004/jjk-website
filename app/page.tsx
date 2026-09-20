@@ -2,7 +2,6 @@ import { SiteNav } from "@/components/site-nav";
 import { JJKHero } from "@/components/jjk-hero";
 import { VideoShowcase } from "@/components/video-showcase";
 import { Room } from "@/components/room";
-import Features6 from "@/components/features-6";
 import { Schedule } from "@/components/schedule";
 import { Coaches } from "@/components/coaches";
 import Pricing2 from "@/components/pricing-2";
@@ -31,12 +30,17 @@ export default function HomePage(): ReactNode {
 
         <div className="relative">
           <Room>
+            {/* Programme und Stundenplan waren zwei Sektionen und sagten
+                dasselbe zweimal — einmal nach Programm sortiert, einmal nach
+                Tag. Jetzt traegt `Schedule` beides: die Zeiten im Wochenpanel,
+                den Programmtext im Detailfenster hinter einem Klick.
+                `#programs` bleibt als Anker bestehen, damit bereits geteilte
+                Links weiterhin irgendwo landen. components/features-6.tsx
+                liegt unbenutzt auf der Platte. */}
             <div id="programs" className="scroll-mt-24">
-              <Features6 />
-            </div>
-
-            <div id="schedule" className="scroll-mt-24">
-              <Schedule />
+              <div id="schedule" className="scroll-mt-24">
+                <Schedule />
+              </div>
             </div>
 
             <Coaches />
