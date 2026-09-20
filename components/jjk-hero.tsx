@@ -44,7 +44,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 // Emblem-Breite im Hero (Endzustand). Richtwert; als Konstante nachjustierbar.
 const EMBLEM_WIDTH = "clamp(150px, 24vh, 300px)";
 // Dauer des Farb-/Logo-Verlaufs (Vorgabe 1,2–1,6 s).
-const TRANSITION_DURATION = 1.6;
+const TRANSITION_DURATION = 1.35;
 
 type Phase = "counting" | "transition" | "done";
 
@@ -218,19 +218,26 @@ export function JJKHero(): ReactNode {
     introAlreadyPlayed = true;
   }, [prefersReducedMotion, blend]);
 
-  // Progress-Counter: alle 30 ms +1 bis 100 (~3 s gesamt).
+  // Progress-Counter: alle 22 ms +1 bis 100 (~2,2 s gesamt).
+  //
+  // Vorher 30 ms, also 3 s, plus 700 ms Hold plus 1,6 s Uebergang = 5,3 s bis
+  // zur Seite. Das ist fuer einen Wiederbesucher lang. Jetzt 2,2 + 0,5 + 1,35
+  // = rund 4 s. Bewusst nicht weiter heruntergedreht: unter etwa zwei Sekunden
+  // liest sich das Zaehlen nicht mehr als Zaehlen, sondern als Flackern, und
+  // der Crossfade vom Siegel zum Emblem braucht Zeit, um als Verwandlung
+  // gelesen zu werden statt als Umschalten.
   useEffect(() => {
     if (phase !== "counting" || prefersReducedMotion) return;
     const id = window.setInterval(() => {
       setProgress((p) => Math.min(p + 1, 100));
-    }, 30);
+    }, 22);
     return () => window.clearInterval(id);
   }, [phase, prefersReducedMotion]);
 
   // Bei 100: kurzer Hold, dann in die Uebergangsphase.
   useEffect(() => {
     if (phase !== "counting" || progress < 100 || prefersReducedMotion) return;
-    const holdT = window.setTimeout(() => setPhase("transition"), 700);
+    const holdT = window.setTimeout(() => setPhase("transition"), 500);
     return () => window.clearTimeout(holdT);
   }, [phase, progress, prefersReducedMotion]);
 
