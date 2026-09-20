@@ -68,21 +68,42 @@ import { useReducedMotion } from "@/lib/motion";
  * macht es auch der Plan des Trainers.
  */
 /**
- * `text` ist derselbe Ton, aber hell genug fuer Schrift auf #07070a.
- * Zinnober liegt dort bei rund 3:1 und faellt als Kleinschrift durch; die
- * uebrigen vier tragen sich selbst. Nur Advanced braucht deshalb eine
- * aufgehellte Zweitfassung — die Flaechenfarbe bleibt in beiden Faellen die
- * Markenfarbe.
+ * Die Kursart-Palette. Sie kommt 1:1 aus dem Aushang, den Max gezeichnet hat.
+ *
+ * Es ist durchgehend die 700er-Stufe von Tailwind — green, teal, red, purple,
+ * indigo, sky, fuchsia, lime, yellow, orange. Genau deshalb wirkt sie stimmig:
+ * gleiche Helligkeit, gleiche Saettigung, zehn Farben aus einer Rampe statt
+ * zehn einzeln gesuchte. Die Werte werden hier NICHT nachjustiert.
+ *
+ * Dass eine 700er-Stufe fuer helle Gruende gebaut ist und dieser Grund fast
+ * schwarz ist, wird nicht ueber die Farbe geloest, sondern ueber ihren
+ * Einsatz: sie traegt Flaechen (gefuelltes Chip, weisse Schrift darauf) und
+ * Linien. Als farbige Kleinschrift auf #07070a wuerde sie durchfallen — das
+ * war die Lehre aus der Zinnober-Runde. Deshalb bleibt jeder Text weiss.
  */
-const KIND: Record<
-  ScheduleClass["kind"],
-  { label: string; tone: string; ink: string; text: string }
-> = {
-  anfaenger:    { label: "ab Anfänger",     tone: "var(--gold)",   ink: "#0b0b0e", text: "var(--gold)" },
-  intermediate: { label: "ab Intermediate", tone: "var(--ember)",  ink: "#0b0b0e", text: "var(--ember)" },
-  advanced:     { label: "ab Advanced",     tone: "var(--accent)", ink: "#ffffff", text: "#ff5a63" },
-  fitness:      { label: "Fitness",         tone: "#8fb3ad",       ink: "#0b0b0e" },
-  boxen:        { label: "Fitnessboxen",    tone: "#93a6bd",       ink: "#0b0b0e" },
+const COURSE: Record<ScheduleClass["kind"], string> = {
+  anfaenger:    "#15803d", // green-700
+  intermediate: "#0f766e", // teal-700
+  advanced:     "#b91c1c", // red-700
+  ringen:       "#7e22ce", // purple-700
+  sparring:     "#4338ca", // indigo-700
+  special:      "#0369a1", // sky-700
+  wettkampf:    "#a21caf", // fuchsia-700
+  openmat:      "#4d7c0f", // lime-700
+  fitness:      "#a16207", // yellow-700
+  boxen:        "#c2410c", // orange-700
+};
+
+/**
+ * Was im Chip steht. Der Text nennt das LEVEL, die Farbe die Kursart — auch
+ * das ist die Aufteilung aus dem Aushang.
+ */
+const LEVEL_LABEL: Record<ScheduleClass["level"], string> = {
+  anfaenger:    "ab Anfänger",
+  intermediate: "ab Intermediate",
+  advanced:     "ab Advanced",
+  fitness:      "Fitness",
+  boxen:        "Boxen",
 };
 
 /* Die Schluessel hiessen frueher Mon/Tue/Wed — `schedule` liefert aber
@@ -132,13 +153,13 @@ function DayCard({ col }: { col: (typeof schedule)[number] }) {
       {/* class list */}
       <div className="flex flex-col gap-0 overflow-hidden">
         {col.classes.map((c, j) => {
-          const k = KIND[c.kind];
+          const tone = COURSE[c.kind];
           return (
             <div
               key={`${c.time}-${j}`}
               className="flex flex-col gap-0.5 px-4 py-3.5"
               style={{
-                borderLeft: `2px solid ${k.tone}`,
+                borderLeft: `2px solid ${tone}`,
                 marginLeft: "1px",
                 borderBottom: "1px solid rgba(255,255,255,0.04)",
               } as CSSProperties}
@@ -161,10 +182,10 @@ function DayCard({ col }: { col: (typeof schedule)[number] }) {
                 </span>
               ) : null}
               <span
-                className="mt-2 inline-flex w-fit items-center px-1.5 py-[3px] text-[0.6rem] font-semibold uppercase tracking-[0.12em]"
-                style={{ background: k.tone, color: k.ink, borderRadius: 3 }}
+                className="mt-2 inline-flex w-fit items-center px-1.5 py-[3px] text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-white"
+                style={{ background: tone, borderRadius: 3 }}
               >
-                {k.label}
+                {LEVEL_LABEL[c.level]}
               </span>
             </div>
           );
@@ -440,7 +461,8 @@ function Slot({
   c: ScheduleClass;
   onOpen: (programTitle: string) => void;
 }): ReactNode {
-  const k = KIND[c.kind];
+  const tone = COURSE[c.kind];
+  const label = LEVEL_LABEL[c.level];
   const openable = Boolean(c.program);
 
   const body = (
@@ -459,16 +481,19 @@ function Slot({
           {c.note}
         </span>
       ) : null}
+      {/* Gefuelltes Chip, weisse Schrift — so steht es auch im Aushang, und
+          eine Flaeche traegt eine 700er-Farbe auf Schwarz zuverlaessig,
+          waehrend dieselbe Farbe als Schrift durchfaellt. */}
       <span
-        className="mt-1.5 block font-mono text-[0.6rem] font-medium uppercase tracking-[0.14em]"
-        style={{ color: k.text }}
+        className="mt-2 inline-flex w-fit items-center px-1.5 py-[3px] text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-white"
+        style={{ background: tone, borderRadius: 3 }}
       >
-        {k.label}
+        {label}
       </span>
     </>
   );
 
-  const style = { "--slot": k.tone } as CSSProperties;
+  const style = { "--slot": tone } as CSSProperties;
 
   if (!openable) {
     return (
@@ -484,7 +509,7 @@ function Slot({
       onClick={() => onOpen(c.program!)}
       className="jjk-slot w-full cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/70"
       style={style}
-      aria-label={`${c.name}, ${c.time}, ${k.label} — Details anzeigen`}
+      aria-label={`${c.name}, ${c.time}, ${label} — Details anzeigen`}
     >
       {body}
     </button>
@@ -802,19 +827,17 @@ function Intro({ headingClass }: { headingClass: string }): ReactNode {
         className={headingClass}
       />
       <p className="mt-5 text-lg leading-relaxed text-foreground-dim">
-        Zwei Kurse an jedem Werktag, dazu Open Mat am Samstag. Die Farbe sagt,
-        ab welchem Level eine Einheit offen ist — in den Anfängerkurs am
+        Zwei Kurse an jedem Werktag, dazu Open Mat am Samstag. Auf jeder
+        Einheit steht, ab welchem Level sie offen ist — in den Anfängerkurs am
         Dienstag kannst du ohne alles hereinkommen. Klick auf eine Einheit,
         dann steht dort, was dich erwartet.
       </p>
-      <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3">
-        {Object.entries(KIND).map(([key, k]) => (
-          <span key={key} className="flex items-center gap-2.5 font-mono text-[0.72rem] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            <span className="h-3.5 w-[2px]" style={{ background: k.tone }} aria-hidden="true" />
-            {k.label}
-          </span>
-        ))}
-      </div>
+      {/* Die Farblegende ist raus.
+          Seit die Farbe die KURSART meint und nicht mehr das Level, erklaert
+          sie nichts, was nicht ohnehin dasteht: der Name der Kursart steht auf
+          jeder Karte, das Level im Chip. Eine Legende aus zehn Farbpunkten
+          haette eine breite Zeile gekostet, um zehnmal zu wiederholen, was
+          drei Zentimeter darunter im Klartext steht. */}
     </>
   );
 }

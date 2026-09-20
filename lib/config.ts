@@ -160,15 +160,34 @@ export type ScheduleClass = {
   name: string;
   /** Einzeiler unter dem Namen — Format, Inhalt, Zielgruppe. */
   note?: string;
-  kind: "anfaenger" | "intermediate" | "advanced" | "fitness" | "boxen";
+  /**
+   * Die KURSART. Sie bestimmt die Farbe, nicht das Level.
+   *
+   * So macht es der Aushang, den Max gezeichnet hat, und die Palette dort ist
+   * durchgehend die 700er-Stufe von Tailwind — deshalb wirkt sie stimmig. Die
+   * Werte stehen in components/schedule.tsx; hier steht nur, welche Kursart
+   * eine Einheit ist.
+   */
+  kind:
+    | "anfaenger"
+    | "intermediate"
+    | "advanced"
+    | "ringen"
+    | "sparring"
+    | "special"
+    | "wettkampf"
+    | "openmat"
+    | "fitness"
+    | "boxen";
+  /** Ab welchem Level die Einheit offen ist — der Text im Chip. */
+  level: "anfaenger" | "intermediate" | "advanced" | "fitness" | "boxen";
   /**
    * `title` des zugehoerigen Eintrags in `programs`.
    *
    * Die beiden Listen standen frueher als zwei getrennte Sektionen auf der
-   * Seite und sagten dasselbe zweimal — einmal nach Programm sortiert, einmal
-   * nach Tag. Jetzt ist der Wochenplan die einzige Darstellung, und dieser
-   * Schluessel holt den laengeren Text dazu ins Detailfenster. Keine Kopie der
-   * Texte, nur ein Verweis: `programs` bleibt die einzige Quelle.
+   * Seite und sagten dasselbe zweimal. Jetzt ist der Wochenplan die einzige
+   * Darstellung, und dieser Schluessel holt den laengeren Text dazu ins
+   * Detailfenster. Keine Kopie der Texte, nur ein Verweis.
    */
   program?: string;
 };
@@ -191,42 +210,42 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   {
     day: "Mo",
     classes: [
-      { time: "17:45–19:00", name: "Ringen für BJJ", note: "Takedowns & Standkampf", program: "Ringen für BJJ", kind: "intermediate" },
-      { time: "19:05–20:20", name: "Sparring only", note: "Nur Rollen, kein Unterricht", program: "Sparring", kind: "intermediate" },
+      { time: "17:45–19:00", name: "Ringen für BJJ", note: "Takedowns & Standkampf", program: "Ringen für BJJ", kind: "ringen", level: "intermediate" },
+      { time: "19:05–20:20", name: "Sparring only", note: "Nur Rollen, kein Unterricht", program: "Sparring", kind: "sparring", level: "intermediate" },
     ],
   },
   {
     day: "Di",
     classes: [
-      { time: "17:45–19:00", name: "Anfängerkurs", note: "Gi · für alle ohne Vorkenntnisse", program: "Anfängerkurs", kind: "anfaenger" },
-      { time: "19:05–20:20", name: "Special Tuesday", note: "Freies Positionssparring", program: "Sparring", kind: "intermediate" },
+      { time: "17:45–19:00", name: "Anfängerkurs", note: "Gi · für alle ohne Vorkenntnisse", program: "Anfängerkurs", kind: "anfaenger", level: "anfaenger" },
+      { time: "19:05–20:20", name: "Special Tuesday", note: "Freies Positionssparring", program: "Sparring", kind: "special", level: "intermediate" },
     ],
   },
   {
     day: "Mi",
     classes: [
-      { time: "17:45–19:00", name: "Advanced Training", note: "No-Gi", program: "Advanced Training", kind: "advanced" },
-      { time: "19:05–20:20", name: "Wettkampftraining", note: "Turnierkämpfer & Team", program: "Wettkampftraining", kind: "advanced" },
+      { time: "17:45–19:00", name: "Advanced Training", note: "No-Gi", program: "Advanced Training", kind: "advanced", level: "advanced" },
+      { time: "19:05–20:20", name: "Wettkampftraining", note: "Turnierkämpfer & Team", program: "Wettkampftraining", kind: "wettkampf", level: "advanced" },
     ],
   },
   {
     day: "Do",
     classes: [
-      { time: "17:45–19:00", name: "Fitness", note: "Kraft & Kondition, ohne Kampfsport", program: "Fitness", kind: "fitness" },
-      { time: "19:05–20:20", name: "Intermediate", note: "Gi · Aufbau auf den Anfängerkurs", program: "Intermediate", kind: "intermediate" },
+      { time: "17:45–19:00", name: "Fitness", note: "Kraft & Kondition, ohne Kampfsport", program: "Fitness", kind: "fitness", level: "fitness" },
+      { time: "19:05–20:20", name: "Intermediate", note: "Gi · Aufbau auf den Anfängerkurs", program: "Intermediate", kind: "intermediate", level: "intermediate" },
     ],
   },
   {
     day: "Fr",
     classes: [
-      { time: "17:45–19:00", name: "Advanced Training", note: "Gi", program: "Advanced Training", kind: "advanced" },
-      { time: "19:05–20:20", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen" },
+      { time: "17:45–19:00", name: "Advanced Training", note: "Gi", program: "Advanced Training", kind: "advanced", level: "advanced" },
+      { time: "19:05–20:20", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "boxen" },
     ],
   },
   {
     day: "Sa",
     classes: [
-      { time: "11:00–12:30", name: "Open Mat", note: "Gi & No-Gi · freies Rollen für alle", program: "Open Mat", kind: "anfaenger" },
+      { time: "11:00–12:30", name: "Open Mat", note: "Gi & No-Gi · freies Rollen für alle", program: "Open Mat", kind: "openmat", level: "anfaenger" },
     ],
   },
 ];
