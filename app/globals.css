@@ -700,6 +700,34 @@ p,
       rgba(3, 3, 4, 0.28) 82%,
       rgba(3, 3, 4, 0.6) 100%
     );
+
+  /* Loch fuer die Trainer-Sektion.
+     Die beiden Kanten werden von components/atmosphere.tsx in Viewport-
+     Prozent nachgefuehrt; steht die Sektion nicht im Bild, liegen beide auf
+     100% und die Maske ist durchgehend deckend — dann ist die Vignette
+     unveraendert die alte. Die 7vh Feder oben und unten verhindern eine
+     sichtbare Kante beim Hineinscrollen. */
+  --jjk-vignette-hole-top: 100%;
+  --jjk-vignette-hole-bottom: 100%;
+  --jjk-vignette-feather: 7vh;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(var(--jjk-vignette-hole-top) - var(--jjk-vignette-feather)),
+    transparent var(--jjk-vignette-hole-top),
+    transparent var(--jjk-vignette-hole-bottom),
+    #000 calc(var(--jjk-vignette-hole-bottom) + var(--jjk-vignette-feather)),
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(var(--jjk-vignette-hole-top) - var(--jjk-vignette-feather)),
+    transparent var(--jjk-vignette-hole-top),
+    transparent var(--jjk-vignette-hole-bottom),
+    #000 calc(var(--jjk-vignette-hole-bottom) + var(--jjk-vignette-feather)),
+    #000 100%
+  );
 }
 
 /* ---- Scanline / interlace, very faint ----------------------------------- */
