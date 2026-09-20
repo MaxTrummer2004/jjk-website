@@ -51,12 +51,26 @@ import ClickStack, { type ClickStackHandle } from "@/components/click-stack";
  * bewusst kühle, entsättigte Töne — sie sollen sich aus der Stufenleiter
  * herausheben, nicht in ihr einsortiert wirken.
  */
-const KIND: Record<ScheduleClass["kind"], { label: string; tone: string }> = {
-  anfaenger:    { label: "ab Anfänger",     tone: "var(--gold)" },
-  intermediate: { label: "ab Intermediate", tone: "var(--ember)" },
-  advanced:     { label: "ab Advanced",     tone: "var(--accent)" },
-  fitness:      { label: "Fitness",         tone: "#6f8f8a" },
-  boxen:        { label: "Fitnessboxen",    tone: "#6d7f96" },
+/**
+ * `tone` ist die Farbe der Stufe. Sie traegt den linken Rand und das Chip —
+ * aber NICHT mehr die Uhrzeit: Zinnober (#d3202a) auf #07070a liegt bei rund
+ * 3:1, und das in 10 px gesperrtem Mono war praktisch unlesbar. Die Zeit ist
+ * die wichtigste Angabe der Zeile und steht deshalb jetzt in Vordergrundweiss.
+ *
+ * `ink` ist die Schrift AUF dem farbigen Chip: dunkel auf den hellen Toenen
+ * (Gold, Ember), weiss auf den dunklen (Zinnober, Stahl). Ein gefuelltes Chip
+ * traegt die Farbe zuverlaessiger als farbiger Text auf Schwarz — genau so
+ * macht es auch der Plan des Trainers.
+ */
+const KIND: Record<
+  ScheduleClass["kind"],
+  { label: string; tone: string; ink: string }
+> = {
+  anfaenger:    { label: "ab Anfänger",     tone: "var(--gold)",   ink: "#0b0b0e" },
+  intermediate: { label: "ab Intermediate", tone: "var(--ember)",  ink: "#0b0b0e" },
+  advanced:     { label: "ab Advanced",     tone: "var(--accent)", ink: "#ffffff" },
+  fitness:      { label: "Fitness",         tone: "#8fb3ad",       ink: "#0b0b0e" },
+  boxen:        { label: "Fitnessboxen",    tone: "#93a6bd",       ink: "#0b0b0e" },
 };
 
 const DAY_JP: Record<string, string> = {
@@ -114,21 +128,27 @@ function DayCard({ col }: { col: (typeof schedule)[number] }) {
                 borderBottom: "1px solid rgba(255,255,255,0.04)",
               } as CSSProperties}
             >
+              {/* Zeit: weiss, groesser, tabellarische Ziffern und nur leicht
+                  gesperrt. Uppercase entfaellt — bei Ziffern tut es nichts
+                  ausser die Zeichen auseinanderzuziehen. */}
               <span
-                className="text-[10px] font-medium tracking-widest uppercase"
-                style={{ color: k.tone }}
+                className="font-mono text-[0.78rem] font-medium tracking-[0.04em] text-foreground"
+                style={{ fontVariantNumeric: "tabular-nums" }}
               >
                 {c.time}
               </span>
-              <span className="text-foreground/85 text-sm leading-snug font-medium">
+              <span className="text-foreground text-[0.95rem] leading-snug font-semibold">
                 {c.name}
               </span>
               {c.note ? (
-                <span className="text-muted-foreground text-[11px] leading-snug">
+                <span className="text-foreground-dim text-[0.72rem] leading-snug">
                   {c.note}
                 </span>
               ) : null}
-              <span className="mt-1 text-[9px] font-medium uppercase tracking-[0.18em]" style={{ color: k.tone }}>
+              <span
+                className="mt-2 inline-flex w-fit items-center px-1.5 py-[3px] text-[0.6rem] font-semibold uppercase tracking-[0.12em]"
+                style={{ background: k.tone, color: k.ink, borderRadius: 3 }}
+              >
                 {k.label}
               </span>
             </div>
