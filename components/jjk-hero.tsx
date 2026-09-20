@@ -366,10 +366,17 @@ export function JJKHero(): ReactNode {
               {/* Emblem — Sizer + Hero-Endzustand, volle Deckkraft. */}
               <motion.div style={{ opacity: emblemOpacity }}>
                 <Image
-                  src="/img/logo-emblem.png"
+                  /* Neues Hero-Emblem (2026-09): gefuellte weisse Hand auf
+                     schwarzer Scheibe. Die Vorlage kam als JPEG auf hellem
+                     Grund — der Hintergrund wurde per Flood-Fill von den
+                     Raendern freigestellt (kein globaler Weiss-Key, der haette
+                     die weisse Hand mitgeloescht) und als PNG mit Alpha
+                     abgelegt. logo-emblem.png bleibt unangetastet, es haengt
+                     noch an Favicon/OG. */
+                  src="/img/logo-hero.png"
                   alt=""
-                  width={2043}
-                  height={2212}
+                  width={1459}
+                  height={1600}
                   priority
                   fetchPriority="high"
                   sizes="(max-width: 767px) 360px, 680px"
