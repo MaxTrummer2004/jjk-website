@@ -82,73 +82,73 @@ export const reasons = [
  */
 export const programs = [
   {
-    title: "Anfängerkurs",
+    title: "BJJ Basic",
     kanji: "基本",
     level: "Ohne Vorkenntnisse",
     blurb:
-      "Dienstag, im Gi. Hier fängst du an — Vorkenntnisse braucht es keine.",
+      "Dienstag, No-Gi. Hier fängst du an — Vorkenntnisse braucht es keine.",
     tag: "Einsteiger",
   },
   {
-    title: "Intermediate",
-    kanji: "中級",
+    title: "Gi Training",
+    kanji: "道着",
+    level: "Jedes Level",
+    blurb:
+      "Freitag. Technik und Sparring im Gi, offen für alle Stufen.",
+    tag: "Gi",
+  },
+  {
+    title: "No-Gi Training",
+    kanji: "寝技",
     level: "Ab Intermediate",
     blurb:
-      "Donnerstag, im Gi. Baut direkt auf den Anfängerkurs auf.",
-    tag: "Aufbau",
+      "Montag. Technik und Sparring ohne Gi — schnell, viel Scrambles.",
+    tag: "No-Gi",
   },
   {
     title: "Advanced Training",
     kanji: "上級",
     level: "Ab Advanced",
     blurb:
-      "Mittwoch No-Gi, Freitag Gi. Systeme, harte Runden, ein schärferes A-Game.",
+      "Mittwoch im Gi, Freitag No-Gi. Systeme, harte Runden, ein schärferes A-Game.",
     tag: "Fortgeschritten",
   },
   {
-    title: "Ringen für BJJ",
+    title: "Ringen",
     kanji: "立技",
     level: "Ab Intermediate",
     blurb:
-      "Montag. Takedowns, Griffkampf, der Weg zu Boden.",
+      "Montag. Eine Woche Fokus Kondition, eine Woche Fokus Technik.",
     tag: "Standkampf",
   },
   {
     title: "Sparring",
     kanji: "乱取",
-    level: "Ab Intermediate",
+    level: "Jedes Level",
     blurb:
-      "Montag nur Rollen, Dienstag freies Positionssparring. Kein Unterricht, nur Mattenzeit.",
+      "Donnerstag. Freies Rollen, kein Unterricht — nur Mattenzeit.",
     tag: "Rollen",
   },
   {
     title: "Wettkampftraining",
     kanji: "試合",
-    level: "Ab Advanced",
+    level: "Ab Intermediate",
     blurb:
-      "Mittwoch. Für Turnierkämpfer und das Team.",
+      "Mittwoch, im Wechsel mit Special Wednesday: Positionssparring aus selbst bestimmten Positionen.",
     tag: "Athleten",
-  },
-  {
-    title: "Fitness",
-    kanji: "体力",
-    level: "Alle Stufen",
-    blurb:
-      "Donnerstag. Kraft und Kondition, ganz ohne Kampfsport.",
-    tag: "Kraft",
   },
   {
     title: "Boxen",
     kanji: "拳闘",
-    level: "Alle Stufen",
+    level: "Jedes Level",
     blurb:
-      "Freitag. Boxtechnik, Pratzen und Partnerübungen.",
+      "Dienstag und Donnerstag. Boxtechnik, Pratzen und Partnerübungen.",
     tag: "Boxen",
   },
   {
     title: "Open Mat",
     kanji: "自由",
-    level: "Alle Stufen",
+    level: "Jedes Level",
     blurb:
       "Samstag, Gi und No-Gi. Freies Rollen für alle, kein Unterricht.",
     tag: "Samstag",
@@ -161,91 +161,83 @@ export type ScheduleClass = {
   /** Einzeiler unter dem Namen — Format, Inhalt, Zielgruppe. */
   note?: string;
   /**
-   * Die KURSART. Sie bestimmt die Farbe, nicht das Level.
+   * Die KURSART. Sie bestimmt die Farbe.
    *
-   * So macht es der Aushang, den Max gezeichnet hat, und die Palette dort ist
-   * durchgehend die 700er-Stufe von Tailwind — deshalb wirkt sie stimmig. Die
-   * Werte stehen in components/schedule.tsx; hier steht nur, welche Kursart
-   * eine Einheit ist.
+   * Der Aushang faerbt nach Richtung, nicht nach Level: fuenf Gruppen
+   * (Anfaenger & alle Level, Fortgeschrittene, Ringen, Sparring & Wettkampf,
+   * Boxen), innerhalb einer Gruppe abgestuft. Welche Kursart in welcher Gruppe
+   * liegt und mit welchem Wert, steht in components/schedule.tsx.
    */
   kind:
-    | "anfaenger"
-    | "intermediate"
+    | "basic"
+    | "gi"
+    | "nogi"
     | "advanced"
     | "ringen"
     | "sparring"
-    | "special"
     | "wettkampf"
-    | "openmat"
-    | "fitness"
-    | "boxen";
-  /** Ab welchem Level die Einheit offen ist — der Text im Chip. */
-  level: "anfaenger" | "intermediate" | "advanced" | "fitness" | "boxen";
+    | "boxen"
+    | "openmat";
+  /** Das empfohlene Level — der Text im Chip. */
+  level: "anfaenger" | "jedes" | "intermediate" | "advanced";
   /**
    * `title` des zugehoerigen Eintrags in `programs`.
    *
-   * Die beiden Listen standen frueher als zwei getrennte Sektionen auf der
-   * Seite und sagten dasselbe zweimal. Jetzt ist der Wochenplan die einzige
-   * Darstellung, und dieser Schluessel holt den laengeren Text dazu ins
-   * Detailfenster. Keine Kopie der Texte, nur ein Verweis.
+   * Der Wochenplan ist die einzige Darstellung der Programme; dieser
+   * Schluessel holt den laengeren Text ins Detailfenster. Keine Kopie der
+   * Texte, nur ein Verweis.
    */
   program?: string;
 };
 
 /**
- * Der Wochenplan, wie ihn der Trainer aufgestellt hat.
+ * Der Wochenplan nach dem Aushang vom September 2026.
  *
- * Zwei Kursschienen pro Werktag (17:45–19:00 und 19:05–20:20) plus Open Mat
- * am Samstag. `kind` ist KEIN Format mehr (Gi/No-Gi), sondern die EINSTIEGS-
- * STUFE: die Farbe sagt, ab welchem Level man in der Einheit richtig ist.
- * Ob Gi oder No-Gi steht in `note`, weil es die zweite Frage ist, nicht die
- * erste.
- *
- * Matte frei ab 16:30 (Di/Do 16:45) und Dehnen 17:15 (Mo/Mi/Fr) stehen
- * bewusst NICHT als Zeilen hier: es sind keine Kurse, sondern offene Zeit vor
- * dem Training. Sie laufen als Fußnote unter dem Plan — siehe
- * components/schedule.tsx.
+ * Zwei Kursschienen pro Werktag (17:45–19:00 und 19:05–20:20) plus Open Mat am
+ * Samstag. Matte frei ab 16:30 (Di/Do 16:45) und Dehnen 17:15 (Mo/Mi/Fr)
+ * stehen bewusst NICHT als Zeilen hier: es sind keine Kurse, sondern offene
+ * Zeit davor. Sie laufen als Fussnote unter dem Plan.
  */
 export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   {
     day: "Mo",
     classes: [
-      { time: "17:45–19:00", name: "Ringen für BJJ", note: "Takedowns & Standkampf", program: "Ringen für BJJ", kind: "ringen", level: "intermediate" },
-      { time: "19:05–20:20", name: "Sparring only", note: "Nur Rollen, kein Unterricht", program: "Sparring", kind: "sparring", level: "intermediate" },
+      { time: "17:45–19:00", name: "Ringen", note: "Eine Woche Fokus Kondition, eine Woche Fokus Technik", program: "Ringen", kind: "ringen", level: "intermediate" },
+      { time: "19:05–20:20", name: "No-Gi Training", note: "Technik & Sparring ohne Gi", program: "No-Gi Training", kind: "nogi", level: "intermediate" },
     ],
   },
   {
     day: "Di",
     classes: [
-      { time: "17:45–19:00", name: "Anfängerkurs", note: "Gi · für alle ohne Vorkenntnisse", program: "Anfängerkurs", kind: "anfaenger", level: "anfaenger" },
-      { time: "19:05–20:20", name: "Special Tuesday", note: "Freies Positionssparring", program: "Sparring", kind: "special", level: "intermediate" },
+      { time: "17:45–19:00", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes" },
+      { time: "19:05–20:20", name: "BJJ Basic", note: "No-Gi · für alle ohne Vorkenntnisse", program: "BJJ Basic", kind: "basic", level: "anfaenger" },
     ],
   },
   {
     day: "Mi",
     classes: [
-      { time: "17:45–19:00", name: "Advanced Training", note: "No-Gi", program: "Advanced Training", kind: "advanced", level: "advanced" },
-      { time: "19:05–20:20", name: "Wettkampftraining", note: "Turnierkämpfer & Team", program: "Wettkampftraining", kind: "wettkampf", level: "advanced" },
+      { time: "17:45–19:00", name: "Advanced Training", note: "Gi", program: "Advanced Training", kind: "advanced", level: "advanced" },
+      { time: "19:05–20:20", name: "Wettkampftraining", note: "oder Special Wednesday · Positionssparring aus selbst bestimmten Positionen", program: "Wettkampftraining", kind: "wettkampf", level: "intermediate" },
     ],
   },
   {
     day: "Do",
     classes: [
-      { time: "17:45–19:00", name: "Fitness", note: "Kraft & Kondition, ohne Kampfsport", program: "Fitness", kind: "fitness", level: "fitness" },
-      { time: "19:05–20:20", name: "Intermediate", note: "Gi · Aufbau auf den Anfängerkurs", program: "Intermediate", kind: "intermediate", level: "intermediate" },
+      { time: "17:45–19:00", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes" },
+      { time: "19:05–20:20", name: "Sparring", note: "Freies Rollen, kein Unterricht", program: "Sparring", kind: "sparring", level: "jedes" },
     ],
   },
   {
     day: "Fr",
     classes: [
-      { time: "17:45–19:00", name: "Advanced Training", note: "Gi", program: "Advanced Training", kind: "advanced", level: "advanced" },
-      { time: "19:05–20:20", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "boxen" },
+      { time: "17:45–19:00", name: "Advanced Training", note: "No-Gi", program: "Advanced Training", kind: "advanced", level: "advanced" },
+      { time: "19:05–20:20", name: "Gi Training", note: "Technik & Sparring im Gi", program: "Gi Training", kind: "gi", level: "jedes" },
     ],
   },
   {
     day: "Sa",
     classes: [
-      { time: "11:00–12:30", name: "Open Mat", note: "Gi & No-Gi · freies Rollen für alle", program: "Open Mat", kind: "openmat", level: "anfaenger" },
+      { time: "11:00–12:30", name: "Open Mat", note: "Gi & No-Gi · freies Rollen für alle, kein Unterricht", program: "Open Mat", kind: "openmat", level: "jedes" },
     ],
   },
 ];
@@ -298,7 +290,7 @@ export const faqs = [
   {
     question: "Ich habe noch nie trainiert. Ist das ein Problem?",
     answer:
-      "Im Gegenteil, das ist der Normalfall. Der Anfängerkurs am Dienstag ist für komplette Anfänger gebaut. Du bekommst geduldige Trainingspartner und wirst am ersten Tag in kein hartes Sparring geworfen.",
+      "Im Gegenteil, das ist der Normalfall. BJJ Basic am Dienstag ist für komplette Anfänger gebaut. Du bekommst geduldige Trainingspartner und wirst am ersten Tag in kein hartes Sparring geworfen.",
   },
   {
     question: "Was brauche ich für die erste Einheit?",
@@ -313,7 +305,7 @@ export const faqs = [
   {
     question: "Wann kann ich als Anfänger einsteigen?",
     answer:
-      "Am Dienstag um 17:45 im Anfängerkurs. Ab dann bist du auch beim Intermediate am Donnerstag richtig, das baut direkt darauf auf. Die Matte ist übrigens schon ab 16:30 offen, wenn du vorher selbst drillen willst.",
+      "Am Dienstag um 19:05 bei BJJ Basic — No-Gi, für alle ohne Vorkenntnisse. Danach stehen dir Gi Training am Freitag, Sparring am Donnerstag und die Open Mat am Samstag offen, die sind für jedes Level. Die Matte ist übrigens schon ab 16:30 zum Drillen offen.",
   },
   {
     question: "Gibt es einen langen Vertrag?",

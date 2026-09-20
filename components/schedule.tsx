@@ -43,67 +43,53 @@ import ClickStack, { type ClickStackHandle } from "@/components/click-stack";
 import { useReducedMotion } from "@/lib/motion";
 
 /**
- * Die Legende sagt jetzt die EINSTIEGSSTUFE, nicht das Format.
+ * Die Palette aus dem Aushang.
  *
- * Vorher standen hier Gi / No-Gi / Kids / Open Mat. Das beantwortet die
- * zweite Frage ("was ziehe ich an") und nicht die erste ("darf ich da
- * überhaupt hin"). Der Trainerplan ist nach Stufen gebaut, also ist die
- * Seite es jetzt auch: die Farbe am linken Rand einer Einheit sagt, ab
- * welchem Level sie offen ist. Gi oder No-Gi steht als Notiz in der Zeile.
+ * Gefaerbt wird nach RICHTUNG, nicht nach Level — der Aushang sagt es selbst:
+ * "die Farbgruppe zeigt die Richtung, das Label das empfohlene Level". Fuenf
+ * Gruppen, innerhalb einer Gruppe abgestuft, alles aus der Tailwind-Rampe:
  *
- * Die drei BJJ-Stufen steigen in der Hitze der Palette an (Gold → Ember →
- * Zinnober). Fitness und Fitnessboxen sind kein BJJ und bekommen deshalb
- * bewusst kühle, entsättigte Töne — sie sollen sich aus der Stufenleiter
- * herausheben, nicht in ihr einsortiert wirken.
+ *   gruen  — Anfaenger & alle Level   (BJJ Basic, Gi/No-Gi Training, Open Mat)
+ *   rot    — Fortgeschrittene         (Advanced Training)
+ *   lila   — Ringen
+ *   blau   — Sparring & Wettkampf
+ *   orange — Boxen
+ *
+ * Eine 600er/700er-Stufe ist fuer helle Gruende gebaut, dieser Grund ist fast
+ * schwarz. Das wird nicht ueber die Farbe geloest, sondern ueber ihren
+ * Einsatz: sie traegt Flaechen (gefuelltes Chip mit weisser Schrift) und
+ * Linien, nie Kleinschrift.
  */
-/**
- * `tone` ist die Farbe der Stufe. Sie traegt den linken Rand und das Chip —
- * aber NICHT mehr die Uhrzeit: Zinnober (#d3202a) auf #07070a liegt bei rund
- * 3:1, und das in 10 px gesperrtem Mono war praktisch unlesbar. Die Zeit ist
- * die wichtigste Angabe der Zeile und steht deshalb jetzt in Vordergrundweiss.
- *
- * `ink` ist die Schrift AUF dem farbigen Chip: dunkel auf den hellen Toenen
- * (Gold, Ember), weiss auf den dunklen (Zinnober, Stahl). Ein gefuelltes Chip
- * traegt die Farbe zuverlaessiger als farbiger Text auf Schwarz — genau so
- * macht es auch der Plan des Trainers.
- */
-/**
- * Die Kursart-Palette. Sie kommt 1:1 aus dem Aushang, den Max gezeichnet hat.
- *
- * Es ist durchgehend die 700er-Stufe von Tailwind — green, teal, red, purple,
- * indigo, sky, fuchsia, lime, yellow, orange. Genau deshalb wirkt sie stimmig:
- * gleiche Helligkeit, gleiche Saettigung, zehn Farben aus einer Rampe statt
- * zehn einzeln gesuchte. Die Werte werden hier NICHT nachjustiert.
- *
- * Dass eine 700er-Stufe fuer helle Gruende gebaut ist und dieser Grund fast
- * schwarz ist, wird nicht ueber die Farbe geloest, sondern ueber ihren
- * Einsatz: sie traegt Flaechen (gefuelltes Chip, weisse Schrift darauf) und
- * Linien. Als farbige Kleinschrift auf #07070a wuerde sie durchfallen — das
- * war die Lehre aus der Zinnober-Runde. Deshalb bleibt jeder Text weiss.
- */
-const COURSE: Record<ScheduleClass["kind"], string> = {
-  anfaenger:    "#15803d", // green-700
-  intermediate: "#0f766e", // teal-700
-  advanced:     "#b91c1c", // red-700
-  ringen:       "#7e22ce", // purple-700
-  sparring:     "#4338ca", // indigo-700
-  special:      "#0369a1", // sky-700
-  wettkampf:    "#a21caf", // fuchsia-700
-  openmat:      "#4d7c0f", // lime-700
-  fitness:      "#a16207", // yellow-700
-  boxen:        "#c2410c", // orange-700
+const GROUPS = {
+  gruen:  { label: "Anfänger & alle Level", tone: "#16a34a" }, // green-600
+  rot:    { label: "Fortgeschrittene",      tone: "#b91c1c" }, // red-700
+  lila:   { label: "Ringen",                tone: "#7e22ce" }, // purple-700
+  blau:   { label: "Sparring & Wettkampf",  tone: "#1d4ed8" }, // blue-700
+  orange: { label: "Boxen",                 tone: "#d97706" }, // amber-600
+} as const;
+
+/** Kursart → Gruppe (fuer die Legende) und eigener Ton innerhalb der Gruppe. */
+const COURSE: Record<
+  ScheduleClass["kind"],
+  { tone: string; group: keyof typeof GROUPS }
+> = {
+  basic:     { tone: "#16a34a", group: "gruen"  }, // green-600
+  gi:        { tone: "#0f766e", group: "gruen"  }, // teal-700
+  nogi:      { tone: "#0d9488", group: "gruen"  }, // teal-600
+  openmat:   { tone: "#4d7c0f", group: "gruen"  }, // lime-700
+  advanced:  { tone: "#b91c1c", group: "rot"    }, // red-700
+  ringen:    { tone: "#7e22ce", group: "lila"   }, // purple-700
+  sparring:  { tone: "#1d4ed8", group: "blau"   }, // blue-700
+  wettkampf: { tone: "#0369a1", group: "blau"   }, // sky-700
+  boxen:     { tone: "#d97706", group: "orange" }, // amber-600
 };
 
-/**
- * Was im Chip steht. Der Text nennt das LEVEL, die Farbe die Kursart — auch
- * das ist die Aufteilung aus dem Aushang.
- */
+/** Was im Chip steht: das empfohlene Level, nicht die Kursart. */
 const LEVEL_LABEL: Record<ScheduleClass["level"], string> = {
-  anfaenger:    "ab Anfänger",
+  anfaenger:    "Anfänger",
+  jedes:        "Jedes Level",
   intermediate: "ab Intermediate",
   advanced:     "ab Advanced",
-  fitness:      "Fitness",
-  boxen:        "Boxen",
 };
 
 /* Die Schluessel hiessen frueher Mon/Tue/Wed — `schedule` liefert aber
@@ -153,7 +139,7 @@ function DayCard({ col }: { col: (typeof schedule)[number] }) {
       {/* class list */}
       <div className="flex flex-col gap-0 overflow-hidden">
         {col.classes.map((c, j) => {
-          const tone = COURSE[c.kind];
+          const tone = COURSE[c.kind].tone;
           return (
             <div
               key={`${c.time}-${j}`}
@@ -461,7 +447,7 @@ function Slot({
   c: ScheduleClass;
   onOpen: (programTitle: string) => void;
 }): ReactNode {
-  const tone = COURSE[c.kind];
+  const tone = COURSE[c.kind].tone;
   const label = LEVEL_LABEL[c.level];
   const openable = Boolean(c.program);
 
@@ -827,17 +813,30 @@ function Intro({ headingClass }: { headingClass: string }): ReactNode {
         className={headingClass}
       />
       <p className="mt-5 text-lg leading-relaxed text-foreground-dim">
-        Zwei Kurse an jedem Werktag, dazu Open Mat am Samstag. Auf jeder
-        Einheit steht, ab welchem Level sie offen ist — in den Anfängerkurs am
+        Zwei Kurse an jedem Werktag, dazu Open Mat am Samstag. Die Farbgruppe
+        zeigt die Richtung, das Label das empfohlene Level — zu BJJ Basic am
         Dienstag kannst du ohne alles hereinkommen. Klick auf eine Einheit,
         dann steht dort, was dich erwartet.
       </p>
-      {/* Die Farblegende ist raus.
-          Seit die Farbe die KURSART meint und nicht mehr das Level, erklaert
-          sie nichts, was nicht ohnehin dasteht: der Name der Kursart steht auf
-          jeder Karte, das Level im Chip. Eine Legende aus zehn Farbpunkten
-          haette eine breite Zeile gekostet, um zehnmal zu wiederholen, was
-          drei Zentimeter darunter im Klartext steht. */}
+      {/* Die Legende nennt die fuenf GRUPPEN, nicht die neun Kursarten.
+          Eine Liste aller Kursarten waere ueberfluessig — ihr Name steht auf
+          jeder Karte. Die Gruppe steht nirgends sonst, und sie ist die
+          Information: sie sagt, in welche Richtung eine Einheit geht. */}
+      <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3">
+        {Object.entries(GROUPS).map(([key, g]) => (
+          <span
+            key={key}
+            className="flex items-center gap-2.5 font-mono text-[0.68rem] font-medium uppercase tracking-[0.16em] text-muted-foreground"
+          >
+            <span
+              aria-hidden="true"
+              className="h-2.5 w-2.5"
+              style={{ background: g.tone, borderRadius: 2 }}
+            />
+            {g.label}
+          </span>
+        ))}
+      </div>
     </>
   );
 }
