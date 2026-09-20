@@ -31,7 +31,7 @@
  */
 
 import type { CSSProperties, ReactNode } from "react";
-import { useCallback, useId, useRef, useState } from "react";
+import { Fragment, useCallback, useId, useRef, useState } from "react";
 import { schedule, type ScheduleClass } from "@/lib/config";
 import { KanjiLabel } from "@/components/kanji-label";
 import StaggeredText from "@/components/staggered-text";
@@ -315,15 +315,187 @@ function ScheduleStack({
         {verb} Sie eine Karte oder einen Tag, um zu blättern.
       </p>
 
-      {/* Matte frei und Dehnen stehen absichtlich nicht als eigene Zeilen im
-          Plan: es sind keine Kurse, und als Zeitschienen wuerden sie jede
-          Tageskarte um die Haelfte verlaengern, um zweimal dasselbe zu sagen.
-          Als Fussnote sind sie einmal da und gelten fuer die ganze Woche. */}
-      <p className="mx-auto mt-6 max-w-md border-t border-border pt-4 text-center text-sm leading-relaxed text-foreground-dim">
-        Vor jedem Training ist die Matte frei zum Drillen — ab 16:30, dienstags
-        und donnerstags ab 16:45. Montag, Mittwoch und Freitag um 17:15
-        gemeinsames Dehnen für BJJ.
-      </p>
+      <MatFootnote className="mx-auto mt-6 max-w-md text-center" />
+    </div>
+  );
+}
+
+/**
+ * Matte frei und Dehnen stehen absichtlich nicht als eigene Zeilen im Plan:
+ * es sind keine Kurse, und als Zeitschienen wuerden sie jede Tageskarte um
+ * die Haelfte verlaengern, um zweimal dasselbe zu sagen. Als Fussnote sind
+ * sie einmal da und gelten fuer die ganze Woche — in beiden Layouts.
+ */
+function MatFootnote({ className = "" }: { className?: string }): ReactNode {
+  return (
+    <p
+      className={`border-t border-border pt-4 text-sm leading-relaxed text-foreground-dim ${className}`}
+    >
+      Vor jedem Training ist die Matte frei zum Drillen — ab 16:30, dienstags
+      und donnerstags ab 16:45. Montag, Mittwoch und Freitag um 17:15
+      gemeinsames Dehnen für BJJ.
+    </p>
+  );
+}
+
+// ---- Wochenraster (nur ab md) --------------------------------------------
+
+/**
+ * Am Desktop ist der Kartenstapel die falsche Form.
+ *
+ * Die Kernfrage eines Stundenplans ist ein VERGLEICH — "wann kann ich?"
+ * heisst, sechs Tage gegeneinander zu halten. Ein Stapel zeigt einen Tag und
+ * verbirgt fuenf, der Vergleich muss also im Kopf des Besuchers ueber sechs
+ * Klicks hinweg passieren. Auf 1400 px passen fuenf Tage zu je zwei Kursen
+ * muehelos nebeneinander; genau so ist auch der Plan aufgebaut, den der
+ * Trainer aushaengt.
+ *
+ * Am Handy bleibt der Stapel: dort ist Flaeche knapp, und ein Raster aus
+ * fuenf Spalten waere entweder unlesbar klein oder seitlich zu schieben.
+ *
+ * Beide Layouts lesen dieselbe `schedule` aus lib/config.ts — hier wird sie
+ * nur anders aufgeteilt: die Werktage tragen je zwei Kurse in festen
+ * Zeitschienen, der Samstag steht als eigenes Band darunter.
+ */
+const WEEKDAYS = schedule.filter((c) => c.day !== "Sa");
+const SATURDAY = schedule.find((c) => c.day === "Sa");
+
+/** Die Zeitschienen stehen einmal links am Rand statt in jeder Karte. Die
+ *  Zeiten kommen aus den Daten, nicht aus dem Markup, damit eine Planaenderung
+ *  in lib/config.ts genuegt. */
+const RAIL_LABEL = ["1. Kurs", "2. Kurs"];
+
+function GridCard({ c }: { c: ScheduleClass }): ReactNode {
+  const k = KIND[c.kind];
+  return (
+    <div
+      className="flex min-h-[7.5rem] flex-col gap-1.5 px-4 pt-[18px] pb-4"
+      style={{
+        background: "var(--card-plate)",
+        borderTop: `2px solid ${k.tone}`,
+      } as CSSProperties}
+    >
+      <span className="text-[1.05rem] font-semibold leading-tight text-foreground">
+        {c.name}
+      </span>
+      {c.note ? (
+        <span className="flex-grow text-[0.78rem] leading-relaxed text-foreground-dim">
+          {c.note}
+        </span>
+      ) : (
+        <span className="flex-grow" />
+      )}
+      <span
+        className="inline-flex w-fit items-center px-1.5 py-[3px] text-[0.6rem] font-semibold uppercase tracking-[0.12em]"
+        style={{ background: k.tone, color: k.ink, borderRadius: 3 }}
+      >
+        {k.label}
+      </span>
+    </div>
+  );
+}
+
+function Rail({ index }: { index: number }): ReactNode {
+  const time = WEEKDAYS[0]?.classes[index]?.time ?? "";
+  return (
+    <div className="flex flex-col justify-center gap-1.5 pr-4">
+      <span className="font-mono text-[0.68rem] font-medium uppercase tracking-[0.18em] text-accent">
+        {RAIL_LABEL[index]}
+      </span>
+      <span
+        className="font-mono text-[1.15rem] font-medium text-foreground"
+        style={{ fontVariantNumeric: "tabular-nums" }}
+      >
+        {time}
+      </span>
+    </div>
+  );
+}
+
+function WeekGrid(): ReactNode {
+  const sat = SATURDAY?.classes[0];
+  const satKind = sat ? KIND[sat.kind] : null;
+
+  return (
+    <div className="mt-12">
+      <div
+        className="grid gap-2.5"
+        style={{ gridTemplateColumns: "150px repeat(5, minmax(0, 1fr))" }}
+      >
+        {/* Kopfzeile */}
+        <div />
+        {WEEKDAYS.map((col) => (
+          <div
+            key={col.day}
+            className="flex items-baseline gap-2.5 border-b border-border pb-2.5"
+          >
+            <span className="text-[1.35rem] font-semibold text-foreground">
+              {col.day}
+            </span>
+            <span className="text-[0.68rem] uppercase tracking-[0.16em] text-muted-foreground">
+              {DAY_FULL[col.day] ?? col.day}
+            </span>
+          </div>
+        ))}
+
+        {/* Die beiden Kursschienen */}
+        {[0, 1].map((slot) => (
+          <Fragment key={slot}>
+            <Rail index={slot} />
+            {WEEKDAYS.map((col) => {
+              const c = col.classes[slot];
+              return c ? (
+                <GridCard key={`${col.day}-${slot}`} c={c} />
+              ) : (
+                <div key={`${col.day}-${slot}`} />
+              );
+            })}
+          </Fragment>
+        ))}
+      </div>
+
+      {/* Samstag als Band: eine einzelne Einheit in einer eigenen Rasterzeile
+          haette vier leere Spalten neben sich stehen lassen. */}
+      {sat && satKind ? (
+        <div
+          className="mt-2.5 flex items-center gap-7 px-6 py-5"
+          style={{
+            background: "var(--card-plate)",
+            borderLeft: `3px solid ${satKind.tone}`,
+          } as CSSProperties}
+        >
+          <div className="flex min-w-[8rem] flex-col gap-1">
+            <span
+              className="font-mono text-[0.68rem] font-medium uppercase tracking-[0.18em]"
+              style={{ color: satKind.tone }}
+            >
+              Samstag
+            </span>
+            <span
+              className="font-mono text-[1.15rem] font-medium text-foreground"
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
+              {sat.time}
+            </span>
+          </div>
+          <div className="flex flex-grow flex-col gap-1">
+            <span className="text-[1.15rem] font-semibold text-foreground">
+              {sat.name}
+            </span>
+            {sat.note ? (
+              <span className="text-[0.8rem] text-foreground-dim">{sat.note}</span>
+            ) : null}
+          </div>
+          <span
+            className="inline-flex w-fit shrink-0 items-center px-2 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.12em]"
+            style={{ background: satKind.tone, color: satKind.ink, borderRadius: 3 }}
+          >
+            {satKind.label}
+          </span>
+        </div>
+      ) : null}
+
+      <MatFootnote className="mt-8" />
     </div>
   );
 }
@@ -382,27 +554,12 @@ export function Schedule() {
           </div>
         </div>
 
-        {/* Desktop: side-by-side */}
-        <div className="hidden md:flex md:items-center md:gap-12 lg:gap-20">
-
-          {/* Left: text */}
-          <div className="shrink-0 md:w-[42%]">
-            <Intro headingClass="jjk-section-title" />
-          </div>
-
-          {/* Right: cards */}
-          <div className="flex-1">
-            <ScheduleStack
-              cardWidth={320}
-              cardHeight={460}
-              spreadX={26}
-              spreadY={-22}
-              shadowBlur={50}
-              stackClassName="h-[540px]"
-              verb="Klicken"
-            />
-          </div>
-
+        {/* Desktop: Intro oben, darunter das volle Wochenraster.
+            Das Nebeneinander aus Text und Kartenstapel ist weg — es gab dem
+            Stapel 58 % der Breite fuer genau einen sichtbaren Tag. */}
+        <div className="hidden md:block">
+          <Intro headingClass="jjk-section-title max-w-3xl" />
+          <WeekGrid />
         </div>
 
       </div>

@@ -138,11 +138,11 @@ export const programs = [
     tag: "Kraft",
   },
   {
-    title: "Fitnessboxen",
+    title: "Boxen",
     kanji: "拳闘",
     level: "Alle Stufen",
     blurb:
-      "Freitag. Boxtechnik, Pratzen, Kondition.",
+      "Freitag. Boxtechnik, Pratzen und Partnerübungen.",
     tag: "Boxen",
   },
   {
@@ -210,7 +210,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
     day: "Fr",
     classes: [
       { time: "17:45–19:00", name: "Advanced Training", note: "Gi", kind: "advanced" },
-      { time: "19:05–20:20", name: "Fitnessboxen", note: "Boxtechnik, Pratzen & Kondition", kind: "boxen" },
+      { time: "19:05–20:20", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", kind: "boxen" },
     ],
   },
   {
