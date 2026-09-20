@@ -3916,19 +3916,114 @@ p,
   }
 }
 
+/* Eine Spalte.
+   `--border` ist der Grund des Panels und scheint durch die Ein-Pixel-Fugen;
+   die Spalte selbst braucht deshalb einen eigenen, deckenden Grund, sonst ist
+   nicht das Raster gefugt, sondern die ganze Flaeche rahmenfarben.
+
+   Die Unterteilung arbeitet auf drei Stufen, absichtlich in dieser Reihenfolge:
+     1. immer sichtbar — jede zweite Spalte steht einen Hauch tiefer im Ton.
+        Zebra ist die aelteste Tabellenhilfe, die es gibt, und sie kostet keine
+        Aufmerksamkeit, weil man sie nicht bewusst bemerkt.
+     2. immer sichtbar — jede Spalte traegt ihr Wochentag-Kanji als
+        Wasserzeichen, also ein eigenes Zeichen pro Spalte statt nur einer
+        Position im Raster.
+     3. beim Zeigen — der Grund hebt sich, das Kanji glimmt an, und oben faehrt
+        eine Linie in Zinnober/Glut auf. Kein Lichtkegel, der ueber die Tabelle
+        wandert, sondern GENAU die Spalte, auf der man steht. */
 .jjk-day {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 15rem;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--card-plate);
+  transition: background 0.35s ease-out;
+}
+.jjk-day:nth-child(2n) {
+  background: color-mix(in srgb, var(--card-plate) 66%, var(--background-deep));
+}
+.jjk-day:hover {
+  background: var(--card-plate-hot);
+}
+/* Die Linie oben. Sie faehrt von links auf, wie die Unterstreichung an
+   .jjk-btn — dieselbe Geste, damit die Seite eine Sprache spricht. */
+.jjk-day::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  height: 2px;
+  transform-origin: left;
+  scale: 0 1;
+  background: linear-gradient(90deg, var(--accent), var(--ember-hot));
+  transition: scale 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.jjk-day:hover::after {
+  scale: 1 1;
+}
+
+/* Das Wochentag-Kanji, gross und fast unsichtbar hinter der Spalte. */
+.jjk-day-glyph {
+  position: absolute;
+  right: -0.08em;
+  bottom: -0.14em;
+  z-index: 0;
+  line-height: 0.78;
+  font-family: var(--font-jp);
+  font-size: clamp(4rem, 6vw, 6.5rem);
+  color: rgba(243, 239, 233, 0.04);
+  pointer-events: none;
+  user-select: none;
+  transition: color 0.5s ease-out;
+}
+.jjk-day:hover .jjk-day-glyph {
+  color: rgba(255, 106, 31, 0.13);
+}
+.jjk-day:hover .jjk-day-name {
+  color: var(--ember-hot);
+}
+
+/* Der laufende Tag.
+   Die einzige Idee, die ich aus dem scheduling-6-Block von React Bits
+   uebernommen habe — dort steckt sie in 699 Zeilen Stundenschiene fuer frei
+   positionierte Termine, was dieser Plan nicht braucht. Die Frage "was laeuft
+   heute Abend?" ist aber genau die, mit der jemand einen Gym-Stundenplan
+   aufmacht, und die Antwort kostet hier eine Spalte in Farbe.
+   Schwaecher als der Hover-Zustand, sonst konkurrieren die beiden. */
+.jjk-day[data-today="true"] {
+  background: color-mix(in srgb, var(--accent) 6%, var(--card-plate));
+}
+.jjk-day[data-today="true"]::after {
+  scale: 1 1;
+  opacity: 0.5;
+}
+.jjk-day[data-today="true"]:hover::after {
+  opacity: 1;
+}
+.jjk-day-today {
+  display: block;
+  margin-top: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  text-transform: uppercase;
+  color: var(--ember-hot);
 }
 
 .jjk-day-head {
+  position: relative;
+  z-index: 1;
   padding: 1.1rem 1rem 0.9rem;
   text-align: center;
   border-bottom: 1px solid var(--border);
 }
 .jjk-day-name {
   display: block;
+  transition: color 0.3s ease-out;
   font-family: var(--font-display);
   font-size: 1.4rem;
   font-weight: 600;
@@ -3953,6 +4048,7 @@ p,
    times over. */
 .jjk-slot {
   position: relative;
+  z-index: 1;
   padding: 0.7rem 0.9rem 0.75rem 1.05rem;
   transition: background 0.3s ease-out;
 }
@@ -4365,13 +4461,6 @@ p,
 .jjk-spot > *:not(.jjk-spot-pool) {
   position: relative;
   z-index: 1;
-}
-
-/* The grid's own ground has to stop being opaque, or the light behind it never
-   reaches the gaps and the whole effect is invisible. Half alpha: the lines are
-   still lines when the pointer is elsewhere. */
-.jjk-spot .jjk-week {
-  background: color-mix(in srgb, var(--border) 34%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -40,7 +40,6 @@ import { programs, schedule, type ScheduleClass } from "@/lib/config";
 import { KanjiLabel } from "@/components/kanji-label";
 import StaggeredText from "@/components/staggered-text";
 import ClickStack, { type ClickStackHandle } from "@/components/click-stack";
-import SpotlightGrid from "@/components/spotlight-grid";
 import { useReducedMotion } from "@/lib/motion";
 
 /**
@@ -368,8 +367,9 @@ function MatFootnote({ className = "" }: { className?: string }): ReactNode {
  * statt sechs nebeneinandergelegter Karten — Ein-Pixel-Fugen ueber einem Grund
  * in Rahmenfarbe. Sechs Dinge nebeneinander sind sechs Dinge; sechs Dinge, die
  * sich ein Raster teilen, sind ein Stundenplan. Dort steht auch schon die
- * Verdrahtung mit dem Spotlight (`.jjk-spot .jjk-week` macht den Grund
- * halbtransparent, sonst kaeme das Licht nie durch die Fugen).
+ * Ein cursorgefuehrtes Licht lag kurz darueber und ist wieder raus: ueber
+ * einer Tabelle hebt ein Lichtkegel immer die Stelle hervor, an der der Zeiger
+ * steht, und das ist beim Suchen nie die Stelle, die man sucht.
  *
  * Diese Sektion hat ausserdem die frueheren Programm-Karten aufgesogen. Die
  * sagten dasselbe ein zweites Mal — einmal nach Programm sortiert, einmal nach
@@ -712,7 +712,24 @@ function TiltPlate({ children }: { children: ReactNode }): ReactNode {
   );
 }
 
+/** Reihenfolge von `Date.getDay()`: 0 ist Sonntag. */
+const WEEKDAY_KEYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+
 function WeekPanel(): ReactNode {
+  // Welcher Tag heute ist, darf NICHT beim Serverrendern entschieden werden:
+  // der Server steht in UTC, der Besucher in Europe/Vienna, und um 23:30 Uhr
+  // waeren das zwei verschiedene Tage — Hydration-Mismatch. Also erst im
+  // Browser, und ueber einen Timeout statt direkt im Effect, damit daraus
+  // keine Kaskadenrenderung wird.
+  const [today, setToday] = useState<string | null>(null);
+  useEffect(() => {
+    const t = window.setTimeout(
+      () => setToday(WEEKDAY_KEYS[new Date().getDay()] ?? null),
+      0,
+    );
+    return () => window.clearTimeout(t);
+  }, []);
+
   const [open, setOpen] = useState<string | null>(null);
   const onOpen = useCallback((t: string) => setOpen(t), []);
   const onClose = useCallback(() => setOpen(null), []);
@@ -720,16 +737,33 @@ function WeekPanel(): ReactNode {
 
   return (
     <div className="mt-12">
-      <SpotlightGrid radius={330} intensity={0.55}>
-        <TiltPlate>
+      {/* Das cursorgefuehrte Licht (SpotlightGrid) lag hier und ist wieder
+          raus. Ueber einer Bildwand funktioniert ein Lichtkegel, ueber einer
+          Tabelle nicht: er hebt hervor, wo der Zeiger gerade steht, und das
+          ist beim Suchen nie die Stelle, die man sucht. Die Unterteilung der
+          Tage traegt jetzt die Flaeche selbst — Zebra als Grundton, Spalte
+          unter dem Zeiger hebt sich, Kanji leuchtet auf. */}
+      <TiltPlate>
           <div className="jjk-week">
             {schedule.map((col) => (
-              <div key={col.day} className="jjk-day">
+              <div
+                key={col.day}
+                className="jjk-day"
+                data-today={col.day === today ? "true" : undefined}
+              >
+                {/* Das Wochentag-Kanji stand frueher als 0,68-rem-Zeile unter
+                    dem Namen. Als Wasserzeichen hinter der ganzen Spalte tut es
+                    mehr: es gibt jeder Spalte ein eigenes Zeichen, ohne eine
+                    Zeile zu kosten, und es ist dieselbe Geste wie bei den
+                    Namenstafeln (.jjk-name-glyph). */}
+                <span className="jjk-day-glyph" lang="ja" aria-hidden="true">
+                  {DAY_JP[col.day] ?? ""}
+                </span>
                 <div className="jjk-day-head">
                   <span className="jjk-day-name">{DAY_FULL[col.day] ?? col.day}</span>
-                  <span className="jjk-day-jp" lang="ja" aria-hidden="true">
-                    {DAY_JP[col.day] ?? ""}
-                  </span>
+                  {col.day === today ? (
+                    <span className="jjk-day-today">Heute</span>
+                  ) : null}
                 </div>
                 {col.classes.map((c, j) => (
                   <Slot key={`${c.time}-${j}`} c={c} onOpen={onOpen} />
@@ -743,8 +777,7 @@ function WeekPanel(): ReactNode {
               </div>
             ))}
           </div>
-        </TiltPlate>
-      </SpotlightGrid>
+      </TiltPlate>
 
       <MatFootnote className="mt-8" />
       <ProgramSheet detail={detail} onClose={onClose} />
