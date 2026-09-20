@@ -75,7 +75,7 @@ export default function ImpressumPage(): ReactNode {
 
           <dt>Vereinssitz</dt>
           <dd>
-            <Todo>VEREINSSITZ — politische Gemeinde laut Statuten, z. B. Graz</Todo>
+            <Todo>VEREINSSITZ: politische Gemeinde laut Statuten, z. B. Graz</Todo>
           </dd>
 
           <dt>Anschrift</dt>
@@ -112,7 +112,7 @@ export default function ImpressumPage(): ReactNode {
 
           <dt>Stellvertretung</dt>
           <dd>
-            <Todo>STELLVERTRETUNG — oder diese Zeile streichen, falls es keine gibt</Todo>
+            <Todo>STELLVERTRETUNG: oder diese Zeile streichen, falls es keine gibt</Todo>
           </dd>
         </dl>
       </section>
@@ -152,7 +152,7 @@ export default function ImpressumPage(): ReactNode {
         <h3>Vereinszweck</h3>
         <p>
           <Todo>
-            VEREINSZWECK LAUT STATUTEN — der Wortlaut aus dem Statutenpunkt
+            VEREINSZWECK LAUT STATUTEN: der Wortlaut aus dem Statutenpunkt
             &bdquo;Zweck&ldquo;, sinngemäß übernommen
           </Todo>
         </p>
@@ -180,7 +180,7 @@ export default function ImpressumPage(): ReactNode {
           <dt>Behörde</dt>
           <dd>
             <Todo>
-              VEREINSBEHÖRDE LAUT VEREINSREGISTERAUSZUG — bei Vereinssitz in
+              VEREINSBEHÖRDE LAUT VEREINSREGISTERAUSZUG: bei Vereinssitz in
               Graz üblicherweise die Landespolizeidirektion Steiermark
             </Todo>
           </dd>
@@ -201,7 +201,7 @@ export default function ImpressumPage(): ReactNode {
         <h2>Umsatzsteuer</h2>
         <p>
           <Todo>
-            UID-NUMMER, falls der Verein umsatzsteuerpflichtig ist — sonst
+            UID-NUMMER, falls der Verein umsatzsteuerpflichtig ist: sonst
             diesen Abschnitt ganz entfernen
           </Todo>
         </p>

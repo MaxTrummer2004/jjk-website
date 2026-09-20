@@ -15,7 +15,7 @@ import { useRef, type ReactNode } from "react";
  * is ours.
  */
 const STATEMENT =
-  "Almost easy is not easy. Jiu-Jitsu Kaisen was built for the last one percent — the grip that doesn't slip, the frame that holds, the escape you find under real pressure. Every class is live rolling. You only ever get better.";
+  "Almost easy is not easy. Jiu-Jitsu Kaisen was built for the last one percent: the grip that doesn't slip, the frame that holds, the escape you find under real pressure. Every class is live rolling. You only ever get better.";
 
 const WORDS = STATEMENT.split(" ");
 

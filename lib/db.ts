@@ -30,7 +30,7 @@ function getConnectionString(): string {
   if (!url) {
     throw new Error(
       "Keine Datenbank-Verbindung gefunden (DATABASE_URL bzw. POSTGRES_URL " +
-        "fehlt). In Vercel unter Storage eine Postgres-Datenbank anlegen — " +
+        "fehlt). In Vercel unter Storage eine Postgres-Datenbank anlegen: " +
         "die Env-Var wird dann automatisch gesetzt."
     );
   }

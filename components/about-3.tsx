@@ -30,28 +30,28 @@ const items: Item[] = [
     titleUp: "On The",
     titleDown: "Mats",
     image: "/img/hand-sign-1.jpg",
-    description: "Built on the Gracie lineage since 2010. World-class technical coaching, open mats, seminars — everything you need to grow, whatever your level.",
+    description: "Built on the Gracie lineage since 2010. World-class technical coaching, open mats, seminars: everything you need to grow, whatever your level.",
   },
   {
     id: "2",
     titleUp: "Your",
     titleDown: "Team",
     image: "/img/hand-sign-2.jpg",
-    description: "A room full of people who actually want you to succeed. No ego, no gatekeeping — just a tight-knit community that shows up for each other on and off the mats.",
+    description: "A room full of people who actually want you to succeed. No ego, no gatekeeping: just a tight-knit community that shows up for each other on and off the mats.",
   },
   {
     id: "3",
     titleUp: "Every",
     titleDown: "Belt",
     image: "/img/hand-sign-3.jpg",
-    description: "One curriculum from white to black. You always know what you are working on, why it matters, and what the next rung looks like — no guesswork, no filler.",
+    description: "One curriculum from white to black. You always know what you are working on, why it matters, and what the next rung looks like: no guesswork, no filler.",
   },
   {
     id: "4",
     titleUp: "Show",
     titleDown: "Up",
     image: "/img/hand-sign-4.jpg",
-    description: "The only technique that never fails. Six nights a week, doors open, mat swept — the rest is just turning up often enough for it to become who you are.",
+    description: "The only technique that never fails. Six nights a week, doors open, mat swept: the rest is just turning up often enough for it to become who you are.",
   },
 ];
 

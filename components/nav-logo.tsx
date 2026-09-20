@@ -12,7 +12,7 @@ export function NavLogo(): ReactNode {
 
   const href = isDesktop ? "#top" : "/mitglieder";
   const label = isDesktop
-    ? "JJK — Jiu-Jitsu Kaisen Academy"
+    ? "JJK: Jiu-Jitsu Kaisen Academy"
     : "Für Mitglieder";
 
   const handleClick = isDesktop

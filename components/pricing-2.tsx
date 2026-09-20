@@ -91,10 +91,6 @@ export default function Pricing2() {
             </motion.div>
           ))}
         </div>
-
-        <p className="mt-8 text-base text-muted-foreground">
-          Schüler, Studenten und unter 18 trainieren ermäßigt. Frag einfach bei uns nach.
-        </p>
       </div>
     </section>
   );

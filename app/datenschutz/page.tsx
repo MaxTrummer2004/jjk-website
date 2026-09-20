@@ -53,7 +53,7 @@ export default function DatenschutzPage(): ReactNode {
         <strong>An den Auftraggeber</strong>
         Jede rot markierte Stelle ist ein Platzhalter. Die Beschreibungen der
         Verarbeitung selbst sind aus dem Code abgelesen und stimmen mit dem
-        überein, was die Anwendung tatsächlich tut — wenn sich der
+        überein, was die Anwendung tatsächlich tut: wenn sich der
         Mitgliederbereich ändert, muss diese Seite mitgeändert werden.
       </div>
 
@@ -156,14 +156,14 @@ export default function DatenschutzPage(): ReactNode {
 
           <dt>Rechtsgrundlage</dt>
           <dd>
-            Art. 6 Abs. 1 lit. f DSGVO — berechtigtes Interesse am sicheren und
+            Art. 6 Abs. 1 lit. f DSGVO: berechtigtes Interesse am sicheren und
             störungsfreien Betrieb der Website.
           </dd>
 
           <dt>Speicherdauer</dt>
           <dd>
             <Todo>
-              AUFBEWAHRUNGSDAUER DER SERVER-LOGS laut Vercel-Plan — im
+              AUFBEWAHRUNGSDAUER DER SERVER-LOGS laut Vercel-Plan: im
               Vercel-Dashboard unter Observability nachsehen
             </Todo>
           </dd>
@@ -186,26 +186,26 @@ export default function DatenschutzPage(): ReactNode {
         <h3>Welche Daten gespeichert werden</h3>
         <ul>
           <li>
-            <strong>Name</strong> — frei gewählt bei der Registrierung, dient
+            <strong>Name</strong>: frei gewählt bei der Registrierung, dient
             der Zuordnung im Training.
           </li>
           <li>
-            <strong>Benutzername</strong> — frei gewählt, dient dem Login.
+            <strong>Benutzername</strong>: frei gewählt, dient dem Login.
           </li>
           <li>
-            <strong>Passwort</strong> — wird <strong>nicht</strong> gespeichert.
+            <strong>Passwort</strong>: wird <strong>nicht</strong> gespeichert.
             Gespeichert wird ausschließlich ein Hash, der mit dem Verfahren
             bcrypt (Kostenfaktor 10, mit individuellem Salt) berechnet wird. Aus
             diesem Hash lässt sich das Passwort nicht zurückrechnen; auch der
             Verein kann Ihr Passwort nicht einsehen.
           </li>
           <li>
-            <strong>Beitrittsdatum des Kontos</strong> — das Datum der
+            <strong>Beitrittsdatum des Kontos</strong>: das Datum der
             Registrierung. Es ist der Startpunkt, ab dem die Anwesenheitsquote
             gerechnet wird.
           </li>
           <li>
-            <strong>Anwesenheitseinträge</strong> — je Trainingstag ein Eintrag
+            <strong>Anwesenheitseinträge</strong>: je Trainingstag ein Eintrag
             mit der Angabe anwesend oder nicht anwesend, dem Trainingsdatum und
             dem Zeitpunkt der Eintragung. Die Eintragung erfolgt durch das
             Mitglied selbst.
@@ -222,7 +222,7 @@ export default function DatenschutzPage(): ReactNode {
           Der Mitgliederbereich enthält eine Rangliste. Jedes eingeloggte
           Mitglied sieht darin <strong>Name, Benutzername und
           Anwesenheitsquote aller anderen Mitglieder</strong>. Das ist die
-          Funktion des Bereichs und keine Panne — wer sich registriert, macht
+          Funktion des Bereichs und keine Panne: wer sich registriert, macht
           seine Trainingsanwesenheit für die übrigen Mitglieder sichtbar. Für
           Personen ohne Konto ist nichts davon zugänglich.
         </p>
@@ -237,7 +237,7 @@ export default function DatenschutzPage(): ReactNode {
 
           <dt>Rechtsgrundlage</dt>
           <dd>
-            Art. 6 Abs. 1 lit. b DSGVO — die Verarbeitung erfolgt zur
+            Art. 6 Abs. 1 lit. b DSGVO: die Verarbeitung erfolgt zur
             Durchführung des Mitgliedschaftsverhältnisses, dessen Teil die
             Teilnahme am Training ist. Soweit die Nutzung des Bereichs
             freiwillig über das Mitgliedschaftsverhältnis hinausgeht, stützt
@@ -266,7 +266,7 @@ export default function DatenschutzPage(): ReactNode {
         <h3>Speicherdauer</h3>
         <p>
           <Todo>
-            AUFBEWAHRUNGSFRIST FÜR KONTEN UND ANWESENHEITSEINTRÄGE festlegen —
+            AUFBEWAHRUNGSFRIST FÜR KONTEN UND ANWESENHEITSEINTRÄGE festlegen:
             z. B. Löschung des Kontos samt Einträgen binnen X Monaten nach
             Austritt oder auf Wunsch
           </Todo>
@@ -324,7 +324,7 @@ export default function DatenschutzPage(): ReactNode {
           </dd>
         </dl>
         <p>
-          Weitere Cookies werden nicht gesetzt — insbesondere keine für Analyse,
+          Weitere Cookies werden nicht gesetzt: insbesondere keine für Analyse,
           Reichweitenmessung oder Werbung.
         </p>
       </section>
@@ -388,7 +388,7 @@ export default function DatenschutzPage(): ReactNode {
           <dt>Serverstandort</dt>
           <dd>
             <Todo>
-              REGION DER NEON-DATENBANK — im Neon-Dashboard beim Projekt
+              REGION DER NEON-DATENBANK: im Neon-Dashboard beim Projekt
               ablesen, z. B. eu-central-1 (Frankfurt)
             </Todo>
           </dd>
@@ -484,22 +484,22 @@ export default function DatenschutzPage(): ReactNode {
         <p>Nach der DSGVO stehen Ihnen gegenüber dem Verein folgende Rechte zu:</p>
         <ul>
           <li>
-            <strong>Auskunft</strong> (Art. 15 DSGVO) — welche Daten über Sie
+            <strong>Auskunft</strong> (Art. 15 DSGVO): welche Daten über Sie
             gespeichert sind, woher sie stammen und wer sie erhält.
           </li>
           <li>
-            <strong>Berichtigung</strong> (Art. 16 DSGVO) — unrichtige Daten
+            <strong>Berichtigung</strong> (Art. 16 DSGVO): unrichtige Daten
             richtigstellen zu lassen.
           </li>
           <li>
-            <strong>Löschung</strong> (Art. 17 DSGVO) — Ihre Daten löschen zu
+            <strong>Löschung</strong> (Art. 17 DSGVO): Ihre Daten löschen zu
             lassen, soweit keine Aufbewahrungspflicht entgegensteht.
           </li>
           <li>
             <strong>Einschränkung der Verarbeitung</strong> (Art. 18 DSGVO).
           </li>
           <li>
-            <strong>Datenübertragbarkeit</strong> (Art. 20 DSGVO) — Ihre Daten in
+            <strong>Datenübertragbarkeit</strong> (Art. 20 DSGVO): Ihre Daten in
             einem gängigen, maschinenlesbaren Format zu erhalten.
           </li>
           <li>

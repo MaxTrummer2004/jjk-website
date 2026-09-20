@@ -237,7 +237,7 @@ export function PaperOpening(): ReactNode {
         </div>
 
         <h1 className="sr-only">
-          {siteConfig.fullName} — Brazilian Jiu-Jitsu in Graz
+          {siteConfig.fullName}: Brazilian Jiu-Jitsu in Graz
         </h1>
 
         {/* Das Wenige, was neben der Gravur stehen darf. Klein, an den Rand

@@ -536,7 +536,7 @@ const ClickStack: React.FC<ClickStackProps> = ({
       onKeyDown={onKeyDown}
       role="group"
       tabIndex={0}
-      aria-label={ariaLabel ?? "Kartenstapel — mit den Pfeiltasten blättern"}
+      aria-label={ariaLabel ?? "Kartenstapel: mit den Pfeiltasten blättern"}
       className={cn(
         "relative flex h-full w-full items-center justify-center overflow-hidden",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",

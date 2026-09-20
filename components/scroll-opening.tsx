@@ -207,7 +207,7 @@ export function ScrollOpening(): ReactNode {
       </div>
 
       <h1 className="sr-only">
-        {siteConfig.fullName} — Brazilian Jiu-Jitsu in Graz
+        {siteConfig.fullName}: Brazilian Jiu-Jitsu in Graz
       </h1>
 
       {/* Mounted once the fire is up, so KanjiTitle's own draw clock starts
@@ -265,7 +265,7 @@ export function ScrollOpening(): ReactNode {
           type="button"
           className="jjk-scroll-cue"
           onClick={leave}
-          aria-label="Weiter — das Feuer erlischt"
+          aria-label="Weiter: das Feuer erlischt"
         >
           <span className="jjk-scroll-cue-jp" lang="ja" aria-hidden="true">
             つづく

@@ -62,7 +62,7 @@ export const reasons = [
   },
   {
     label: "Conditioning",
-    claim: "Functional conditioning — get in the best shape of your life",
+    claim: "Functional conditioning: get in the best shape of your life",
     image: "/img/mock-3.jpg",
   },
   {
@@ -86,7 +86,7 @@ export const programs = [
     kanji: "基本",
     level: "Ohne Vorkenntnisse",
     blurb:
-      "Dienstag, No-Gi. Hier fängst du an — Vorkenntnisse braucht es keine.",
+      "Dienstag, No-Gi. Hier fängst du an: Vorkenntnisse braucht es keine.",
     tag: "Einsteiger",
   },
   {
@@ -102,7 +102,7 @@ export const programs = [
     kanji: "寝技",
     level: "Ab Intermediate",
     blurb:
-      "Montag. Technik und Sparring ohne Gi — schnell, viel Scrambles.",
+      "Montag. Technik und Sparring ohne Gi: schnell, viel Scrambles.",
     tag: "No-Gi",
   },
   {
@@ -126,7 +126,7 @@ export const programs = [
     kanji: "乱取",
     level: "Jedes Level",
     blurb:
-      "Donnerstag. Freies Rollen, kein Unterricht — nur Mattenzeit.",
+      "Donnerstag. Freies Rollen, kein Unterricht: nur Mattenzeit.",
     tag: "Rollen",
   },
   {
@@ -305,7 +305,7 @@ export const faqs = [
   {
     question: "Wann kann ich als Anfänger einsteigen?",
     answer:
-      "Am Dienstag um 19:05 bei BJJ Basic — No-Gi, für alle ohne Vorkenntnisse. Danach stehen dir Gi Training am Freitag, Sparring am Donnerstag und die Open Mat am Samstag offen, die sind für jedes Level. Die Matte ist übrigens schon ab 16:30 zum Drillen offen.",
+      "Am Dienstag um 19:05 bei BJJ Basic: No-Gi, für alle ohne Vorkenntnisse. Danach stehen dir Gi Training am Freitag, Sparring am Donnerstag und die Open Mat am Samstag offen, die sind für jedes Level. Die Matte ist übrigens schon ab 16:30 zum Drillen offen.",
   },
   {
     question: "Gibt es einen langen Vertrag?",

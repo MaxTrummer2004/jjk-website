@@ -166,7 +166,7 @@ function DayCard({ col }: { col: (typeof schedule)[number] }) {
                 <span className="text-foreground-dim text-[0.72rem] leading-snug">
                   {c.note}
                 </span>
-              ) : null}
+              ): null}
               <span
                 className="mt-2 inline-flex w-fit items-center px-1.5 py-[3px] text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-white"
                 style={{ background: tone, borderRadius: 3 }}
@@ -233,13 +233,6 @@ interface StackProps {
   shadowBlur: number;
   /** Hoehe des Bereichs, in dem der Stapel liegt */
   stackClassName: string;
-  /**
-   * "Tippen" oder "Klicken". Breitenabhaengig, nicht geraeteabhaengig: die
-   * Komponente wird einmal unter `md:hidden` und einmal unter `hidden md:flex`
-   * gerendert, also entscheidet dieselbe Medienabfrage, die auch das Layout
-   * entscheidet. "Klicken" auf einem Handy ist schlicht das falsche Wort.
-   */
-  verb: "Tippen" | "Klicken";
 }
 
 function ScheduleStack({
@@ -249,7 +242,6 @@ function ScheduleStack({
   spreadY,
   shadowBlur,
   stackClassName,
-  verb,
 }: StackProps): ReactNode {
   const [index, setIndex] = useState(0);
   const controller = useRef<ClickStackHandle | null>(null);
@@ -294,7 +286,7 @@ function ScheduleStack({
               key={col.day}
               type="button"
               onClick={() => controller.current?.goTo(i)}
-              aria-current={active ? "true" : undefined}
+              aria-current={active ? "true": undefined}
               aria-label={DAY_FULL[col.day] ?? col.day}
               className={[
                 "relative flex h-11 min-w-11 items-center justify-center px-1.5 font-mono text-[0.78rem] font-medium tracking-[0.08em] uppercase transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:px-3",
@@ -308,7 +300,7 @@ function ScheduleStack({
               <span
                 aria-hidden="true"
                 className="absolute bottom-1.5 left-1/2 h-px w-5 -translate-x-1/2 transition-opacity"
-                style={{ background: "var(--accent)", opacity: active ? 1 : 0 }}
+                style={{ background: "var(--accent)", opacity: active ? 1: 0 }}
               />
             </button>
           );
@@ -331,11 +323,6 @@ function ScheduleStack({
         <Arrow direction="next" onClick={next} label="Nächster Tag" />
       </div>
 
-      {/* Der Hinweis. Vorher stand hier 0,65 rem Mono, weit gesperrt, auf
-          halber Deckkraft — lesbar nur, wenn man ihn schon kennt. */}
-      <p className="mt-2 text-center text-sm text-muted-foreground">
-        {verb} Sie eine Karte oder einen Tag, um zu blättern.
-      </p>
 
       <MatFootnote className="mx-auto mt-6 max-w-md text-center" />
     </div>
@@ -353,7 +340,7 @@ function MatFootnote({ className = "" }: { className?: string }): ReactNode {
     <p
       className={`border-t border-border pt-4 text-sm leading-relaxed text-foreground-dim ${className}`}
     >
-      Vor jedem Training ist die Matte frei zum Drillen — ab 16:30, dienstags
+      Vor jedem Training ist die Matte frei zum Drillen: ab 16:30, dienstags
       und donnerstags ab 16:45. Montag, Mittwoch und Freitag um 17:15
       gemeinsames Dehnen für BJJ.
     </p>
@@ -466,7 +453,7 @@ function Slot({
         <span className="mt-0.5 block text-[0.72rem] leading-snug text-muted-foreground">
           {c.note}
         </span>
-      ) : null}
+      ): null}
       {/* Gefuelltes Chip, weisse Schrift — so steht es auch im Aushang, und
           eine Flaeche traegt eine 700er-Farbe auf Schwarz zuverlaessig,
           waehrend dieselbe Farbe als Schrift durchfaellt. */}
@@ -495,7 +482,7 @@ function Slot({
       onClick={() => onOpen(c.program!)}
       className="jjk-slot w-full cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/70"
       style={style}
-      aria-label={`${c.name}, ${c.time}, ${label} — Details anzeigen`}
+      aria-label={`${c.name}, ${c.time}, ${label}: Details anzeigen`}
     >
       {body}
     </button>
@@ -646,7 +633,7 @@ function ProgramSheet({
             </button>
           </motion.div>
         </motion.div>
-      ) : null}
+      ): null}
     </AnimatePresence>,
     document.body,
   );
@@ -687,7 +674,7 @@ function TiltPlate({ children }: { children: ReactNode }): ReactNode {
       const done =
         Math.abs(to.current.rx - at.current.rx) < 0.002 &&
         Math.abs(to.current.ry - at.current.ry) < 0.002;
-      raf.current = done ? null : requestAnimationFrame(tick);
+      raf.current = done ? null: requestAnimationFrame(tick);
     };
     const kick = (): void => {
       if (raf.current === null) raf.current = requestAnimationFrame(tick);
@@ -744,7 +731,7 @@ function WeekPanel(): ReactNode {
   const [open, setOpen] = useState<string | null>(null);
   const onOpen = useCallback((t: string) => setOpen(t), []);
   const onClose = useCallback(() => setOpen(null), []);
-  const detail = open ? buildDetail(open) : null;
+  const detail = open ? buildDetail(open): null;
 
   return (
     <div className="mt-12">
@@ -760,7 +747,7 @@ function WeekPanel(): ReactNode {
               <div
                 key={col.day}
                 className="jjk-day"
-                data-today={col.day === today ? "true" : undefined}
+                data-today={col.day === today ? "true": undefined}
               >
                 {/* Das Wochentag-Kanji stand frueher als 0,68-rem-Zeile unter
                     dem Namen. Als Wasserzeichen hinter der ganzen Spalte tut es
@@ -774,7 +761,7 @@ function WeekPanel(): ReactNode {
                   <span className="jjk-day-name">{DAY_FULL[col.day] ?? col.day}</span>
                   {col.day === today ? (
                     <span className="jjk-day-today">Heute</span>
-                  ) : null}
+                  ): null}
                 </div>
                 {col.classes.map((c, j) => (
                   <Slot key={`${c.time}-${j}`} c={c} onOpen={onOpen} />
@@ -784,7 +771,7 @@ function WeekPanel(): ReactNode {
                     Hoehe, aber die kurze Spalte streckt ihre Slots dabei mit. */}
                 {col.classes.length < MAX_SLOTS ? (
                   <div className="flex-grow" aria-hidden="true" />
-                ) : null}
+                ): null}
               </div>
             ))}
           </div>
@@ -812,12 +799,6 @@ function Intro({ headingClass }: { headingClass: string }): ReactNode {
         blur
         className={headingClass}
       />
-      <p className="mt-5 text-lg leading-relaxed text-foreground-dim">
-        Zwei Kurse an jedem Werktag, dazu Open Mat am Samstag. Die Farbgruppe
-        zeigt die Richtung, das Label das empfohlene Level — zu BJJ Basic am
-        Dienstag kannst du ohne alles hereinkommen. Klick auf eine Einheit,
-        dann steht dort, was dich erwartet.
-      </p>
       {/* Die Legende nennt die fuenf GRUPPEN, nicht die neun Kursarten.
           Eine Liste aller Kursarten waere ueberfluessig — ihr Name steht auf
           jeder Karte. Die Gruppe steht nirgends sonst, und sie ist die
@@ -857,7 +838,6 @@ export function Schedule() {
               spreadY={-18}
               shadowBlur={40}
               stackClassName="h-[440px]"
-              verb="Tippen"
             />
           </div>
         </div>

@@ -125,7 +125,7 @@ export function Features3(): ReactNode {
           />
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
             Jiu-Jitsu is problem-solving with your whole body. Every round builds
-            strength, calm and confidence — and you leave each class better than
+            strength, calm and confidence: and you leave each class better than
             you walked in.
           </p>
 
