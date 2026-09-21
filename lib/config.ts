@@ -29,8 +29,7 @@ export const siteConfig = {
 
 export const nav = {
   links: [
-    { label: "Programme", href: "#programs" },
-    { label: "Stundenplan", href: "#schedule" },
+    { label: "Training", href: "#schedule" },
     { label: "Trainer", href: "#coaches" },
     { label: "Preise", href: "#pricing" },
     { label: "Fragen", href: "#faq" },
