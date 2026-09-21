@@ -151,16 +151,33 @@ export function StreetMap({
         return { p, d, lo, hi };
       });
 
+    /**
+     * Groesse setzen — und NUR dann, wenn sie sich wirklich geaendert hat.
+     *
+     * Eine Zuweisung an `canvas.width` LEERT die Flaeche, auch wenn derselbe
+     * Wert daraufsteht. Der ResizeObserver feuert waehrend des Wachsens der
+     * Box in jedem Bild, und zwar NACH den rAF-Rueckrufen: gezeichnet wurde
+     * also, und danach wurde es weggewischt. Ergebnis war eine schwarze
+     * Flaeche, solange sich irgendetwas an der Groesse bewegte.
+     *
+     * Deshalb hier beides: nur bei echter Aenderung anfassen, und direkt im
+     * Anschluss neu zeichnen, statt auf das naechste Bild zu warten.
+     */
     const layout = (): void => {
       const r = wrap.getBoundingClientRect();
-      w = Math.max(1, Math.round(r.width));
-      h = Math.max(1, Math.round(r.height));
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const nw = Math.max(1, Math.round(r.width));
+      const nh = Math.max(1, Math.round(r.height));
+      const nd = Math.min(window.devicePixelRatio || 1, 2);
+      if (nw === w && nh === h && nd === dpr) return;
+      w = nw;
+      h = nh;
+      dpr = nd;
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       shown = -1;
+      if (data) draw(progress.get());
     };
 
     /** Nur die Stuecke einer Linie, die zwischen `inner` und `outer` liegen. */
@@ -329,10 +346,20 @@ export function StreetMap({
       ctx.fill();
     };
 
+    let complained = false;
     const tick = (): void => {
       if (dead) return;
       shown = -1; // der Puls laeuft weiter, also jedes Bild neu
-      draw(progress.get());
+      try {
+        draw(progress.get());
+      } catch (err) {
+        // Ein Wurf in der Zeichenschleife wuerde sie sonst ersatzlos beenden
+        // und eine schwarze Flaeche hinterlassen — einmal melden, weiterlaufen.
+        if (!complained) {
+          complained = true;
+          console.error("[StreetMap] Fehler beim Zeichnen:", err);
+        }
+      }
       raf = requestAnimationFrame(tick);
     };
 
@@ -361,9 +388,14 @@ export function StreetMap({
           tick();
         });
       })
-      .catch(() => {
-        // Ohne Daten bleibt die Flaeche schwarz; die Adresse darueber steht
-        // als echter Text im Markup und ist davon nicht betroffen.
+      .catch((err: unknown) => {
+        // Nicht verschlucken. Eine schwarze Flaeche ohne Hinweis war genau
+        // das, was die Fehlersuche beim letzten Mal teuer gemacht hat.
+        console.error("[StreetMap] graz-streets.json konnte nicht geladen werden:", err);
+        if (!w || !h) layout();
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.fillStyle = "#07070a";
+        ctx.fillRect(0, 0, w, h);
       });
 
     const ro = new ResizeObserver(() => layout());
