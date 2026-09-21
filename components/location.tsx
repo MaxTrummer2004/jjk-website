@@ -39,7 +39,9 @@ const PEEK_HEIGHT = 260;
 const NAV_OFFSET = 96;
 const BOTTOM_GAP = 24;
 const OVERSCAN = 0;
-const GROWTH_END = 0.55;
+// Frueher gelockt als beim Video (dort 0,55): die Box soll schnell stehen,
+// denn erst DANN faengt der Zoom an, und der ist der eigentliche Inhalt.
+const GROWTH_END = 0.34;
 
 /** Deckt sich mit dem Seitenpolster der Sektionen darunter: px-5 / sm:px-8 / lg:px-10 */
 function sectionPadding(viewportWidth: number): number {
@@ -153,9 +155,9 @@ export function Location(): ReactNode {
   const captionOpacity = useTransform(scrollProgress, [0, 0.1], [1, 0]);
   const captionY = useTransform(y, (value) => NAV_OFFSET + value - 44);
 
-  // Die Adresse kommt, wenn die Front die Raender erreicht hat.
-  const plateOpacity = useTransform(scrollProgress, [0.74, 0.86], [0, 1]);
-  const plateY = useTransform(scrollProgress, [0.74, 0.86], [18, 0]);
+  // Die Adresse kommt erst, wenn ganz hineingezoomt ist.
+  const plateOpacity = useTransform(scrollProgress, [0.9, 0.99], [0, 1]);
+  const plateY = useTransform(scrollProgress, [0.9, 0.99], [18, 0]);
 
   // Manuelles Pin statt CSS `sticky`: davor im Fluss, waehrend der Sektion am
   // Viewport fixiert, danach am unteren Rand der Sektion verankert.
@@ -186,7 +188,7 @@ export function Location(): ReactNode {
       ref={sectionRef}
       id="location"
       aria-label="Wo wir sind"
-      className="pointer-events-none relative z-20 [margin-top:-100svh] h-[180svh]"
+      className="pointer-events-none relative z-20 [margin-top:-100svh] h-[250svh]"
     >
       <motion.div
         style={{

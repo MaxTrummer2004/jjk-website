@@ -15,17 +15,22 @@
  * 3,15 km nur noch grosse Achsen, Bahn und die Mur.
  *
  * ── Eine Bewegung, nicht drei ───────────────────────────────────────────────
- * Vorher liefen Zoom, Feuer und Beschriftungen als getrennte Zeitachsen
- * nebeneinanderher, und der Zusammenhang war keiner. Jetzt ist es EINE Groesse:
- * `view`, der sichtbare Radius. Er geht von 320 m (man steht vor der Tuer) auf
- * 3150 m (man sieht Graz). Alles haengt daran —
+ * Es ist EINE Groesse: `view`, der sichtbare Radius. Er geht von 3150 m (man
+ * sieht Graz) hinunter auf 320 m (man steht vor der Tuer). Alles haengt daran —
+ *
+ * Hinein, nicht heraus: das ist die Reihenfolge, in der jemand eine Ortsangabe
+ * verarbeitet. Erst "aha, Graz, da ist der Hauptbahnhof, da der Uhrturm", dann
+ * "und zwar da drin". Andersherum zeigt man jemandem eine Haustuer und
+ * erklaert hinterher, in welcher Stadt sie steht.
  *
  *   der Massstab, also der Zoom;
  *   die Faerbung, denn die Glut wird ueber `view` normiert: das Gym bleibt der
- *     heisseste Punkt, egal wie weit man draussen ist, und der Rand kippt nach
- *     Zinnober. Beim Herauszoomen kuehlt also alles nach aussen weg, was gerade
- *     noch heiss war — die Stadt waechst aus dem Gym heraus;
- *   und die Wahrzeichen, die einfallen, sobald der Ausschnitt sie erreicht.
+ *     heisseste Punkt, egal auf welcher Hoehe man ist, und der Rand des
+ *     Ausschnitts kippt nach Zinnober. Beim Hineinfahren wird also immer mehr
+ *     von dem heiss, was vorher der kalte Rand war;
+ *   und die Wahrzeichen: sie fallen zu Beginn gestaffelt ein, solange der
+ *     Ausschnitt weit ist, und ziehen sich zurueck, sobald man an ihnen
+ *     vorbei nach unten faehrt.
  *
  * ── Was hier mal falsch war ─────────────────────────────────────────────────
  * Die Faerbung lief ueber `ctx.clip()` in Ringen, und dazwischen stand ein
@@ -197,7 +202,8 @@ export function StreetMap({
       if (Math.abs(eased - shown) < 0.0008) return;
       shown = eased;
 
-      const view = NEAR + (data.radius - NEAR) * eased;
+      // Hinein: weit am Anfang, eng am Ende.
+      const view = data.radius + (NEAR - data.radius) * eased;
       const s = (Math.min(w, h) / 2 / view) * 0.96;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -242,12 +248,17 @@ export function StreetMap({
       // ── Die Wahrzeichen ───────────────────────────────────────────────────
       for (let i = 0; i < data.marks.length; i++) {
         const m = data.marks[i]!;
-        const t = Math.min(Math.max((view * 0.88 - m.d) / 240, 0), 1);
-        const e = 1 - Math.pow(1 - t, 3);
+        // Zwei Faktoren. Der erste laesst sie zu Beginn gestaffelt von oben
+        // einfallen, der zweite zieht sie zurueck, sobald der Ausschnitt
+        // unter ihren Abstand faellt — man faehrt an ihnen vorbei.
+        const inT = Math.min(Math.max((eased - i * 0.03) / 0.09, 0), 1);
+        const outT = Math.min(Math.max((view - m.d) / 420, 0), 1);
+        const dropE = 1 - Math.pow(1 - inT, 3);
+        const e = dropE * outT;
         const el = markRefs.current[i];
         const mx = m.x * s;
         const my = m.y * s;
-        const drop = (1 - e) * -30;
+        const drop = (1 - dropE) * -30;
 
         if (el) {
           el.style.opacity = `${e}`;
