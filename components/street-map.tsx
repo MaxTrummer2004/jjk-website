@@ -1,69 +1,90 @@
 "use client";
 
 /**
- * StreetMap — die Nachbarschaft des Gyms, gezeichnet und angezuendet.
+ * StreetMap — die Gegend um das Gym, gezeichnet, angezuendet und beschriftet.
  *
  * ── Warum keine Karten-Kachel ───────────────────────────────────────────────
  * Weil eine Kachel von Mapbox oder Google aussieht wie Mapbox oder Google. Die
  * Seite ist Tusche auf Schwarz mit einer Glut darin; eine fremde Karte mitten
- * drin ist ein Fenster in eine andere Software. Dazu kaeme ein Token, ein
+ * drin ist ein Fenster in andere Software. Dazu kaemen ein Token, ein
  * Drittanbieter-Aufruf bei jedem Seitenaufruf und ein Eintrag mehr in der
  * Datenschutzerklaerung.
  *
  * Stattdessen liegen die echten Strassen als Zahlen im Repo:
- * public/data/graz-streets.json, einmalig aus OpenStreetMap geholt (950 m um
- * Kasernstrasse 4), auf Stuetzpunkte eingedampft und in Meter relativ zum Gym
- * umgerechnet. Zur Laufzeit wird nichts nachgeladen ausser dieser einen Datei.
+ * public/data/graz-streets.json, einmalig aus OpenStreetMap geholt und in
+ * Meter relativ zum Gym umgerechnet. Zur Laufzeit wird nichts nachgeladen
+ * ausser dieser einen Datei.
+ *
+ * ── Zwei Radien, aus einem Grund ────────────────────────────────────────────
+ * Bis 1 km liegt das volle Netz bis hinunter zu Fusswegen: das ist die
+ * Nachbarschaft, in der jemand zu Fuss steht. Darueber hinaus bis 3,15 km nur
+ * noch die grossen Achsen, Bahn und die Mur — genug, um Graz zu erkennen, und
+ * nicht so viel, dass die Datei dick wird. Das ist auch der Grund fuer den
+ * weiten Ausschnitt ueberhaupt: eine Karte ohne Wahrzeichen sagt niemandem,
+ * WO das ist.
  *
  * ── Was passiert ────────────────────────────────────────────────────────────
- * Die Karte liegt kalt da: ein schwacher Abdruck aus Fusswegen und Gleisen,
- * darueber das Strassennetz in einem Grau, das man gerade so sieht. Mit dem
- * Scrollen laeuft eine Front vom Gym nach aussen, und was sie erreicht,
- * brennt — entlang der Strassen, nicht als Kreis ueber sie hinweg. In der
- * Mitte bleibt die Glut am hellsten, am Rand kippt sie nach Zinnober.
+ * Die Karte liegt kalt da. Mit dem Scrollen laeuft eine Front vom Gym nach
+ * aussen, und was sie erreicht, brennt — entlang der Strassen, nicht als Kreis
+ * ueber sie hinweg. UND: erreicht die Front ein Wahrzeichen, faellt dessen
+ * Beschriftung von oben ins Bild. Ostbahnhof nach 400 m, Messe nach 700,
+ * Jakominiplatz nach 1,5 km, Hauptplatz nach 2, Hauptbahnhof nach 2,9.
  *
- * Das ist derselbe Gedanke wie im Hero (etwas entzuendet sich und breitet sich
- * aus), nur dass hier die Form, die es annimmt, eine Ortsangabe ist: wer das
- * sieht, hat die Adresse gelesen, ohne sie zu lesen.
+ * Die beiden Dinge haengen damit zusammen, statt nebeneinanderher zu laufen:
+ * das Feuer ist nicht Dekoration, es ist das, was die Stadt aufdeckt.
  *
  * ── Wie es gezeichnet wird ──────────────────────────────────────────────────
- * Zwei Ebenen, aus einem Grund. Fusswege und Gleise sind zusammen rund 2200
- * Linien; die jeden Frame neu zu stroken waere Verschwendung, denn sie
- * bewegen sich nie. Sie werden einmal auf eine Offscreen-Flaeche gezeichnet
- * und danach als fertiges Bild kopiert. Animiert werden nur die knapp 400
- * Linien, die tatsaechlich brennen.
+ * Fusswege, Gleise und Wasser bewegen sich nie — die werden einmal auf eine
+ * Offscreen-Flaeche gebacken und danach als fertiges Bild kopiert. Animiert
+ * werden nur die Linien, die brennen koennen. Die Glut laeuft in Ringen, damit
+ * die Farbe nach aussen kippen kann, ohne pro Linie den Zeichenzustand zu
+ * wechseln. Canvas 2D statt WebGL: bei dieser Menge schneller fertig, als ein
+ * Shader-Kontext hochzufahren.
  *
- * Canvas 2D, nicht WebGL: bei dieser Menge ist das schneller fertig als ein
- * Shader-Kontext hochzufahren, und die Seite hat ohnehin genug davon gehabt.
+ * Die Beschriftungen sind echtes DOM, kein Canvas-Text: scharf auf jedem
+ * Bildschirm, vorlesbar, und sie kosten pro Bild nur das Schreiben von zwei
+ * Style-Eigenschaften.
  */
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { MotionValue } from "motion/react";
+
+interface Mark {
+  n: string;
+  x: number;
+  y: number;
+  d: number;
+  s: "left" | "right";
+  sub: string;
+}
 
 interface Raw {
   center: [number, number];
+  inner: number;
   radius: number;
   address: string;
   attribution: string;
   layers: Record<string, number[][]>;
-  labels: { n: string; x: number; y: number }[];
+  marks: Mark[];
 }
 
-/** Eine Linie, fertig fuer den Zeichner: Punkte und ihr Abstand zum Gym. */
 interface Line {
   p: Float32Array;
-  /** Abstand jedes Punktes vom Gym, in Metern. */
   d: Float32Array;
+  /** kleinster und groesster Abstand der Linie zum Gym, fuer den Schnelltest */
+  lo: number;
+  hi: number;
 }
 
-const COLD = "rgba(243, 239, 233, 0.085)";
-const FAINT = "rgba(243, 239, 233, 0.042)";
-const WATER = "rgba(96, 126, 158, 0.3)";
+const COLD = "rgba(243, 239, 233, 0.075)";
+const FAINT = "rgba(243, 239, 233, 0.04)";
+const RAILC = "rgba(243, 239, 233, 0.055)";
+const WATER = "rgba(96, 126, 158, 0.26)";
 
 /** Die Glut nach aussen: heiss am Gym, Zinnober am Rand. */
 function fire(t: number, alpha: number): string {
   const stops: [number, number, number][] = [
-    [255, 200, 130],
+    [255, 205, 140],
     [255, 177, 74],
     [255, 106, 31],
     [211, 32, 42],
@@ -75,6 +96,12 @@ function fire(t: number, alpha: number): string {
   const b = stops[i + 1]!;
   const c = a.map((v, k) => Math.round(v + (b[k]! - v) * f));
   return `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${alpha})`;
+}
+
+function km(m: number): string {
+  return m < 950
+    ? `${Math.round(m / 10) * 10} m`
+    : `${(m / 1000).toFixed(1).replace(".", ",")} km`;
 }
 
 export function StreetMap({
@@ -90,12 +117,13 @@ export function StreetMap({
 }): ReactNode {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const markRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [marks, setMarks] = useState<Mark[]>([]);
 
   useEffect(() => {
     const wrap = wrapRef.current;
     const canvas = canvasRef.current;
     if (!wrap || !canvas) return;
-
     const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
 
@@ -103,7 +131,6 @@ export function StreetMap({
     let raf = 0;
     let data: Raw | null = null;
     let hot: Line[] = [];
-    let water: Line[] = [];
     let backdrop: HTMLCanvasElement | null = null;
     let w = 0;
     let h = 0;
@@ -115,14 +142,29 @@ export function StreetMap({
       (arrs ?? []).map((flat) => {
         const p = new Float32Array(flat);
         const d = new Float32Array(p.length / 2);
+        let lo = Infinity;
+        let hi = 0;
         for (let i = 0; i < d.length; i++) {
-          d[i] = Math.hypot(p[i * 2]!, p[i * 2 + 1]!);
+          const v = Math.hypot(p[i * 2]!, p[i * 2 + 1]!);
+          d[i] = v;
+          if (v < lo) lo = v;
+          if (v > hi) hi = v;
         }
-        return { p, d };
+        return { p, d, lo, hi };
       });
 
-    /** Fusswege und Gleise: einmal zeichnen, danach nur noch kopieren. */
-    const bakeBackdrop = (): void => {
+    const path = (lines: Line[], g: CanvasRenderingContext2D): void => {
+      for (const ln of lines) {
+        const p = ln.p;
+        g.moveTo(p[0]! * scale, p[1]! * scale);
+        for (let i = 1; i < p.length / 2; i++) {
+          g.lineTo(p[i * 2]! * scale, p[i * 2 + 1]! * scale);
+        }
+      }
+    };
+
+    /** Was sich nie bewegt: einmal zeichnen, danach nur noch kopieren. */
+    const bake = (): void => {
       if (!data) return;
       const c = document.createElement("canvas");
       c.width = Math.max(1, Math.round(w * dpr));
@@ -135,22 +177,31 @@ export function StreetMap({
       g.lineJoin = "round";
 
       const paint = (lines: Line[], color: string, width: number): void => {
+        if (!lines.length) return;
         g.strokeStyle = color;
         g.lineWidth = width;
         g.beginPath();
-        for (const ln of lines) {
-          const p = ln.p;
-          g.moveTo(p[0]! * scale, p[1]! * scale);
-          for (let i = 1; i < p.length / 2; i++) {
-            g.lineTo(p[i * 2]! * scale, p[i * 2 + 1]! * scale);
-          }
-        }
+        path(lines, g);
         g.stroke();
       };
 
       paint(toLines(data.layers.path), FAINT, 0.6);
-      paint(toLines(data.layers.rail), "rgba(243, 239, 233, 0.07)", 0.9);
+      paint(toLines(data.layers.farrail), RAILC, 0.7);
+      paint(toLines(data.layers.rail), RAILC, 0.9);
+      paint(toLines(data.layers.farwater), WATER, 1.8);
+      paint(toLines(data.layers.water), WATER, 2.4);
       backdrop = c;
+    };
+
+    const place = (): void => {
+      if (!data) return;
+      for (let i = 0; i < data.marks.length; i++) {
+        const el = markRefs.current[i];
+        const m = data.marks[i]!;
+        if (!el) continue;
+        el.style.left = `${w / 2 + m.x * scale}px`;
+        el.style.top = `${h / 2 + m.y * scale}px`;
+      }
     };
 
     const layout = (): void => {
@@ -162,26 +213,24 @@ export function StreetMap({
       canvas.height = Math.round(h * dpr);
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
-      // Der Radius der Daten soll die kurze Seite gerade fuellen; etwas
-      // darueber hinaus, damit die Ecken nicht leer laufen.
-      scale = (Math.max(w, h) / 2 / (data?.radius ?? 950)) * 1.32;
-      bakeBackdrop();
+      // Der volle Radius soll auf die KURZE Seite passen. Dass links und
+      // rechts etwas frei bleibt, ist gewollt: die Daten enden ohnehin als
+      // Kreis, und eine runde Platte ist ein Bild, ein angeschnittenes
+      // Rechteck waere ein Ausschnitt.
+      scale = (Math.min(w, h) / 2 / (data?.radius ?? 3150)) * 0.98;
+      bake();
+      place();
       shown = -1;
     };
 
     /**
      * Eine Linie bis zur Front. Der Abschnitt, in dem die Front gerade steht,
      * wird anteilig interpoliert — sonst springt jede Strasse in ganzen
-     * Stuecken an statt zu wachsen.
+     * Stuecken an, statt zu wachsen.
      */
     const strokeTo = (ln: Line, front: number): void => {
       const { p, d } = ln;
       const n = d.length;
-      if (d[0]! > front && d[n - 1]! > front) {
-        let any = false;
-        for (let i = 0; i < n; i++) if (d[i]! <= front) { any = true; break; }
-        if (!any) return;
-      }
       let open = false;
       for (let i = 0; i < n - 1; i++) {
         const a = d[i]!;
@@ -212,7 +261,7 @@ export function StreetMap({
     const draw = (v: number): void => {
       if (!data) return;
       const eased = Math.min(Math.max((v - from) / (1 - from), 0), 1);
-      if (Math.abs(eased - shown) < 0.0015) return;
+      if (Math.abs(eased - shown) < 0.0012) return;
       shown = eased;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -226,86 +275,76 @@ export function StreetMap({
 
       // Kalt: das ganze Netz, damit die Front etwas hat, worauf sie laeuft.
       ctx.strokeStyle = COLD;
-      ctx.lineWidth = 1.1;
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      for (const ln of hot) {
-        const p = ln.p;
-        ctx.moveTo(p[0]! * scale, p[1]! * scale);
-        for (let i = 1; i < p.length / 2; i++) ctx.lineTo(p[i * 2]! * scale, p[i * 2 + 1]! * scale);
-      }
+      path(hot, ctx);
       ctx.stroke();
 
-      ctx.strokeStyle = WATER;
-      ctx.lineWidth = 2.4;
-      ctx.beginPath();
-      for (const ln of water) {
-        const p = ln.p;
-        ctx.moveTo(p[0]! * scale, p[1]! * scale);
-        for (let i = 1; i < p.length / 2; i++) ctx.lineTo(p[i * 2]! * scale, p[i * 2 + 1]! * scale);
-      }
-      ctx.stroke();
-
-      // Heiss: in Ringen, damit die Farbe nach aussen kippt, ohne pro Linie
-      // den Zeichenzustand zu wechseln.
-      const reach = (data.radius + 60) * eased;
-      const RINGS = 7;
+      // Heiss, in Ringen — die Farbe kippt nach aussen, ohne dass pro Linie
+      // der Zeichenzustand gewechselt werden muss.
+      const reach = data.radius * eased;
+      const RINGS = 8;
       for (let r = 0; r < RINGS; r++) {
         const inner = (reach * r) / RINGS;
         const outer = (reach * (r + 1)) / RINGS;
         if (outer <= 0) continue;
-        const t = data.radius > 0 ? outer / data.radius : 0;
-        ctx.strokeStyle = fire(t, 0.92);
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = fire(outer / data.radius, 0.92);
+        ctx.lineWidth = outer < data.inner ? 1.4 : 1.1;
         ctx.beginPath();
         for (const ln of hot) {
-          if (ln.d[0]! > outer && ln.d[ln.d.length - 1]! > outer) {
-            let touches = false;
-            for (let i = 0; i < ln.d.length; i++) {
-              if (ln.d[i]! <= outer) { touches = true; break; }
-            }
-            if (!touches) continue;
-          }
-          strokeTo({ p: ln.p, d: ln.d }, outer);
+          if (ln.lo > outer || ln.hi < inner) continue;
+          strokeTo(ln, outer);
         }
         ctx.save();
         ctx.beginPath();
         ctx.arc(0, 0, outer * scale, 0, Math.PI * 2);
-        if (inner > 0) {
-          ctx.arc(0, 0, inner * scale, 0, Math.PI * 2, true);
-        }
+        if (inner > 0) ctx.arc(0, 0, inner * scale, 0, Math.PI * 2, true);
         ctx.clip("evenodd");
         ctx.stroke();
         ctx.restore();
       }
 
       // Die Glut um die Front herum.
-      if (eased > 0 && eased < 1) {
+      if (eased > 0.01 && eased < 0.999) {
         const rr = reach * scale;
-        const g = ctx.createRadialGradient(0, 0, Math.max(0, rr - 40), 0, 0, rr + 40);
+        const g = ctx.createRadialGradient(0, 0, Math.max(0, rr - 46), 0, 0, rr + 46);
         g.addColorStop(0, "rgba(255, 106, 31, 0)");
-        g.addColorStop(0.6, "rgba(255, 106, 31, 0.09)");
+        g.addColorStop(0.6, "rgba(255, 106, 31, 0.085)");
         g.addColorStop(1, "rgba(255, 106, 31, 0)");
         ctx.fillStyle = g;
         ctx.beginPath();
-        ctx.arc(0, 0, rr + 40, 0, Math.PI * 2);
+        ctx.arc(0, 0, rr + 46, 0, Math.PI * 2);
         ctx.fill();
       }
 
       // Das Gym.
-      const pulse = 0.6 + 0.4 * eased;
       ctx.strokeStyle = `rgba(255, 177, 74, ${0.35 + 0.5 * eased})`;
       ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.arc(0, 0, 13, 0, Math.PI * 2);
+      ctx.arc(0, 0, 11, 0, Math.PI * 2);
       ctx.stroke();
+      ctx.strokeStyle = `rgba(255, 106, 31, ${0.22 * eased})`;
       ctx.beginPath();
-      ctx.arc(0, 0, 24 + 10 * pulse, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(255, 106, 31, ${0.2 * eased})`;
+      ctx.arc(0, 0, 22 + 12 * eased, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.fillStyle = `rgba(255, 200, 130, ${0.55 + 0.45 * eased})`;
+      ctx.fillStyle = `rgba(255, 205, 140, ${0.55 + 0.45 * eased})`;
       ctx.beginPath();
-      ctx.arc(0, 0, 4.2, 0, Math.PI * 2);
+      ctx.arc(0, 0, 3.8, 0, Math.PI * 2);
       ctx.fill();
+
+      // Die Wahrzeichen: jedes faellt von oben ins Bild, sobald die Front es
+      // erreicht hat. Direkt auf den Stil geschrieben statt ueber React —
+      // pro Bild sind das zwei Eigenschaften, ein Re-Render waere das
+      // Hundertfache.
+      for (let i = 0; i < data.marks.length; i++) {
+        const el = markRefs.current[i];
+        if (!el) continue;
+        const m = data.marks[i]!;
+        const t = Math.min(Math.max((reach - m.d) / 260, 0), 1);
+        const e = 1 - Math.pow(1 - t, 3);
+        el.style.opacity = `${e}`;
+        el.style.transform = `translate(-50%, -50%) translateY(${(1 - e) * -26}px)`;
+      }
     };
 
     const tick = (): void => {
@@ -323,10 +362,16 @@ export function StreetMap({
           ...toLines(json.layers.major),
           ...toLines(json.layers.mid),
           ...toLines(json.layers.minor),
+          ...toLines(json.layers.far),
         ];
-        water = toLines(json.layers.water);
-        layout();
-        tick();
+        setMarks(json.marks);
+        // Ein Bild warten, damit die Beschriftungen im DOM stehen, bevor sie
+        // positioniert werden.
+        requestAnimationFrame(() => {
+          if (dead) return;
+          layout();
+          tick();
+        });
       })
       .catch(() => {
         // Ohne Daten bleibt die Flaeche schwarz; die Adresse darueber steht
@@ -346,6 +391,30 @@ export function StreetMap({
   return (
     <div ref={wrapRef} className={`relative h-full w-full ${className}`}>
       <canvas ref={canvasRef} className="block h-full w-full" aria-hidden="true" />
+
+      {marks.map((m, i) => (
+        <div
+          key={m.n}
+          ref={(el) => { markRefs.current[i] = el; }}
+          className="pointer-events-none absolute flex items-center gap-2"
+          style={{ opacity: 0, transform: "translate(-50%, -50%)", flexDirection: m.s === "left" ? "row-reverse" : "row" }}
+        >
+          <span
+            aria-hidden="true"
+            className="block size-[7px] shrink-0 rounded-full"
+            style={{ background: "rgba(255,177,74,0.85)", boxShadow: "0 0 0 3px rgba(255,106,31,0.16)" }}
+          />
+          <span className={`flex flex-col leading-tight ${m.s === "left" ? "items-end text-right" : "items-start text-left"}`}>
+            <span className="text-[0.72rem] font-semibold whitespace-nowrap text-foreground/90">
+              {m.n}
+            </span>
+            <span className="font-mono text-[0.56rem] tracking-wide whitespace-nowrap text-foreground/40">
+              {km(m.d)}
+              {m.sub ? ` · ${m.sub}` : ""}
+            </span>
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
