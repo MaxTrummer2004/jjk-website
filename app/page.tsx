@@ -1,6 +1,6 @@
 import { SiteNav } from "@/components/site-nav";
 import { JJKHero } from "@/components/jjk-hero";
-import { VideoShowcase } from "@/components/video-showcase";
+import { Location } from "@/components/location";
 import { Room } from "@/components/room";
 import { Schedule } from "@/components/schedule";
 import { Coaches } from "@/components/coaches";
@@ -26,7 +26,7 @@ export default function HomePage(): ReactNode {
       <main id="main-content" className="relative bg-background-deep">
         <JJKHero />
 
-        <VideoShowcase />
+        <Location />
 
         <div className="relative">
           <Room>

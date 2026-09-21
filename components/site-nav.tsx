@@ -20,6 +20,7 @@ import { navigateWithTransition, triggerPageTransition } from "@/lib/page-transi
 
 const PILL_LINKS = [
   { label: "Training", href: "#schedule" },
+  { label: "Wo wir sind", href: "#location" },
 ];
 
 const PRIMARY_LINKS = nav.links;

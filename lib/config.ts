@@ -30,6 +30,7 @@ export const siteConfig = {
 export const nav = {
   links: [
     { label: "Training", href: "#schedule" },
+    { label: "Wo wir sind", href: "#location" },
     { label: "Trainer", href: "#coaches" },
     { label: "Preise", href: "#pricing" },
     { label: "Fragen", href: "#faq" },

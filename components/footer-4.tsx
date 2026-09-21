@@ -24,6 +24,7 @@ const COLUMNS = [
     title: "Training",
     links: [
       { text: "Training", href: "#schedule" },
+      { text: "Wo wir sind", href: "#location" },
       { text: "Trainer", href: "#coaches" },
       { text: "Preise", href: "#pricing" },
     ],
