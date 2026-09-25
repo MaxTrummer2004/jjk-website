@@ -31,6 +31,14 @@
  * Jetzt ist der Grundton ein ruhiges Warmgrau, und die Glut ist ein enger Hof
  * um das Gym, der beim Hineinfahren mitwandert. Figur und Grund.
  *
+ * GRUNDRISSE ALS SYMBOLE. Die Wahrzeichen trugen ihren echten Gebaeudeumriss
+ * aus OSM. Die Idee traegt nicht: auf eine Einheitsbox normiert ist die einzige
+ * Auskunft, die ein Grundriss hat — wie gross das Ding ist — wegnormiert, und
+ * bei der Groesse, in der so ein Symbol neben einer Beschriftung sitzen kann,
+ * sind Stadion, Bahnhofshalle und Platzflaeche nicht zu unterscheiden. Jetzt
+ * tragen alle sieben denselben schlichten Ring; die Auskunft steckt in der
+ * Entfernung daneben.
+ *
  * DER SCHLUSS WAR LEER. Ganz unten angekommen sah man weniger als am Anfang,
  * weil in den Daten nur Strassen lagen. Bei 320 m Sichtweite ist ein
  * Strassennetz fast nichts — da will man den Block sehen. Jetzt liegen 442
@@ -53,8 +61,6 @@ interface Mark {
   d: number;
   s: "left" | "right";
   sub: string;
-  /** Grundriss, auf eine Einheitsbox normiert — nur bei den drei markanten. */
-  o?: number[];
 }
 
 interface Raw {
@@ -74,7 +80,6 @@ interface Line {
 
 const NEAR = 320;
 const PAPER = "232, 222, 210";
-const ICON = 52;
 
 /** 1, sobald `view` unter `b` liegt; 0 oberhalb von `a`. */
 function lod(view: number, a: number, b: number): number {
@@ -313,30 +318,23 @@ export function StreetMap({
           continue;
         }
 
-        if (m.o) {
-          ctx.save();
-          ctx.translate(mx, my);
-          ctx.beginPath();
-          poly(m.o, 1, ICON * 0.5);
-          ctx.fillStyle = `rgba(255, 177, 74, ${0.09 * e})`;
-          ctx.fill();
-          ctx.strokeStyle = `rgba(255, 206, 146, ${0.6 * e})`;
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
-          ctx.restore();
-        } else {
-          ctx.beginPath();
-          ctx.arc(mx, my, 4.5, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(255, 206, 146, ${0.7 * e})`;
-          ctx.lineWidth = 1.3;
-          ctx.stroke();
-        }
+        // Ein Ring, mehr nicht. Die Auskunft steckt in der Entfernung
+        // daneben, nicht in der Form des Punktes.
+        ctx.beginPath();
+        ctx.arc(mx, my, 4.5, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255, 206, 146, ${0.7 * e})`;
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(mx, my, 1.6, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 226, 186, ${0.8 * e})`;
+        ctx.fill();
 
         if (!el) continue;
         // Seitlich mit Fuehrungslinie statt mittig darunter — mittig lag die
         // Beschriftung auf dem Symbol und auf der des Gyms.
         const dir = m.s === "left" ? -1 : 1;
-        const gap = (m.o ? ICON * 0.5 : 7) + 10;
+        const gap = 17;
         const lx = mx + dir * gap;
         let ly = my;
         // Einfache Kollisionsvermeidung: wer zu nah an einer schon gesetzten
