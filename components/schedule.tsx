@@ -34,8 +34,6 @@ import type { CSSProperties, ReactNode } from "react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
-import { Shield, TrendingUp, Swords, Hand, Flame, Trophy, Dumbbell, Target, Users } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { programs, schedule, type ScheduleClass } from "@/lib/config";
 import { KanjiLabel } from "@/components/kanji-label";
 import StaggeredText from "@/components/staggered-text";
@@ -371,10 +369,6 @@ function MatFootnote({ className = "" }: { className?: string }): ReactNode {
  * im Detailfenster hinter einem Klick.
  */
 
-/** Reihenfolge wie in `programs`; der Index ist die einzige Verbindung. */
-const PROGRAM_ICONS: readonly LucideIcon[] = [
-  Shield, TrendingUp, Swords, Hand, Flame, Trophy, Dumbbell, Target, Users,
-];
 
 /** Wie viele Slots die laengste Spalte hat — kuerzere Tage bekommen unten
  *  Fuellraum, damit alle Spalten gleich hoch schliessen. */
@@ -386,7 +380,6 @@ interface Detail {
   level: string;
   blurb: string;
   tag: string;
-  icon: LucideIcon;
   /** Alle Termine dieses Programms in der Woche. */
   when: { day: string; time: string }[];
 }
@@ -409,7 +402,6 @@ function buildDetail(programTitle: string): Detail | null {
     level: p.level,
     blurb: p.blurb,
     tag: p.tag,
-    icon: PROGRAM_ICONS[i] ?? Shield,
     when,
   };
 }
@@ -521,7 +513,6 @@ function ProgramSheet({
   }, [detail, onClose]);
 
   if (typeof document === "undefined") return null;
-  const Icon = detail?.icon ?? Shield;
 
   return createPortal(
     <AnimatePresence>
@@ -571,7 +562,10 @@ function ProgramSheet({
               >
                 {detail.kanji}
               </span>
-              <div className="relative flex items-start justify-between gap-6">
+              {/* Rechts oben sass hier ein Programmsymbol — genau dort, wo auch
+                  das Schliessen-Kreuz sitzt. Zwei Dinge auf derselben Flaeche,
+                  von denen eines anklickbar ist: raus damit. */}
+              <div className="relative">
                 <div>
                   <p className="font-mono text-[0.6rem] uppercase tracking-[0.24em] text-accent">
                     {detail.tag}
@@ -586,12 +580,6 @@ function ProgramSheet({
                     {detail.level}
                   </p>
                 </div>
-                <Icon
-                  className="mt-1 shrink-0 text-accent/40"
-                  size={34}
-                  strokeWidth={1.2}
-                  aria-hidden="true"
-                />
               </div>
             </div>
 

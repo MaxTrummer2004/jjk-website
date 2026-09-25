@@ -155,6 +155,60 @@ export const programs = [
   },
 ] as const;
 
+/**
+ * Die Trainer.
+ *
+ * `bio` ist noch leer. Das ist kein Versehen: im Repo lagen nur vier
+ * Bilddateien, und einem Trainer einen Lebenslauf anzudichten waere auf einer
+ * Vereinsseite ein peinlicher Fehler. Die Oberflaeche kommt damit klar — ein
+ * leerer Text laesst das Infofenster den Rest zeigen.
+ *
+ * `beltHex` ist die Farbe des Balkens neben der Graduierung. Schwarz auf
+ * dunklem Grund waere unsichtbar, deshalb ein sehr dunkles Grau mit heller
+ * Kante statt reinem Schwarz — es soll als Guertel lesbar sein, nicht als
+ * Loch.
+ *
+ * `teaches` verweist auf `name` aus `programs` — damit steht im Infofenster,
+ * welche Einheiten der Trainer haelt, und die Zeiten kommen aus `schedule`,
+ * statt hier ein zweites Mal gepflegt zu werden.
+ *
+ * Die Reihenfolge ist die Reihenfolge im Karussell.
+ */
+export const coaches = [
+  {
+    name: "Liri",
+    belt: "Lilagurt",
+    beltHex: "#7e22ce",
+    image: "/img/coaches/liri.jpeg",
+    bio: "",
+    teaches: [] as string[],
+  },
+  {
+    name: "Ervin",
+    belt: "Lilagurt",
+    beltHex: "#7e22ce",
+    image: "/img/coaches/ervin.jpeg",
+    bio: "",
+    teaches: [] as string[],
+  },
+  {
+    name: "Wolfi",
+    belt: "Schwarzgurt",
+    beltHex: "#16161c",
+    image: "/img/coaches/wolfi.jpeg",
+    bio: "",
+    teaches: [] as string[],
+  },
+  {
+    name: "Matthias",
+    belt: "Schwarzgurt",
+    beltHex: "#16161c",
+    image: "/img/coaches/matthias.jpeg",
+    bio: "",
+    teaches: [] as string[],
+  },
+] as const;
+
 export type ScheduleClass = {
   time: string;
   name: string;

@@ -51,6 +51,26 @@ export interface ParallaxCarouselProps {
   pauseOnHover?: boolean;
   /** Show a subtle progress indicator at the bottom. Loop mode hides it. */
   showProgress?: boolean;
+  /**
+   * Meldet pro Bild, wo seine Karte gerade steht — Pixel, relativ zur Mitte
+   * des Containers.
+   *
+   * Das Karussell ist WebGL: es gibt keine DOM-Karten, auf die man eine
+   * Beschriftung legen koennte. Statt Text in die Textur zu backen (unscharf,
+   * nicht markierbar, fuer Screenreader unsichtbar) meldet es hier seine
+   * Geometrie nach aussen, und der Aufrufer legt echtes HTML darueber.
+   *
+   * ACHTUNG: wird in JEDEM Bild gerufen. Der Aufrufer schreibt damit direkt
+   * auf `style` von Refs — wer hier `setState` aufruft, rendert die Seite
+   * sechzigmal pro Sekunde neu.
+   */
+  onLayout?: (items: { i: number; x: number }[]) => void;
+  /**
+   * Index der Karte unter dem Zeiger (Position im gerenderten Streifen, nicht
+   * im `images`-Array — bei Endlosbetrieb wiederholen sich die Bilder, und
+   * hervorheben soll sich nur die eine Karte, auf der man steht).
+   */
+  hoverIndex?: number | null;
   /** Container class names. */
   className?: string;
   /** Container inline styles. */
@@ -86,6 +106,11 @@ uniform float uIntensity;
 uniform float uMaxShift;
 uniform float uRadiusPx;
 uniform float uHasTexture;
+// uFocus: liegt der Zeiger auf DIESER Karte. uAny: liegt er auf irgendeiner.
+// Zwei Werte statt einem, damit ohne Zeiger niemand abgedunkelt wird — sonst
+// waere der Ruhezustand des Karussells dunkler als sein Hover-Zustand.
+uniform float uFocus;
+uniform float uAny;
 
 vec2 coverFit(vec2 uv, vec2 planeSize, vec2 texSize) {
   float planeAspect = planeSize.x / max(planeSize.y, 1.0);
@@ -123,6 +148,7 @@ void main() {
   }
 
   float mask = uRadiusPx > 0.5 ? roundedBoxAlpha(vUv, uPlanePx, uRadiusPx) : 1.0;
+  tex.rgb *= mix(1.0, mix(0.6, 1.16, uFocus), uAny);
   gl_FragColor = vec4(tex.rgb, tex.a * mask);
 }
 `;
@@ -152,6 +178,8 @@ function buildUniforms() {
     uMaxShift: { value: 0.2 },
     uRadiusPx: { value: 0 },
     uHasTexture: { value: 0 },
+    uFocus: { value: 0 },
+    uAny: { value: 0 },
   };
 }
 
@@ -173,7 +201,46 @@ interface PlaneProps {
   loop: boolean;
   totalCount: number;
   scrollRef: React.RefObject<ScrollState>;
+  /** Index der Karte unter dem Zeiger, oder null. */
+  hoverIndex: number | null;
 }
+
+/**
+ * Rechnet dieselbe Anordnung wie `Plane`, aber einmal fuer alle, und reicht
+ * sie nach aussen. Absichtlich hier statt beim Aufrufer nachgebaut: die
+ * Umbruchrechnung fuer den Endlosmodus gehoert an EINE Stelle, sonst laufen
+ * Beschriftung und Bild irgendwann auseinander.
+ */
+const LayoutReporter: React.FC<{
+  count: number;
+  sources: number;
+  imageWidth: number;
+  gap: number;
+  loop: boolean;
+  scrollRef: React.RefObject<ScrollState>;
+  onLayout: ((items: { i: number; x: number }[]) => void) | undefined;
+}> = ({ count, sources, imageWidth, gap, loop, scrollRef, onLayout }) => {
+  const buf = useRef<{ i: number; x: number }[]>([]);
+  useFrame(() => {
+    if (!onLayout) return;
+    const scroll = scrollRef.current;
+    if (!scroll) return;
+    const stride = imageWidth + gap;
+    const strip = count * stride;
+    const half = strip * 0.5;
+    const out = buf.current;
+    out.length = 0;
+    for (let k = 0; k < count; k++) {
+      let x = k * stride - scroll.current;
+      if (loop && count > 0) {
+        x = ((((x + half) % strip) + strip) % strip) - half;
+      }
+      out.push({ i: sources > 0 ? k % sources : 0, x });
+    }
+    onLayout(out);
+  });
+  return null;
+};
 
 const Plane: React.FC<PlaneProps> = ({
   src,
@@ -187,12 +254,22 @@ const Plane: React.FC<PlaneProps> = ({
   loop,
   totalCount,
   scrollRef,
+  hoverIndex,
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const textureRef = useRef<THREE.Texture | null>(null);
   const { size } = useThree();
 
   const [uniforms] = React.useState(buildUniforms);
+
+  // Waehrend des Renderns auf ein Ref zu schreiben ist verboten (React kann
+  // einen Durchlauf verwerfen); der Wert wird deshalb im Effect nachgezogen.
+  const hoverRef = useRef(hoverIndex);
+  useEffect(() => {
+    hoverRef.current = hoverIndex;
+  }, [hoverIndex]);
+  const focusRef = useRef(0);
+  const anyRef = useRef(0);
 
   const propsRef = useRef({
     parallaxIntensity,
@@ -305,9 +382,20 @@ const Plane: React.FC<PlaneProps> = ({
         halfStrip;
     }
 
+    // Hover, weich angefahren statt geschaltet: ein harter Sprung auf einer
+    // Karte, die man gerade mit dem Zeiger streift, liest sich als Flackern.
+    const hv = hoverRef.current;
+    const wantFocus = hv === index ? 1 : 0;
+    const wantAny = hv === null ? 0 : 1;
+    focusRef.current += (wantFocus - focusRef.current) * 0.14;
+    anyRef.current += (wantAny - anyRef.current) * 0.14;
+    if (u["uFocus"]) u["uFocus"].value = focusRef.current;
+    if (u["uAny"]) u["uAny"].value = anyRef.current;
+
     mesh.position.x = offsetPx;
     mesh.position.y = 0;
-    mesh.scale.set(p.imageWidth, p.imageHeight, 1);
+    const lift = 1 + 0.035 * focusRef.current;
+    mesh.scale.set(p.imageWidth * lift, p.imageHeight * lift, 1);
 
     const viewport = Math.max(size.width, 1);
     const norm = clamp(offsetPx / viewport, -p.uvScale, p.uvScale);
@@ -384,6 +472,8 @@ const ParallaxCarousel = React.forwardRef<
       autoplaySpeed = 0,
       pauseOnHover = true,
       showProgress = true,
+      onLayout,
+      hoverIndex = null,
       className,
       style,
     },
@@ -627,6 +717,15 @@ const ParallaxCarousel = React.forwardRef<
           className="absolute! inset-0 w-full h-full"
         >
           <CameraRig />
+          <LayoutReporter
+            count={renderImages.length}
+            sources={images.length}
+            imageWidth={imageWidth}
+            gap={gap}
+            loop={loop}
+            scrollRef={scrollRef}
+            onLayout={onLayout}
+          />
           {renderImages.map((src, i) => (
             <Plane
               key={planeKeys[i]}
@@ -641,6 +740,7 @@ const ParallaxCarousel = React.forwardRef<
               loop={loop}
               totalCount={renderImages.length}
               scrollRef={scrollRef}
+              hoverIndex={hoverIndex}
             />
           ))}
         </Canvas>
