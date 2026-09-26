@@ -18,10 +18,10 @@ import { navigateWithTransition, triggerPageTransition } from "@/lib/page-transi
 
 // ---- JJK link sets -------------------------------------------------------
 
-const PILL_LINKS = [
-  { label: "Training", href: "#schedule" },
-  { label: "Wo wir sind", href: "#location" },
-];
+// "Wo wir sind" ist hier raus und steht nur noch im Menue. Der Platz gehoert
+// jetzt der Anmeldung: eine Wegbeschreibung ist etwas, das man sucht, wenn man
+// sie braucht; die Anmeldung ist das, weswegen die Seite existiert.
+const PILL_LINKS = [{ label: "Training", href: "#schedule" }];
 
 const PRIMARY_LINKS = nav.links;
 
@@ -142,6 +142,17 @@ export function SiteNav(): ReactNode {
               </a>
             ))}
           </nav>
+
+          {/* Der einzige gefuellte Knopf der Seite, siehe .jjk-btn-loud in
+              app/globals.css. Er liegt bewusst nicht in der Pillenleiste:
+              zwischen Navigationspunkten waere er ein Navigationspunkt. */}
+          <a
+            href={nav.signup.href}
+            onClick={(e) => { e.preventDefault(); goToSection(nav.signup.href); }}
+            className="jjk-btn jjk-btn-loud hidden h-13 rounded-full px-6 text-sm md:inline-flex"
+          >
+            {nav.signup.label}
+          </a>
         </div>
 
         {/* Center: expandable menu pill */}
@@ -206,6 +217,19 @@ export function SiteNav(): ReactNode {
                         style={{ width: CONTENT_WIDTH }}
                         className="shrink-0 px-4 pt-7 pb-3"
                       >
+                        {/* Am Handy gibt es die Pillenleiste nicht, also
+                            steht die Anmeldung hier — vor der Navigation,
+                            nicht darin. */}
+                        <motion.a
+                          custom={0}
+                          variants={ITEM_VARIANTS}
+                          href={nav.signup.href}
+                          onClick={(e) => { e.preventDefault(); closeMenu(); goToSection(nav.signup.href); }}
+                          className="jjk-btn jjk-btn-loud mb-6 w-full rounded-full px-6 py-3.5 text-sm md:hidden"
+                        >
+                          {nav.signup.label}
+                        </motion.a>
+
                         <div className="flex flex-col gap-2">
                           <motion.span
                             custom={0}

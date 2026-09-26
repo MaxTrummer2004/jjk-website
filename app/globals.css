@@ -3894,6 +3894,29 @@ p,
   background: var(--card-plate);
 }
 
+/* Genau EINE Flaeche auf der Seite traegt Zinnober im Ruhezustand: der
+   Anmelde-Knopf in der Kopfleiste. Das widerspricht der Regel darueber, und
+   zwar mit Absicht. Die Regel loest das Problem "vier Knopfarten sagen vier
+   Dinge"; sie soll nicht dazu fuehren, dass die einzige Handlung, um die es
+   auf der ganzen Seite geht, genauso aussieht wie jeder andere Knopf. Solange
+   es bei diesem einen bleibt, ist Rot weiterhin eindeutig. Kommt ein zweiter
+   dazu, ist die Klasse falsch und nicht der zweite Knopf. */
+.jjk-btn-loud {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-foreground);
+}
+.jjk-btn-loud:hover {
+  background: var(--accent-bright);
+  border-color: var(--accent-bright);
+  color: var(--accent-foreground);
+}
+/* Der Faden am unteren Rand liefe in derselben Farbe wie die Flaeche: auf
+   Rot unsichtbar, also weg. */
+.jjk-btn-loud::after {
+  content: none;
+}
+
 /* ---- The week ----------------------------------------------------------- */
 /* One panel divided, not six panels placed — one-pixel gaps over a
    border-coloured ground, exactly as the programme boards do it. Six things

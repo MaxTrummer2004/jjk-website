@@ -36,6 +36,15 @@ export const nav = {
     { label: "Fragen", href: "#faq" },
   ],
   cta: { label: "Probetraining buchen", href: "#pricing" },
+  /**
+   * Die Haupthandlung der Seite, als Knopf in der Kopfleiste.
+   *
+   * `href` zeigt vorlaeufig auf die Preise, weil es das Anmeldeformular noch
+   * nicht gibt: ein Knopf, der ins Leere springt, ist schlimmer als keiner.
+   * Sobald das Formular als Sektion steht, ist hier "#anmeldung" einzutragen
+   * und sonst nichts — die Kopfleiste liest ausschliesslich diese Zeile.
+   */
+  signup: { label: "Jetzt anmelden", href: "#pricing" },
 } as const;
 
 /**

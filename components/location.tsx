@@ -50,9 +50,21 @@ function sectionPadding(viewportWidth: number): number {
   return 20;
 }
 
+/**
+ * Die Adresse lag als blanker Text auf der Karte: helle Schrift auf Strassen,
+ * die selbst hell sind, und mit dem Zoom wechselte staendig der Untergrund
+ * darunter. Jetzt traegt sie dieselbe Platte mit Kante wie die Karten im Rest
+ * der Seite. Eine Beschriftung, die ihren eigenen Grund mitbringt, hat einen
+ * festen Platz; eine, die auf dem Bild schwimmt, sieht bei jedem Bild anders
+ * aus — und genau das liest sich als unfertig.
+ */
 function AddressPlate({ compact = false }: { compact?: boolean }): ReactNode {
   return (
-    <div className={compact ? "flex flex-col gap-3" : "flex flex-col gap-3.5"}>
+    <div
+      className={`flex flex-col rounded-2xl border border-border bg-card-plate/92 backdrop-blur-md ${
+        compact ? "gap-3 px-5 py-5" : "gap-3.5 px-7 py-6"
+      }`}
+    >
       <span className="flex items-center gap-2 font-mono text-[0.62rem] font-medium uppercase tracking-[0.24em] text-accent">
         <MapPin className="size-3" strokeWidth={1.8} aria-hidden="true" />
         Jiu-Jitsu Kaisen Academy
@@ -203,15 +215,19 @@ export function Location(): ReactNode {
       >
         <motion.p
           style={{ x: "-50%", y: captionY, opacity: captionOpacity }}
-          className="text-foreground absolute top-0 left-1/2 flex items-center gap-2.5 text-xs font-medium whitespace-nowrap"
+          className="text-foreground absolute top-0 left-1/2 flex items-center gap-2.5 text-sm font-medium whitespace-nowrap"
         >
           <MapPin className="size-3" strokeWidth={1.8} aria-hidden="true" />
           {CAPTION}
         </motion.p>
 
+        {/* Der Rahmen ist nicht Zierde: ohne Kante endet die Karte in
+            demselben Schwarz, in dem die Seite liegt, die Box hat keine Form
+            mehr und franst aus. Mit Kante und Schattenkissen ist sie ein
+            Gegenstand, der an einer Stelle liegt. */}
         <motion.div
           style={{ x: "-50%", y, top: NAV_OFFSET, width, height }}
-          className="absolute left-1/2 overflow-hidden rounded-3xl"
+          className="absolute left-1/2 overflow-hidden rounded-3xl border border-border bg-[#07070a] shadow-[0_40px_90px_-40px_rgba(0,0,0,0.9)]"
         >
           <StreetMap progress={scrollProgress} from={GROWTH_END} />
 
@@ -227,7 +243,11 @@ export function Location(): ReactNode {
             <AddressPlate compact={isMobile} />
           </motion.div>
 
-          <span className="pointer-events-none absolute right-3 bottom-2.5 font-mono text-[0.55rem] tracking-wide text-foreground/25">
+          {/* Vorher 0,55 rem auf 25 Prozent Deckung: das ist keine
+              Zurueckhaltung, das ist unlesbar, und unlesbare Schrift auf einem
+              Bild sieht aus wie ein vergessener Rest. Klein darf sie sein,
+              lesbar muss sie sein. */}
+          <span className="pointer-events-none absolute right-3 bottom-3 rounded-md bg-[#07070a]/70 px-2 py-1 font-mono text-[0.6rem] tracking-wide text-foreground/50">
             © OpenStreetMap contributors
           </span>
         </motion.div>

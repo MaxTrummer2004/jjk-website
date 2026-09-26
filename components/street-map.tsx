@@ -79,6 +79,16 @@ interface Line {
 }
 
 const NEAR = 320;
+
+/**
+ * Welche Wahrzeichen die Karte traegt. In den Daten liegen sieben; sieben
+ * Beschriftungen auf einem Bild sind Schrifttapete, und fuenf davon standen
+ * auf derselben Seite uebereinander. Diese vier sind ueber die ganze Strecke
+ * verteilt (0,4 / 0,7 / 1,2 / 2,3 km) und einer haengt links, damit das Bild
+ * nicht nach rechts kippt. Zum Aendern genuegt diese Zeile: die Namen muessen
+ * mit `n` in public/data/graz-streets.json uebereinstimmen.
+ */
+const SHOWN = ["Ostbahnhof", "Messe Graz", "Merkur Arena", "Uhrturm"];
 const PAPER = "232, 222, 210";
 
 /** 1, sobald `view` unter `b` liegt; 0 oberhalb von `a`. */
@@ -321,72 +331,72 @@ export function StreetMap({
         // Ein Ring, mehr nicht. Die Auskunft steckt in der Entfernung
         // daneben, nicht in der Form des Punktes.
         ctx.beginPath();
-        ctx.arc(mx, my, 4.5, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(255, 206, 146, ${0.7 * e})`;
-        ctx.lineWidth = 1.3;
+        // Vorher 1,3 px auf 0,7 Deckung: auf einem Schirm mit Glut darunter
+        // war das eine Andeutung, kein Zeichen. Ein Symbol muss ueberleben,
+        // wenn es klein ist.
+        ctx.arc(mx, my, 5.5, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255, 214, 158, ${0.95 * e})`;
+        ctx.lineWidth = 2.2;
         ctx.stroke();
         ctx.beginPath();
-        ctx.arc(mx, my, 1.6, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 226, 186, ${0.8 * e})`;
+        ctx.arc(mx, my, 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 236, 206, ${e})`;
         ctx.fill();
 
         if (!el) continue;
-        // Seitlich mit Fuehrungslinie statt mittig darunter — mittig lag die
-        // Beschriftung auf dem Symbol und auf der des Gyms.
+        // Die Fuehrungslinie ist weg. Sie war 0,9 px auf 0,3 Deckung, also
+        // gerade noch sichtbar, und sie musste etwas verbinden, was ohnehin
+        // nebeneinander liegt: zwei Striche fuer null Auskunft. Stattdessen
+        // sitzt die Beschriftung direkt neben dem Ring, auf einer eigenen
+        // Platte — damit hat sie eine Kante und liegt nicht auf den Strassen.
         const dir = m.s === "left" ? -1 : 1;
-        const gap = 17;
-        const lx = mx + dir * gap;
+        const lx = mx + dir * 13;
         let ly = my;
-        // Einfache Kollisionsvermeidung: wer zu nah an einer schon gesetzten
-        // Beschriftung liegt, weicht nach unten aus.
         for (const q of placed) {
-          if (Math.abs(q.x - lx) < 150 && Math.abs(q.y - ly) < 24) ly = q.y + 26;
+          if (Math.abs(q.x - lx) < 170 && Math.abs(q.y - ly) < 30) ly = q.y + 34;
         }
         placed.push({ x: lx, y: ly });
 
-        ctx.beginPath();
-        ctx.moveTo(mx + dir * (gap - 8), my);
-        ctx.lineTo(lx - dir * 3, ly);
-        ctx.strokeStyle = `rgba(255, 206, 146, ${0.3 * e})`;
-        ctx.lineWidth = 0.9;
-        ctx.stroke();
-
         el.style.visibility = "visible";
         el.style.opacity = `${e}`;
-        el.style.left = `${w / 2 + lx}px`;
-        el.style.top = `${h / 2 + ly}px`;
+        // Auf ganze Pixel: auf halben Pixeln zittert Text beim Zoomen, und
+        // genau das liest sich als unfertig.
+        el.style.left = `${Math.round(w / 2 + lx)}px`;
+        el.style.top = `${Math.round(h / 2 + ly)}px`;
         el.style.transform = `translateY(-50%) ${m.s === "left" ? "translateX(-100%)" : ""}`;
-        el.style.textAlign = m.s === "left" ? "right" : "left";
       }
 
       // ── Das Gym ──────────────────────────────────────────────────────────
-      const beat = 0.5 + 0.5 * Math.sin(performance.now() / 1100);
-      const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 46);
-      glow.addColorStop(0, "rgba(255, 150, 70, 0.3)");
+      // Hier lagen vier Dinge uebereinander: ein Schein, ein pulsender Ring,
+      // vier Striche im Kreis und ein Punkt. Der pulsende Ring war der
+      // schlimmste — eine Linie auf 0,1 bis 0,22 Deckung, die dauernd ihre
+      // Groesse aendert, hat keinen festen Platz, und der Blick wird von der
+      // Bewegung angezogen, obwohl dort nichts zu lesen ist. Geblieben sind
+      // drei ruhige Ringe um einen vollen Punkt: eine Zielscheibe, wie sie
+      // jede Karte kennt, und sie steht still.
+      const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 52);
+      glow.addColorStop(0, "rgba(255, 150, 70, 0.34)");
       glow.addColorStop(1, "rgba(255, 106, 31, 0)");
       ctx.fillStyle = glow;
       ctx.beginPath();
-      ctx.arc(0, 0, 46, 0, Math.PI * 2);
+      ctx.arc(0, 0, 52, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.strokeStyle = `rgba(255, 106, 31, ${0.1 + 0.12 * beat})`;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(255, 140, 60, 0.42)";
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(0, 0, 28 + 10 * beat, 0, Math.PI * 2);
+      ctx.arc(0, 0, 19, 0, Math.PI * 2);
       ctx.stroke();
 
-      ctx.strokeStyle = "rgba(255, 214, 158, 0.85)";
-      ctx.lineWidth = 1.5;
-      for (let k = 0; k < 4; k++) {
-        const ang = (Math.PI / 2) * k + Math.PI / 4;
-        ctx.beginPath();
-        ctx.moveTo(Math.cos(ang) * 13, Math.sin(ang) * 13);
-        ctx.lineTo(Math.cos(ang) * 21, Math.sin(ang) * 21);
-        ctx.stroke();
-      }
-      ctx.fillStyle = "rgba(255, 232, 205, 0.98)";
+      ctx.strokeStyle = "rgba(255, 226, 186, 0.95)";
+      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(0, 0, 4.6, 0, Math.PI * 2);
+      ctx.arc(0, 0, 10.5, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255, 240, 220, 1)";
+      ctx.beginPath();
+      ctx.arc(0, 0, 4.2, 0, Math.PI * 2);
       ctx.fill();
 
       // ── Rand ─────────────────────────────────────────────────────────────
@@ -448,6 +458,9 @@ export function StreetMap({
         water = [...toLines(json.layers.water), ...toLines(json.layers.farwater)];
         blds = (json.layers.bld ?? []).map((b) => new Float32Array(b));
         home = json.home ? new Float32Array(json.home) : null;
+        // Einmal filtern, nicht an zwei Stellen: Canvas und Beschriftungen
+        // laufen ueber denselben Index, ein Unterschied waere ein Versatz.
+        json.marks = json.marks.filter((m) => SHOWN.includes(m.n));
         setMarks(json.marks);
         requestAnimationFrame(() => {
           if (dead) return;
@@ -473,8 +486,11 @@ export function StreetMap({
     <div ref={wrapRef} className={`relative h-full w-full ${className}`}>
       <canvas ref={canvasRef} className="block h-full w-full" aria-hidden="true" />
 
-      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[30px] text-center">
-        <span className="block font-mono text-[0.56rem] font-semibold uppercase tracking-[0.3em] text-[#ffd69e]">
+      {/* Die eigene Marke traegt als einzige eine gefuellte Platte: sie ist
+          der Punkt, um den es geht, und muss sich von den vier Wahrzeichen
+          unterscheiden, ohne groesser zu sein. */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[34px]">
+        <span className="block rounded-md bg-[#ff6a1f] px-2.5 py-1 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.18em] whitespace-nowrap text-[#120703]">
           JJK Academy
         </span>
       </div>
@@ -483,15 +499,14 @@ export function StreetMap({
         <div
           key={m.n}
           ref={(el) => { markRefs.current[i] = el; }}
-          className="pointer-events-none absolute flex flex-col leading-tight"
+          className="pointer-events-none absolute flex flex-col gap-0.5 rounded-md border border-white/12 bg-[#0b0b10]/88 px-2.5 py-1.5 leading-tight backdrop-blur-[2px]"
           style={{ opacity: 0, visibility: "hidden" }}
         >
-          <span className="text-[0.7rem] font-semibold whitespace-nowrap text-foreground/85">
+          <span className="text-[0.8rem] font-semibold whitespace-nowrap text-foreground">
             {m.n}
           </span>
-          <span className="font-mono text-[0.55rem] tracking-wide whitespace-nowrap text-foreground/35">
+          <span className="font-mono text-[0.6rem] tracking-wide whitespace-nowrap text-[#ffbe84]">
             {km(m.d)}
-            {m.sub ? ` · ${m.sub}` : ""}
           </span>
         </div>
       ))}
