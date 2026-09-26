@@ -145,14 +145,22 @@ export function SiteNav(): ReactNode {
 
           {/* Der einzige gefuellte Knopf der Seite, siehe .jjk-btn-loud in
               app/globals.css. Er liegt bewusst nicht in der Pillenleiste:
-              zwischen Navigationspunkten waere er ein Navigationspunkt. */}
-          <a
-            href={nav.signup.href}
-            onClick={(e) => { e.preventDefault(); goToSection(nav.signup.href); }}
-            className="jjk-btn jjk-btn-loud hidden h-13 rounded-full px-6 text-sm md:inline-flex"
-          >
-            {nav.signup.label}
-          </a>
+              zwischen Navigationspunkten waere er ein Navigationspunkt.
+
+              Das `hidden md:flex` sitzt am Behaelter und nicht am Knopf: die
+              Klasse .jjk-btn setzt selbst `display: inline-flex` und steht in
+              globals.css NACH den Utilities, gewinnt also gegen `hidden` —
+              gleiche Spezifitaet, spaetere Zeile. Genau daran ist der Knopf am
+              Handy erschienen und hat sich mit der Menue-Pille ueberlagert. */}
+          <div className="hidden md:flex">
+            <a
+              href={nav.signup.href}
+              onClick={(e) => { e.preventDefault(); goToSection(nav.signup.href); }}
+              className="jjk-btn jjk-btn-loud h-13 rounded-full px-6 text-sm"
+            >
+              {nav.signup.label}
+            </a>
+          </div>
         </div>
 
         {/* Center: expandable menu pill */}
@@ -219,16 +227,20 @@ export function SiteNav(): ReactNode {
                       >
                         {/* Am Handy gibt es die Pillenleiste nicht, also
                             steht die Anmeldung hier — vor der Navigation,
-                            nicht darin. */}
-                        <motion.a
+                            nicht darin. `md:hidden` am Behaelter, siehe oben. */}
+                        <motion.div
                           custom={0}
                           variants={ITEM_VARIANTS}
-                          href={nav.signup.href}
-                          onClick={(e) => { e.preventDefault(); closeMenu(); goToSection(nav.signup.href); }}
-                          className="jjk-btn jjk-btn-loud mb-6 w-full rounded-full px-6 py-3.5 text-sm md:hidden"
+                          className="mb-6 md:hidden"
                         >
-                          {nav.signup.label}
-                        </motion.a>
+                          <a
+                            href={nav.signup.href}
+                            onClick={(e) => { e.preventDefault(); closeMenu(); goToSection(nav.signup.href); }}
+                            className="jjk-btn jjk-btn-loud w-full rounded-full px-6 py-3.5 text-sm"
+                          >
+                            {nav.signup.label}
+                          </a>
+                        </motion.div>
 
                         <div className="flex flex-col gap-2">
                           <motion.span

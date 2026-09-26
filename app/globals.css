@@ -3884,6 +3884,17 @@ p,
 .jjk-btn:hover::after {
   scale: 1 1;
 }
+/* Am Handy hat der Knopf 2,1em Polster an jeder Seite und 0,95rem Schrift:
+   auf 380 px Breite reicht das, damit "In Google Maps oeffnen" umbricht und
+   der Pfeil allein in einer zweiten Zeile steht. Die Masse muessen hier
+   stehen und nicht als Utility-Klassen am Element: .jjk-btn setzt padding und
+   font-size selbst und gewinnt gegen gleich spezifische Utilities. */
+.jjk-btn-sm {
+  padding: 0.75em 1.35em;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
 .jjk-btn-quiet {
   background: transparent;
   border-color: var(--border);

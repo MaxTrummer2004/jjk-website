@@ -124,7 +124,10 @@ function CoachSheet({
                fiel das Fenster vorher auf einen Streifen zusammen, in dem der
                Name neben dem Schliessen-Kreuz klebte. Ein Dialog soll seine
                Form behalten, egal wie viel drinsteht. */
-            className="relative flex w-full max-w-3xl flex-col overflow-hidden border border-border sm:min-h-[26rem] sm:flex-row"
+            /* max-h + eigener Rollbereich am Handy: ohne das waechst das
+               Fenster mit dem Text ueber den Schirm hinaus und laesst sich
+               nicht mehr ganz sehen, weil der Seitenscroll gesperrt ist. */
+            className="relative flex max-h-[88svh] w-full max-w-3xl flex-col overflow-y-auto overflow-x-hidden border border-border sm:max-h-[86svh] sm:min-h-[26rem] sm:flex-row"
             style={{ background: "var(--card-plate)" }}
             initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -132,7 +135,11 @@ function CoachSheet({
             transition={{ type: "spring", stiffness: 320, damping: 30 }}
           >
             <div
-              className="h-64 w-full shrink-0 bg-cover bg-center sm:h-auto sm:w-72"
+              /* `bg-center` hat bei Hochformaten den Kopf abgeschnitten: die
+                 Mitte eines stehenden Portraets ist der Bauch. Der Ausschnitt
+                 sitzt jetzt im oberen Drittel, wo bei einem Menschen das
+                 Gesicht ist. */
+              className="h-56 w-full shrink-0 bg-cover bg-[50%_22%] sm:h-auto sm:w-72"
               style={{ backgroundImage: `url(${coach.image})` }}
               aria-hidden="true"
             />

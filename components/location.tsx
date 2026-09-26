@@ -62,15 +62,21 @@ function AddressPlate({ compact = false }: { compact?: boolean }): ReactNode {
   return (
     <div
       className={`flex flex-col rounded-2xl border border-border bg-card-plate/92 backdrop-blur-md ${
-        compact ? "gap-3 px-5 py-5" : "gap-3.5 px-7 py-6"
+        compact ? "gap-2.5 px-4 py-4" : "gap-3.5 px-7 py-6"
       }`}
     >
       <span className="flex items-center gap-2 font-mono text-[0.62rem] font-medium uppercase tracking-[0.24em] text-accent">
         <MapPin className="size-3" strokeWidth={1.8} aria-hidden="true" />
         Jiu-Jitsu Kaisen Academy
       </span>
+      {/* Am Handy deckte die Platte die halbe Karte zu, und die Marke lag
+          dahinter. Kleinerer Schriftgrad und weniger Polster: die Adresse
+          bleibt die groesste Schrift im Rahmen, nimmt aber nur noch ein
+          Viertel der Hoehe. */}
       <p
-        className="text-[clamp(1.6rem,3.6vw,2.9rem)] font-semibold leading-[1.05] tracking-tight text-foreground"
+        className={`font-semibold leading-[1.05] tracking-tight text-foreground ${
+          compact ? "text-[1.35rem]" : "text-[clamp(1.6rem,3.6vw,2.9rem)]"
+        }`}
         style={{ fontFamily: "var(--font-display)" }}
       >
         {siteConfig.address.street}
@@ -81,7 +87,9 @@ function AddressPlate({ compact = false }: { compact?: boolean }): ReactNode {
         href={siteConfig.address.maps}
         target="_blank"
         rel="noopener noreferrer"
-        className="jjk-btn inline-flex w-fit items-center gap-2 px-5 py-2.5 text-sm font-medium"
+        className={`jjk-btn inline-flex w-fit items-center gap-2 font-medium ${
+          compact ? "jjk-btn-sm" : "text-sm"
+        }`}
       >
         In Google Maps öffnen
         <ArrowUpRight className="size-3.5" strokeWidth={1.8} aria-hidden="true" />

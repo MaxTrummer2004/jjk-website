@@ -216,6 +216,12 @@ export function StreetMap({
       // Massstab ueber die kurze Seite, also endete die Karte als ausgerissener
       // Kreis mit totem Schwarz daneben. Karten laufen an den Kanten hinaus.
       const s = Math.max(w, h) / 2 / view;
+      // Symbolgroesse in Bildpunkten, also unabhaengig vom Massstab — und
+      // genau deshalb am Handy zu gross: derselbe Ring, der auf 1400 px eine
+      // Marke ist, ist auf 380 px ein Fleck. `k` bindet die Symbole an die
+      // kleinere Kante des Rahmens, nach unten und oben begrenzt, damit sie
+      // weder verschwinden noch das Bild zudecken.
+      const k = Math.min(1, Math.max(0.6, Math.min(w, h) / 620));
       const limit = view * 1.6;
 
       const pathA = lod(view, 900, 480);
@@ -334,12 +340,12 @@ export function StreetMap({
         // Vorher 1,3 px auf 0,7 Deckung: auf einem Schirm mit Glut darunter
         // war das eine Andeutung, kein Zeichen. Ein Symbol muss ueberleben,
         // wenn es klein ist.
-        ctx.arc(mx, my, 5.5, 0, Math.PI * 2);
+        ctx.arc(mx, my, 5.5 * k, 0, Math.PI * 2);
         ctx.strokeStyle = `rgba(255, 214, 158, ${0.95 * e})`;
-        ctx.lineWidth = 2.2;
+        ctx.lineWidth = 2.2 * k;
         ctx.stroke();
         ctx.beginPath();
-        ctx.arc(mx, my, 2.2, 0, Math.PI * 2);
+        ctx.arc(mx, my, 2.2 * k, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 236, 206, ${e})`;
         ctx.fill();
 
@@ -350,7 +356,7 @@ export function StreetMap({
         // sitzt die Beschriftung direkt neben dem Ring, auf einer eigenen
         // Platte — damit hat sie eine Kante und liegt nicht auf den Strassen.
         const dir = m.s === "left" ? -1 : 1;
-        const lx = mx + dir * 13;
+        const lx = mx + dir * 13 * k;
         let ly = my;
         for (const q of placed) {
           if (Math.abs(q.x - lx) < 170 && Math.abs(q.y - ly) < 30) ly = q.y + 34;
@@ -374,29 +380,29 @@ export function StreetMap({
       // Bewegung angezogen, obwohl dort nichts zu lesen ist. Geblieben sind
       // drei ruhige Ringe um einen vollen Punkt: eine Zielscheibe, wie sie
       // jede Karte kennt, und sie steht still.
-      const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 52);
+      const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 52 * k);
       glow.addColorStop(0, "rgba(255, 150, 70, 0.34)");
       glow.addColorStop(1, "rgba(255, 106, 31, 0)");
       ctx.fillStyle = glow;
       ctx.beginPath();
-      ctx.arc(0, 0, 52, 0, Math.PI * 2);
+      ctx.arc(0, 0, 52 * k, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.strokeStyle = "rgba(255, 140, 60, 0.42)";
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2 * k;
       ctx.beginPath();
-      ctx.arc(0, 0, 19, 0, Math.PI * 2);
+      ctx.arc(0, 0, 19 * k, 0, Math.PI * 2);
       ctx.stroke();
 
       ctx.strokeStyle = "rgba(255, 226, 186, 0.95)";
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 3 * k;
       ctx.beginPath();
-      ctx.arc(0, 0, 10.5, 0, Math.PI * 2);
+      ctx.arc(0, 0, 10.5 * k, 0, Math.PI * 2);
       ctx.stroke();
 
       ctx.fillStyle = "rgba(255, 240, 220, 1)";
       ctx.beginPath();
-      ctx.arc(0, 0, 4.2, 0, Math.PI * 2);
+      ctx.arc(0, 0, 4.2 * k, 0, Math.PI * 2);
       ctx.fill();
 
       // ── Rand ─────────────────────────────────────────────────────────────
@@ -489,8 +495,8 @@ export function StreetMap({
       {/* Die eigene Marke traegt als einzige eine gefuellte Platte: sie ist
           der Punkt, um den es geht, und muss sich von den vier Wahrzeichen
           unterscheiden, ohne groesser zu sein. */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[34px]">
-        <span className="block rounded-md bg-[#ff6a1f] px-2.5 py-1 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.18em] whitespace-nowrap text-[#120703]">
+      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[24px] sm:translate-y-[34px]">
+        <span className="block rounded-md bg-[#ff6a1f] px-2 py-0.5 font-mono text-[0.55rem] font-semibold uppercase tracking-[0.14em] whitespace-nowrap text-[#120703] sm:px-2.5 sm:py-1 sm:text-[0.62rem] sm:tracking-[0.18em]">
           JJK Academy
         </span>
       </div>
@@ -499,13 +505,13 @@ export function StreetMap({
         <div
           key={m.n}
           ref={(el) => { markRefs.current[i] = el; }}
-          className="pointer-events-none absolute flex flex-col gap-0.5 rounded-md border border-white/12 bg-[#0b0b10]/88 px-2.5 py-1.5 leading-tight backdrop-blur-[2px]"
+          className="pointer-events-none absolute flex flex-col gap-0.5 rounded-md border border-white/12 bg-[#0b0b10]/88 px-2 py-1 leading-tight backdrop-blur-[2px] sm:px-2.5 sm:py-1.5"
           style={{ opacity: 0, visibility: "hidden" }}
         >
-          <span className="text-[0.8rem] font-semibold whitespace-nowrap text-foreground">
+          <span className="text-[0.7rem] font-semibold whitespace-nowrap text-foreground sm:text-[0.8rem]">
             {m.n}
           </span>
-          <span className="font-mono text-[0.6rem] tracking-wide whitespace-nowrap text-[#ffbe84]">
+          <span className="font-mono text-[0.55rem] tracking-wide whitespace-nowrap text-[#ffbe84] sm:text-[0.6rem]">
             {km(m.d)}
           </span>
         </div>

@@ -335,13 +335,30 @@ function ScheduleStack({
  */
 function MatFootnote({ className = "" }: { className?: string }): ReactNode {
   return (
-    <p
+    <div
       className={`border-t border-border pt-4 text-sm leading-relaxed text-foreground-dim ${className}`}
     >
-      Vor jedem Training ist die Matte frei zum Drillen: ab 16:30, dienstags
-      und donnerstags ab 16:45. Montag, Mittwoch und Freitag um 17:15
-      gemeinsames Dehnen für BJJ.
-    </p>
+      {/* Am Handy standen hier drei Zeilen Fliesstext unter einem
+          Kartenstapel, und Fliesstext ist die falsche Form fuer zwei Uhrzeiten
+          und drei Wochentage: man liest ihn wie einen Satz, obwohl man ihn wie
+          eine Tabelle benutzt. Dieselbe Auskunft, als zwei Angaben gesetzt.
+          Am Desktop ist im Textblock Platz, dort bleibt der Satz. */}
+      <dl className="flex flex-col gap-1 sm:hidden">
+        <div className="flex flex-wrap justify-center gap-x-2">
+          <dt className="text-foreground">Matte frei:</dt>
+          <dd>ab 16:30, Di + Do ab 16:45</dd>
+        </div>
+        <div className="flex flex-wrap justify-center gap-x-2">
+          <dt className="text-foreground">Dehnen:</dt>
+          <dd>Mo, Mi, Fr um 17:15</dd>
+        </div>
+      </dl>
+      <p className="hidden sm:block">
+        Vor jedem Training ist die Matte frei zum Drillen: ab 16:30, dienstags
+        und donnerstags ab 16:45. Montag, Mittwoch und Freitag um 17:15
+        gemeinsames Dehnen für BJJ.
+      </p>
+    </div>
   );
 }
 
