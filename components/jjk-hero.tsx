@@ -49,6 +49,43 @@ const TRANSITION_DURATION = 1.35;
 type Phase = "counting" | "transition" | "done";
 
 /**
+ * Darf der Loader ueberhaupt laufen?
+ *
+ * Er gehoert zum Ankommen: man faehrt von aussen in die Seite hinein, oben,
+ * beim Titelbild. Genau dort ist er etwas wert. Das Modul merkt sich mit
+ * `introAlreadyPlayed` bereits die clientseitige Ruecknavigation — aber eine
+ * Variable im Modul ueberlebt kein Neuladen, und drei Faelle, in denen der
+ * Besucher gar nicht oben landet, gingen bisher als "erstes Laden" durch:
+ *
+ * 1. Ein Link mit Anker (jjk.academy/#schedule, ein geteilter Link auf die
+ *    Preise). Der Browser springt zum Anker, der Hero steht ausserhalb des
+ *    Bildes, und der Loader laeuft unsichtbar ab.
+ * 2. Neu laden, waehrend man weiter unten steht. Der Browser stellt die
+ *    Scrollposition wieder her; auch hier sieht man vom Loader nichts.
+ * 3. Zurueck- und Vorwaertstaste.
+ *
+ * In allen drei Faellen lief der Loader trotzdem, und mit ihm die Scroll-
+ * Sperre darunter: vier Sekunden lang liess sich die Seite nicht bewegen, ohne
+ * dass irgendetwas zu sehen war, was das erklaert haette. Eine Sperre, deren
+ * Grund unsichtbar ist, ist fuer den Besucher schlicht eine kaputte Seite.
+ *
+ * Die Navigationsart kommt aus der Navigation-Timing-API und steht sofort
+ * fest — kein Warten darauf, ob der Browser gleich noch scrollt, also auch
+ * kein Wettlauf zwischen Scroll-Wiederherstellung und Sperre.
+ */
+function introShouldPlay(): boolean {
+  if (typeof window === "undefined") return true;
+  if (window.location.hash.length > 1) return false;
+  const entry = performance.getEntriesByType("navigation")[0] as
+    | PerformanceNavigationTiming
+    | undefined;
+  // Ohne Eintrag (sehr alte Browser) im Zweifel spielen: ein Loader zu viel
+  // ist harmloser als ein Titelbild, das nie ankommt.
+  if (!entry) return true;
+  return entry.type === "navigate";
+}
+
+/**
  * ── Der Scroll-Fade ──────────────────────────────────────────────────────
  * Framers `useScroll({ target, offset })` hat sich in diesem Repo wiederholt
  * als unzuverlaessig gezeigt — auch mit dem exakt gleichen Code wie in der
@@ -190,19 +227,46 @@ export function JJKHero(): ReactNode {
   // ── Scroll-Sperre ─────────────────────────────────────────────────────────
   // Waehrend des gesamten Verlaufs (counting + transition) kein Scrollen;
   // sobald phase="done", sofort wieder frei (Cleanup stellt overflow her).
+  // Diese Pruefung steht hier ein zweites Mal, obwohl der Effekt darunter die
+  // Phase ohnehin sofort auf "done" setzt: beide Effekte laufen im selben
+  // Durchgang, und dieser hier sieht dabei noch die alte Phase. Ohne die
+  // Pruefung wuerde also fuer einen Moment doch gesperrt — genau in dem
+  // Moment, in dem der Browser die Scrollposition wiederherstellt.
   useEffect(() => {
-    if (phase === "done") return;
+    if (phase === "done" || !introShouldPlay()) return;
     const el = document.documentElement;
     const prev = el.style.overflow;
     el.style.overflow = "hidden";
     return () => { el.style.overflow = prev; };
   }, [phase]);
 
+  // Landet der Besucher nicht oben, ist der Loader sofort vorbei. Die Pruefung
+  // steht in einem Effekt und nicht im Anfangszustand: `window` waehrend des
+  // Renderns zu lesen, ergaebe auf dem Server eine andere Ausgabe als im
+  // Browser, und React wuerde die Hydrierung verwerfen.
+  useEffect(() => {
+    if (phase === "done" || prefersReducedMotion || introShouldPlay()) return;
+    // react-hooks/set-state-in-effect warnt hier zu Recht im Allgemeinen und
+    // zu Unrecht in diesem Fall: die Regel soll Schleifen verhindern, in denen
+    // ein Effekt einen Zustand setzt, der ihn erneut ausloest. Dieser Effekt
+    // laeuft genau einmal und setzt als erstes phase="done", was seine eigene
+    // Bedingung dauerhaft schliesst. Die Alternative waere, den Zustand schon
+    // beim Rendern zu bestimmen — dafuer muesste `window` gelesen werden, und
+    // dann kaeme vom Server eine andere Ausgabe als vom Browser.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setProgress(100);
+    blend.set(1);
+    setRevealed(true);
+    setPhase("done");
+    introAlreadyPlayed = true;
+    setOpeningDone(true);
+  }, [phase, prefersReducedMotion, blend]);
+
   // Nav soll warten, bis der Verlauf durch ist — aber nur beim ersten Laden.
   // Bei client-seitiger Ruecknavigation ist introAlreadyPlayed true; bei
   // prefers-reduced-motion gibt es keinen Verlauf, auf den die Nav warten muss.
   useEffect(() => {
-    if (introAlreadyPlayed || prefersReducedMotion) return;
+    if (introAlreadyPlayed || prefersReducedMotion || !introShouldPlay()) return;
     setOpeningDone(false);
     return () => { setOpeningDone(true); };
   }, [prefersReducedMotion]);
@@ -210,6 +274,8 @@ export function JJKHero(): ReactNode {
   // prefers-reduced-motion: kein Verlauf, direkt der Hero-Endzustand.
   useEffect(() => {
     if (!prefersReducedMotion) return;
+    // Derselbe Einmal-Fall wie oben, siehe die Begruendung dort.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setProgress(100);
     blend.set(1);
     setRevealed(true);
