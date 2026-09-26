@@ -90,12 +90,18 @@ const NEAR = 320;
  * nennen, und haengt je zwei nach links und rechts, damit das Bild nicht
  * kippt.
  *
- * Zum Tauschen genuegt diese Liste: die uebrigen drei (Zentrum Puntigam,
- * Center West, Murpark) liegen bereits in der Datei, es braucht also keine
- * neue Abfrage. Die Namen muessen mit `n` dort uebereinstimmen.
+ * Zum Tauschen genuegt diese Liste: die uebrigen vier (Zentrum Puntigam,
+ * Brauerei Puntigam, Center West, Murpark) liegen bereits in der Datei, es
+ * braucht also keine neue Abfrage. Die Namen muessen mit `n` dort
+ * uebereinstimmen.
+ *
+ * Kino und Bahnhof sind der Sonderfall: sie liegen keine 90 m auseinander.
+ * Ihre Beschriftungen zeigen deshalb voneinander weg (`s` in der Datendatei).
+ * Wer hier eine davon gegen etwas anderes tauscht, sollte die Seiten wieder
+ * pruefen.
  */
 const SHOWN = [
-  "Brauerei Puntigam",
+  "Cineplexx",
   "Bahnhof Puntigam",
   "Shopping City Seiersberg",
   "Stadion Liebenau",
