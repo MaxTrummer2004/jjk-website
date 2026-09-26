@@ -15,9 +15,9 @@ export const siteConfig = {
   email: "info@jjk.academy",
   phone: "+43 699 17261640",
   address: {
-    street: "Kasernstraße 4",
-    city: "8010 Graz",
-    maps: "https://maps.google.com/?q=Kasernstraße+4+8010+Graz",
+    street: "Triester Straße 391",
+    city: "8055 Graz",
+    maps: "https://maps.google.com/?q=Triester+Stra%C3%9Fe+391+8055+Graz",
   },
   social: {
     instagram: "https://instagram.com",

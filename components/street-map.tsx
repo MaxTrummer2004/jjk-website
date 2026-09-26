@@ -81,14 +81,25 @@ interface Line {
 const NEAR = 320;
 
 /**
- * Welche Wahrzeichen die Karte traegt. In den Daten liegen sieben; sieben
- * Beschriftungen auf einem Bild sind Schrifttapete, und fuenf davon standen
- * auf derselben Seite uebereinander. Diese vier sind ueber die ganze Strecke
- * verteilt (0,4 / 0,7 / 1,2 / 2,3 km) und einer haengt links, damit das Bild
- * nicht nach rechts kippt. Zum Aendern genuegt diese Zeile: die Namen muessen
- * mit `n` in public/data/graz-streets.json uebereinstimmen.
+ * Welche Wahrzeichen die Karte traegt.
+ *
+ * In public/data/graz-streets.json liegen sieben, hier stehen vier. Sieben
+ * Beschriftungen auf einem Bild sind Schrifttapete; vier lassen sich lesen,
+ * ohne dass man den Kopf danach dreht. Die Auswahl mischt bewusst die Arten —
+ * Bahnhof, Brauerei, Stadion, Einkaufszentrum — statt dreimal dasselbe zu
+ * nennen, und haengt je zwei nach links und rechts, damit das Bild nicht
+ * kippt.
+ *
+ * Zum Tauschen genuegt diese Liste: die uebrigen drei (Zentrum Puntigam,
+ * Center West, Murpark) liegen bereits in der Datei, es braucht also keine
+ * neue Abfrage. Die Namen muessen mit `n` dort uebereinstimmen.
  */
-const SHOWN = ["Ostbahnhof", "Messe Graz", "Merkur Arena", "Uhrturm"];
+const SHOWN = [
+  "Brauerei Puntigam",
+  "Bahnhof Puntigam",
+  "Shopping City Seiersberg",
+  "Stadion Liebenau",
+];
 const PAPER = "232, 222, 210";
 
 /** 1, sobald `view` unter `b` liegt; 0 oberhalb von `a`. */

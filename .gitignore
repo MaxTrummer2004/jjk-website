@@ -57,3 +57,6 @@ Bilder/
 # scripts/gen-fonts.py, nicht Auslieferung. Ausgeliefert werden die Subsets
 # unter public/fonts/, und die gehoeren ins Repo.
 scripts/.font-cache/
+
+# Overpass-Antworten von scripts/bake-location-map.py
+.osmcache/

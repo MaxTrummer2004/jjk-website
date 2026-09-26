@@ -43,8 +43,8 @@ const COLUMNS = [
   {
     title: "Besuchen",
     links: [
-      { text: "Kasernstraße 4", href: "#" },
-      { text: "8010 Graz", href: "#" },
+      { text: "Triester Straße 391", href: "#" },
+      { text: "8055 Graz", href: "#" },
       { text: "Mo bis Fr, 07 bis 22 Uhr", href: "#" },
     ],
   },
