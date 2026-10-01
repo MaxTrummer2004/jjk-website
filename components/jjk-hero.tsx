@@ -51,38 +51,66 @@ type Phase = "counting" | "transition" | "done";
 /**
  * Darf der Loader ueberhaupt laufen?
  *
- * Er gehoert zum Ankommen: man faehrt von aussen in die Seite hinein, oben,
- * beim Titelbild. Genau dort ist er etwas wert. Das Modul merkt sich mit
- * `introAlreadyPlayed` bereits die clientseitige Ruecknavigation — aber eine
- * Variable im Modul ueberlebt kein Neuladen, und drei Faelle, in denen der
- * Besucher gar nicht oben landet, gingen bisher als "erstes Laden" durch:
+ * Genau einmal pro Browser, beim allerersten Besuch. Danach nie wieder.
  *
- * 1. Ein Link mit Anker (jjk.academy/#schedule, ein geteilter Link auf die
- *    Preise). Der Browser springt zum Anker, der Hero steht ausserhalb des
- *    Bildes, und der Loader laeuft unsichtbar ab.
- * 2. Neu laden, waehrend man weiter unten steht. Der Browser stellt die
- *    Scrollposition wieder her; auch hier sieht man vom Loader nichts.
- * 3. Zurueck- und Vorwaertstaste.
+ * Der Loader gehoert zum Ankommen: man faehrt von aussen in die Seite hinein,
+ * sieht einmal, wo man gelandet ist, und ist drin. Beim zweiten Mal ist er
+ * keine Ankunft mehr, sondern eine Wartezeit — und da er das Scrollen sperrt,
+ * eine erzwungene. Wer die Seite kennt, will zum Stundenplan.
  *
- * In allen drei Faellen lief der Loader trotzdem, und mit ihm die Scroll-
- * Sperre darunter: vier Sekunden lang liess sich die Seite nicht bewegen, ohne
- * dass irgendetwas zu sehen war, was das erklaert haette. Eine Sperre, deren
- * Grund unsichtbar ist, ist fuer den Besucher schlicht eine kaputte Seite.
+ * Drei Faelle fallen zusaetzlich raus, in denen der Besucher gar nicht oben
+ * landet und vom Loader nichts sieht: ein Link mit Anker
+ * (jjk.academy/#schedule), ein Neuladen weiter unten (der Browser stellt die
+ * Scrollposition wieder her) und die Zurueck-Taste. Frueher lief er dort
+ * unsichtbar ab und sperrte vier Sekunden lang eine Seite, an der nichts
+ * erklaerte, warum sie klemmt.
  *
- * Die Navigationsart kommt aus der Navigation-Timing-API und steht sofort
- * fest — kein Warten darauf, ob der Browser gleich noch scrollt, also auch
- * kein Wettlauf zwischen Scroll-Wiederherstellung und Sperre.
+ * Zwei Quellen, beide ohne Wettlauf mit dem Browser:
+ *
+ * - localStorage haelt fest, dass der Loader schon einmal gelaufen ist. Das
+ *   ist der Unterschied zum Modulwert `introAlreadyPlayed`, der nur die
+ *   clientseitige Ruecknavigation ueberlebt und mit jedem Neuladen vergisst.
+ * - Die Navigation-Timing-API sagt, wie die Seite aufgerufen wurde. Sie steht
+ *   sofort fest, anders als die Scrollposition, auf die man warten muesste.
+ *
+ * Die Antwort wird fuer die Dauer des Seitenaufrufs gemerkt. Sie MUSS stabil
+ * sein: der Sperr-Effekt fragt bei jedem Phasenwechsel erneut, und wuerde die
+ * Notiz gleich zu Beginn gesetzt, gaebe die Funktion mitten im Loader
+ * ploetzlich false zurueck und die Sperre fiele, waehrend er noch laeuft.
  */
+const SEEN_KEY = "jjk.intro.seen";
+let introDecision: boolean | null = null;
+
 function introShouldPlay(): boolean {
   if (typeof window === "undefined") return true;
-  if (window.location.hash.length > 1) return false;
-  const entry = performance.getEntriesByType("navigation")[0] as
-    | PerformanceNavigationTiming
-    | undefined;
-  // Ohne Eintrag (sehr alte Browser) im Zweifel spielen: ein Loader zu viel
-  // ist harmloser als ein Titelbild, das nie ankommt.
-  if (!entry) return true;
-  return entry.type === "navigate";
+  if (introDecision !== null) return introDecision;
+
+  let decision: boolean;
+  if (window.location.hash.length > 1) {
+    decision = false;
+  } else {
+    const entry = performance.getEntriesByType("navigation")[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    // Ohne Eintrag (sehr alte Browser) im Zweifel spielen: ein Loader zu viel
+    // ist harmloser als ein Titelbild, das nie ankommt.
+    decision = !entry || entry.type === "navigate";
+  }
+
+  // Jeder Zugriff in try/catch: im privaten Fenster und bei gesperrten
+  // Website-Daten wirft schon das Lesen. Nicht lesbar heisst "noch nicht
+  // gesehen" — lieber ein Loader zu viel als eine Seite, die nie ankommt.
+  if (decision) {
+    try {
+      if (window.localStorage.getItem(SEEN_KEY)) decision = false;
+      else window.localStorage.setItem(SEEN_KEY, "1");
+    } catch {
+      /* egal */
+    }
+  }
+
+  introDecision = decision;
+  return decision;
 }
 
 /**
