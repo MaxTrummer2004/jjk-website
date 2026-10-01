@@ -306,48 +306,74 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
 ];
 
 /**
- * Was es kostet, und es gibt genau zwei Dinge.
+ * Was es kostet.
  *
- * Hier standen drei erfundene Stufen — 89, 129 und 169 im Monat, gestaffelt
- * nach Trainingshaeufigkeit — und ueberall auf der Seite die Behauptung, die
- * erste Stunde sei gratis. Beides stimmte nicht. Es gibt eine Mitgliedschaft,
- * die alles enthaelt, und ein einzelnes Probetraining, das etwas kostet.
+ * Fuenf Angebote, aber NICHT fuenf gleichrangige Stufen: zwei Gruppen, die
+ * verschiedene Fragen beantworten.
  *
- * Zwei Zeilen sind ehrlicher als drei Spalten, und sie sind auch besser: eine
- * gestaffelte Preistabelle zwingt jeden Besucher zu einer Entscheidung, bevor
- * er ueberhaupt weiss, ob ihm die Sache gefaellt.
+ * `single` ist "ich will es einmal sehen" — nichts laeuft weiter, nichts muss
+ * gekuendigt werden. `membership` ist "ich trainiere hier", und dort ist die
+ * einzige Frage, wie lange man sich festlegt. Die beiden Gruppen gegeneinander
+ * zu stellen waere eine Vergleichsaufforderung, die niemand braucht: wer noch
+ * nie auf einer Matte stand, waehlt nicht zwischen Jahresvertrag und Zehnerblock.
+ *
+ * Das Jahr ist das Angebot, das der Verein verkaufen will, und der Grund steht
+ * als Zahl in `note`: 30 Euro im Monat weniger als monatlich, 360 im Jahr. Kein
+ * "Beliebt", kein "Spar-Angebot" — ein Etikett behauptet einen Vorteil, eine
+ * Differenz zeigt ihn.
+ *
+ * Vorher standen hier drei erfundene Stufen (89/129/169) und eine
+ * Behauptung, die erste Stunde sei gratis. Letzteres stimmt jetzt wieder,
+ * diesmal absichtlich.
  */
-export const pricing = [
-  {
-    name: "Probetraining",
-    price: "20",
-    period: "eine Einheit",
-    tagline: "Schau es dir an",
-    features: [
-      "Eine volle Einheit, jedes Programm aus dem Plan",
-      "Einen Gi leihen wir dir für die Einheit",
-      "Komm fünfzehn Minuten früher",
-      "Es folgt nichts daraus",
-    ],
-    cta: "Probetraining buchen",
-    featured: false,
-  },
-  {
-    name: "Mitgliedschaft",
-    price: "60",
-    period: "pro Monat",
-    tagline: "Alles dabei",
-    features: [
-      "Jede Einheit im Plan, so oft du willst",
-      "Gi und No-Gi",
-      "Open Mat und Seminare",
-      "Ein Leih-Gi, so lange du einen brauchst",
-      "Monatlich, jederzeit pausieren oder kündigen",
-    ],
-    cta: "Mitglied werden",
-    featured: true,
-  },
-] as const;
+export const pricing = {
+  membership: [
+    {
+      name: "Monat",
+      price: "90",
+      per: "pro Monat",
+      note: "Monatlich kündbar",
+      featured: false,
+    },
+    {
+      name: "3 Monate",
+      price: "75",
+      per: "pro Monat",
+      note: "225 € gesamt",
+      featured: false,
+    },
+    {
+      name: "Jahr",
+      price: "60",
+      per: "pro Monat",
+      note: "720 € gesamt, 360 € weniger als monatlich",
+      featured: true,
+    },
+  ],
+  single: [
+    {
+      name: "Probetraining",
+      price: "gratis",
+      per: "erstes Training",
+      note: "Einen Gi leihen wir dir",
+      featured: false,
+    },
+    {
+      name: "10er-Block",
+      price: "120",
+      per: "zehn Einheiten",
+      note: "Kein Ablaufdatum",
+      featured: false,
+    },
+  ],
+  /**
+   * Online abschliessen gibt es noch nicht. Ein Satz, kein Kasten: ein
+   * Hinweisbalken wuerde genau die Aufmerksamkeit ziehen, die das
+   * Jahresmodell haben soll.
+   */
+  hint:
+    "Mitglied wirst du im Training: sag vorher kurz Bescheid, dann ist alles in fünf Minuten erledigt. Online abschließen und zahlen kommt bald.",
+} as const;
 
 export const faqs = [
   {
@@ -373,7 +399,7 @@ export const faqs = [
   {
     question: "Gibt es einen langen Vertrag?",
     answer:
-      "Keine Bindung. Die Mitgliedschaft läuft monatlich, du kannst jederzeit pausieren oder kündigen. Komm gerne zuerst zu einem Probetraining. Es kostet 20 €, und es folgt nichts daraus.",
+      "Musst du nicht. Die Mitgliedschaft läuft monatlich und ist jederzeit kündbar. Wer sich auf drei Monate oder ein Jahr festlegt, zahlt weniger: 75 statt 90 im Monat, im Jahr 60. Und das erste Training ist gratis, daraus folgt nichts.",
   },
   {
     question: "Wie oft sollte ich trainieren?",

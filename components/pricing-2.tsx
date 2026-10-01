@@ -1,44 +1,94 @@
 "use client";
 
 /**
- * Membership — two things, side by side.
+ * Was es kostet — fuenf Angebote in zwei Gruppen.
  *
- * ── What this replaced, twice ───────────────────────────────────────────────
- * First a bento grid: `rounded-3xl` cards with `backdrop-blur`, a yearly/monthly
- * segmented pill toggle, and `rounded-full` accent buttons. Then three tiers at
- * 89, 129 and 169 a month, in the boards' construction but still three.
+ * ── Warum Zeilen und keine Spalten ──────────────────────────────────────────
+ * Die Vorgaenger-Fassung hatte zwei Kaesten nebeneinander, davor drei, davor
+ * eine Bento-Wand. Mit fuenf Angeboten traegt keine Spaltenform mehr: auf
+ * 380 px waeren das fuenf Wischer oder eine Tabelle, die quer laeuft, und auf
+ * dem Desktop fuenf gleich laute Kaesten, in denen nichts mehr hervorsticht.
  *
- * There are not three. There is one membership at €60 that contains everything,
- * and a single trial class at €20. The page had also been saying the first class
- * was free in five places, which was not true either.
+ * Zeilen loesen beides. Eine Zeile ist am Handy genauso lesbar wie am Desktop,
+ * sie wird nur laenger. Und eine Zeile kann leise sein, waehrend die daneben
+ * laut ist — fuenf Kaesten koennen das nicht.
  *
- * ── Why two boxes and not a table ───────────────────────────────────────────
- * A tiered table asks the reader to choose a plan before they know whether they
- * like the thing. These two are not two plans; they are two different moments —
- * *come and see* and *train here* — so they are set as two boxes of the same
- * size with the same weight, and the only comparison the reader is invited to
- * make is the one that is actually in front of them.
+ * ── Warum zwei Gruppen ──────────────────────────────────────────────────────
+ * "Einmal ansehen" und "hier trainieren" sind keine fuenf Stufen derselben
+ * Frage, sondern zwei Fragen. Wer noch nie auf einer Matte stand, waehlt nicht
+ * zwischen Jahresvertrag und Zehnerblock — er will wissen, was ihn das erste
+ * Mal kostet. Deshalb zuerst der Einstieg, dann die Mitgliedschaft.
  *
- * The membership carries the lit top rule and the corner flag; the trial does
- * not. That is the whole marking. No scale transform, no drop shadow: this page
- * has no depth for a card to float in — every surface on it is paper lying flat
- * under a light — so a card that lifts off is a card from somewhere else.
+ * ── Wie das Jahr hervorgehoben ist ──────────────────────────────────────────
+ * Mit einer Zahl, nicht mit einem Etikett: "720 € gesamt, 360 € weniger als
+ * monatlich". Ein "Beliebt!" behauptet einen Vorteil, eine Differenz zeigt
+ * ihn. Dazu eine Glutkante links und ein waermerer Grund. Kein Vergroessern,
+ * kein Schlagschatten — diese Seite hat keine Tiefe, in die etwas hineinragen
+ * koennte, und eine Zeile, die abhebt, kommt von einer anderen Website.
  */
 
 import { motion } from "motion/react";
 import { pricing } from "@/lib/config";
 import { KanjiLabel } from "@/components/kanji-label";
 import StaggeredText from "@/components/staggered-text";
+import type { ReactNode } from "react";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-export default function Pricing2() {
+interface Plan {
+  readonly name: string;
+  readonly price: string;
+  readonly per: string;
+  readonly note: string;
+  readonly featured: boolean;
+}
+
+function PlanRows({
+  label,
+  plans,
+  from,
+}: {
+  label: string;
+  plans: readonly Plan[];
+  from: number;
+}): ReactNode {
+  return (
+    <div>
+      <p className="jjk-plan-group mb-3">{label}</p>
+      <div className="jjk-plans">
+        {plans.map((plan, i) => (
+          <motion.div
+            key={plan.name}
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.45, delay: 0.06 * (from + i), ease }}
+            className="jjk-plan"
+            {...(plan.featured ? { "data-featured": "" } : {})}
+          >
+            <span className="jjk-plan-name">{plan.name}</span>
+            {/* Steht im Markup vor der Nebenzeile, damit am Handy Name und
+                Preis eine Zeile bilden und die Nebenzeile darunter umbricht.
+                Am Desktop tauscht `order` die beiden. */}
+            <span className="jjk-plan-price">
+              <span>{plan.price === "gratis" ? "gratis" : `${plan.price} €`}</span>
+              <span className="jjk-plan-per">{plan.per}</span>
+            </span>
+            <span className="jjk-plan-note">{plan.note}</span>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function Pricing2(): ReactNode {
   return (
     <section className="w-full px-4 py-28 sm:px-6 sm:py-36 lg:px-8">
       <div className="mx-auto w-full max-w-[1400px]">
         <KanjiLabel kanji="入門" furigana="にゅうもん" gloss="Mitgliedschaft" />
         <StaggeredText
-          text="Eine Mitgliedschaft, alles dabei"
+          text="Was es kostet"
           as="h2"
           segmentBy="words"
           direction="bottom"
@@ -48,49 +98,17 @@ export default function Pricing2() {
           className="jjk-section-title max-w-3xl"
         />
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
-          Keine Stufen, keine Aufnahmegebühr, keine Bindung. Komm gerne zu
-          einem Probetraining, wenn du den Raum sehen willst, bevor du dich
-          entscheidest.
+          Keine Aufnahmegebühr. Das erste Training ist gratis.
         </p>
 
-        <div className="mt-12 grid grid-cols-1 gap-px border border-border bg-border/60 sm:mt-16 lg:grid-cols-2">
-          {pricing.map((tier, i) => (
-            <motion.div
-              key={tier.name}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 0.5, delay: 0.07 * i, ease }}
-              className="jjk-slab jjk-slab-hot jjk-tier"
-              {...(tier.featured ? { "data-featured": "" } : {})}
-            >
-              {tier.featured && <span className="jjk-tier-flag">Alles dabei</span>}
-
-              <h3 className="jjk-tier-name">{tier.name}</h3>
-              <p className="jjk-tier-line">{tier.tagline}</p>
-
-              <p className="jjk-tier-price">
-                <span>€{tier.price}</span>
-                <span className="jjk-tier-per">{tier.period}</span>
-              </p>
-
-              <ul className="jjk-tier-list">
-                {tier.features.map((f) => (
-                  <li key={f}>{f}</li>
-                ))}
-              </ul>
-
-              <div className="flex-1" />
-
-              <a
-                href="#contact"
-                className={`jjk-btn mt-8 w-full ${tier.featured ? "" : "jjk-btn-quiet"}`}
-              >
-                {tier.cta}
-              </a>
-            </motion.div>
-          ))}
+        <div className="mt-12 flex flex-col gap-10 sm:mt-16">
+          <PlanRows label="Erst einmal ansehen" plans={pricing.single} from={0} />
+          <PlanRows label="Mitgliedschaft" plans={pricing.membership} from={2} />
         </div>
+
+        <p className="mt-8 max-w-2xl text-sm leading-relaxed text-foreground-dim">
+          {pricing.hint}
+        </p>
       </div>
     </section>
   );
