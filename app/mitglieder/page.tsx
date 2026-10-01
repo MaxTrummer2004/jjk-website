@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
+import { HomeLink } from "./home-link";
 import { ensureSchema, sql } from "@/lib/db";
 import { getSessionMemberId } from "@/lib/auth";
 import {
@@ -26,16 +26,7 @@ type MemberRow = {
   joined_at: string;
 };
 
-function BackLink(): ReactNode {
-  return (
-    <Link
-      href="/"
-      className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-card px-4 py-2.5 text-sm font-medium text-foreground-dim transition-colors hover:border-white/20 hover:text-foreground"
-    >
-      <span aria-hidden>←</span> Startseite
-    </Link>
-  );
-}
+const BackLink = HomeLink;
 
 function formatDateLabel(iso: string): string {
   const [y, m, d] = iso.split("-");

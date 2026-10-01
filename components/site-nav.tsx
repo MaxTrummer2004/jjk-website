@@ -80,12 +80,44 @@ function useIntroDone(): boolean {
   return useSyncExternalStore(subscribeOpening, isOpeningDone, isOpeningDoneOnServer);
 }
 
+/**
+ * Ist hier jemand eingeloggt? Gelesen aus jjk_member, dem einen Cookie, das
+ * absichtlich nicht httpOnly ist (siehe lib/auth.ts). Es entscheidet nur, wie
+ * der Knopf heisst — wer es faelscht, bekommt einen Knopf, der auf eine Seite
+ * fuehrt, die ihn ohne gueltige Session nach Hause schickt.
+ *
+ * useSyncExternalStore und nicht useEffect: die Startseite wird statisch
+ * ausgeliefert, im HTML steht also immer "Jetzt anmelden". Der Hook liefert
+ * beim Hydrieren genau diesen Wert und wechselt erst danach — mit einem
+ * Effekt gaebe es entweder eine Hydrierungs-Warnung oder ein sichtbares
+ * Umspringen der Beschriftung.
+ *
+ * Das Abonnement bleibt leer: ein Cookie meldet keine Aenderungen, und
+ * innerhalb eines Seitenaufrufs loggt sich niemand in einem anderen Tab ein
+ * und erwartet, dass dieser Knopf davon erfaehrt.
+ */
+const noopSubscribe = (): (() => void) => () => undefined;
+
+function useLoggedIn(): boolean {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => document.cookie.includes("jjk_member="),
+    () => false,
+  );
+}
+
 // ---- component -----------------------------------------------------------
 
 export function SiteNav(): ReactNode {
   const prefersReducedMotion = useReducedMotion();
   const isDesktop = useIsDesktop();
   const introDone = useIntroDone();
+  const loggedIn = useLoggedIn();
+  // Eine Quelle fuer beide Knoepfe, oben und im Menue: zwei Stellen, die
+  // dasselbe entscheiden, laufen frueher oder spaeter auseinander.
+  const action = loggedIn
+    ? { label: "Mein Bereich", href: "/mitglieder" }
+    : nav.signup;
   const router = useRouter();
   const { goToSection } = useSectionTransition();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -154,11 +186,16 @@ export function SiteNav(): ReactNode {
               Handy erschienen und hat sich mit der Menue-Pille ueberlagert. */}
           <div className="hidden md:flex">
             <a
-              href={nav.signup.href}
-              onClick={(e) => { e.preventDefault(); goToSection(nav.signup.href); }}
+              href={action.href}
+              onClick={(e) => {
+                if (action.href.startsWith("#")) {
+                  e.preventDefault();
+                  goToSection(action.href);
+                }
+              }}
               className="jjk-btn jjk-btn-loud h-13 rounded-full px-6 text-sm"
             >
-              {nav.signup.label}
+              {action.label}
             </a>
           </div>
         </div>
@@ -234,11 +271,17 @@ export function SiteNav(): ReactNode {
                           className="mb-6 md:hidden"
                         >
                           <a
-                            href={nav.signup.href}
-                            onClick={(e) => { e.preventDefault(); closeMenu(); goToSection(nav.signup.href); }}
+                            href={action.href}
+                            onClick={(e) => {
+                              closeMenu();
+                              if (action.href.startsWith("#")) {
+                                e.preventDefault();
+                                goToSection(action.href);
+                              }
+                            }}
                             className="jjk-btn jjk-btn-loud w-full rounded-full px-6 py-3.5 text-sm"
                           >
-                            {nav.signup.label}
+                            {action.label}
                           </a>
                         </motion.div>
 

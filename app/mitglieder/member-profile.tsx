@@ -8,9 +8,9 @@ import {
   type Variants,
 } from "motion/react";
 import { LogOut } from "lucide-react";
-import Link from "next/link";
 import { VoteForm } from "./vote-form";
 import { logoutAction } from "./actions";
+import { HomeLink } from "./home-link";
 
 const container: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -400,12 +400,7 @@ export function MemberProfile({
       </AnimatePresence>
 
       <div className="mt-8 flex justify-center">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-card px-4 py-2.5 text-sm font-medium text-foreground-dim transition-colors hover:border-white/20 hover:text-foreground"
-        >
-          <span aria-hidden>←</span> Startseite
-        </Link>
+        <HomeLink />
       </div>
     </motion.div>
   );

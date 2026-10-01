@@ -88,6 +88,19 @@ export function AuthForm(): ReactNode {
           minLength={mode === "register" ? 6 : undefined}
           className={inputClass}
         />
+        {/* Standard ist angehakt: der Normalfall ist das eigene Handy, und
+            dort ist ein Login, der beim Schliessen des Browsers verfaellt,
+            eine Zumutung. Wer an einem fremden Rechner sitzt, nimmt den Haken
+            weg — dann endet das Cookie mit dem Fenster. */}
+        <label className="flex items-center gap-2.5 text-sm text-muted-foreground">
+          <input
+            type="checkbox"
+            name="remember"
+            defaultChecked
+            className="size-4 accent-[var(--accent)]"
+          />
+          Angemeldet bleiben
+        </label>
         {state.error && (
           <p className="text-sm text-accent">{state.error}</p>
         )}

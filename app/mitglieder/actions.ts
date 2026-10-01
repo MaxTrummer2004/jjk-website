@@ -51,7 +51,7 @@ export async function registerAction(
     returning id
   `;
   const memberId = inserted[0]?.id as number;
-  await createSession(memberId);
+  await createSession(memberId, formData.get("remember") !== null);
   revalidatePath("/mitglieder");
   return {};
 }
@@ -75,7 +75,10 @@ export async function loginAction(
     return { error: "Benutzername oder Passwort falsch." };
   }
 
-  await createSession(row.id as number);
+  // Kein Haken heisst: das Cookie endet mit dem Browser. Das ist der Grund,
+  // warum es den Haken gibt — an einem geteilten Rechner soll das Schliessen
+  // des Fensters reichen.
+  await createSession(row.id as number, formData.get("remember") !== null);
   revalidatePath("/mitglieder");
   return {};
 }
