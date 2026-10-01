@@ -51,6 +51,10 @@ function sectionPadding(viewportWidth: number): number {
 }
 
 /**
+ * Der Knopf "In Google Maps oeffnen" ist hier raus: die ganze Karte ist der
+ * Link (siehe unten). Ein Knopf auf einer Flaeche, die als Ganzes klickt, ist
+ * ein zweites Ziel fuer dieselbe Handlung — und das kleinere von beiden.
+ *
  * Die Adresse lag als blanker Text auf der Karte: helle Schrift auf Strassen,
  * die selbst hell sind, und mit dem Zoom wechselte staendig der Untergrund
  * darunter. Jetzt traegt sie dieselbe Platte mit Kante wie die Karten im Rest
@@ -83,17 +87,6 @@ function AddressPlate({ compact = false }: { compact?: boolean }): ReactNode {
         <br />
         {siteConfig.address.city}
       </p>
-      <a
-        href={siteConfig.address.maps}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`jjk-btn inline-flex w-fit items-center gap-2 font-medium ${
-          compact ? "jjk-btn-sm" : "text-sm"
-        }`}
-      >
-        In Google Maps öffnen
-        <ArrowUpRight className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
-      </a>
     </div>
   );
 }
@@ -192,12 +185,22 @@ export function Location(): ReactNode {
         aria-label="Wo wir sind"
         className="flex min-h-svh flex-col items-center justify-center gap-10 px-6 py-24"
       >
-        <div
-          className="relative w-full overflow-hidden rounded-3xl"
+        {/* Auch hier ist die Karte der Link — sonst gaebe es in dieser
+            Fassung gar keinen Weg zu Google Maps, seit der Knopf weg ist. */}
+        <a
+          href={siteConfig.address.maps}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${siteConfig.address.street}, ${siteConfig.address.city} in Google Maps öffnen`}
+          className="group relative block w-full overflow-hidden rounded-3xl border border-border transition-colors hover:border-border-hot"
           style={{ maxWidth: MAX_WIDTH, aspectRatio: "16 / 9", background: "#07070a" }}
         >
           <StreetMap progress={scrollProgress} from={0} />
-        </div>
+          <span className="absolute top-3 right-3 flex items-center gap-1.5 rounded-md border border-white/12 bg-[#0b0b10]/85 px-2.5 py-1.5 text-[0.7rem] font-medium text-foreground/80">
+            In Google Maps öffnen
+            <ArrowUpRight className="size-3" strokeWidth={2} aria-hidden="true" />
+          </span>
+        </a>
         <AddressPlate compact />
       </section>
     );
@@ -235,29 +238,57 @@ export function Location(): ReactNode {
             Gegenstand, der an einer Stelle liegt. */}
         <motion.div
           style={{ x: "-50%", y, top: NAV_OFFSET, width, height }}
-          className="absolute left-1/2 overflow-hidden rounded-3xl border border-border bg-[#07070a] shadow-[0_40px_90px_-40px_rgba(0,0,0,0.9)]"
+          className="pointer-events-auto absolute left-1/2 overflow-hidden rounded-3xl border border-border bg-[#07070a] shadow-[0_40px_90px_-40px_rgba(0,0,0,0.9)] transition-colors duration-300 hover:border-border-hot"
         >
-          <StreetMap progress={scrollProgress} from={GROWTH_END} />
+          {/* Die ganze Karte ist der Link, nicht ein Knopf darauf.
+              Wer auf eine Karte tippt, will sie oeffnen — das ist die
+              Erwartung, die jede Karten-App gesetzt hat, und ein Knopf in
+              einer Ecke ist dagegen ein kleineres Ziel fuer dieselbe Absicht.
 
-          {/* Die Adresse liegt als echter Text darueber, nicht im Canvas:
-              lesbar fuer Suchmaschinen und Screenreader, kopierbar, und der
-              Link funktioniert auch dann, wenn die Kartendatei nicht laedt. */}
-          <motion.div
-            style={{ opacity: plateOpacity, y: plateY }}
-            className={`pointer-events-auto absolute ${
-              isMobile ? "inset-x-5 bottom-6" : "bottom-9 left-9"
-            }`}
+              Das <a> umschliesst ALLES, statt als unsichtbare Flaeche
+              darueberzuliegen: so bleibt die Adresse markierbar, und es gibt
+              keine Reihenfolge, in der die Platte den Link verdeckt oder
+              umgekehrt. Der Rahmen traegt keinen Text, deshalb sagt
+              aria-label, wohin es geht. */}
+          <a
+            href={siteConfig.address.maps}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${siteConfig.address.street}, ${siteConfig.address.city} in Google Maps öffnen`}
+            className="group relative block h-full w-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-inset"
           >
-            <AddressPlate compact={isMobile} />
-          </motion.div>
+            <StreetMap progress={scrollProgress} from={GROWTH_END} />
+
+            {/* Der Hinweis erscheint mit der Adresse, nicht schon waehrend des
+                Zooms: solange die Karte noch faehrt, ist sie kein Ziel. */}
+            <motion.span
+              style={{ opacity: plateOpacity }}
+              className="absolute top-3 right-3 flex items-center gap-1.5 rounded-md border border-white/12 bg-[#0b0b10]/85 px-2.5 py-1.5 text-[0.7rem] font-medium text-foreground/80 backdrop-blur-[2px] transition-colors duration-300 group-hover:border-accent/50 group-hover:text-foreground"
+            >
+              In Google Maps öffnen
+              <ArrowUpRight className="size-3" strokeWidth={2} aria-hidden="true" />
+            </motion.span>
+
+            {/* Die Adresse liegt als echter Text darueber, nicht im Canvas:
+                lesbar fuer Suchmaschinen und Screenreader, kopierbar, und sie
+                steht auch dann da, wenn die Kartendatei nicht laedt. */}
+            <motion.div
+              style={{ opacity: plateOpacity, y: plateY }}
+              className={`absolute ${
+                isMobile ? "inset-x-5 bottom-6" : "bottom-9 left-9"
+              }`}
+            >
+              <AddressPlate compact={isMobile} />
+            </motion.div>
 
           {/* Vorher 0,55 rem auf 25 Prozent Deckung: das ist keine
               Zurueckhaltung, das ist unlesbar, und unlesbare Schrift auf einem
               Bild sieht aus wie ein vergessener Rest. Klein darf sie sein,
               lesbar muss sie sein. */}
-          <span className="pointer-events-none absolute right-3 bottom-3 rounded-md bg-[#07070a]/70 px-2 py-1 font-mono text-[0.6rem] tracking-wide text-foreground/50">
-            © OpenStreetMap contributors
-          </span>
+            <span className="pointer-events-none absolute right-3 bottom-3 rounded-md bg-[#07070a]/70 px-2 py-1 font-mono text-[0.6rem] tracking-wide text-foreground/50">
+              © OpenStreetMap contributors
+            </span>
+          </a>
         </motion.div>
       </motion.div>
     </section>
