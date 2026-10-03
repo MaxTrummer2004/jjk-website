@@ -280,49 +280,71 @@ export default function DatenschutzPage(): ReactNode {
       </section>
 
       <section>
-        <h2>Cookies</h2>
+        <h2>Cookies und lokale Speicherung</h2>
         <p>
-          Diese Website setzt genau ein Cookie, und nur dann, wenn Sie sich im
-          Mitgliederbereich anmelden:
+          Diese Website setzt drei Cookies. Zwei davon nur, wenn Sie sich im
+          Mitgliederbereich anmelden; das dritte nur, wenn Sie dort auf
+          &bdquo;Startseite&ldquo; klicken. Wer sich nicht anmeldet, bekommt
+          kein einziges Cookie.
         </p>
         <dl>
-          <dt>Name</dt>
-          <dd>
+          <dt>
             <code>jjk_session</code>
-          </dd>
-
-          <dt>Inhalt</dt>
+          </dt>
           <dd>
             Ein signiertes Token (JWT, Verfahren HS256), das ausschließlich die
-            interne Mitglieds-Nummer und die Gültigkeitsdauer enthält. Es
-            enthält weder Ihr Passwort noch Ihren Namen.
+            interne Mitglieds-Nummer und die Gültigkeitsdauer enthält &mdash;
+            weder Ihr Passwort noch Ihren Namen. Es hält Sie angemeldet.
+            Eigenschaften: <code>httpOnly</code> (für JavaScript im Browser
+            nicht lesbar), <code>sameSite=lax</code> (wird nicht an fremde
+            Seiten mitgeschickt), im Betrieb zusätzlich <code>secure</code>
+            (nur über HTTPS). Laufzeit: 90 Tage, wenn Sie beim Anmelden
+            &bdquo;Angemeldet bleiben&ldquo; angehakt lassen, sonst nur bis zum
+            Schließen des Browsers. Beim Abmelden wird es sofort gelöscht.
           </dd>
 
-          <dt>Zweck</dt>
+          <dt>
+            <code>jjk_member</code>
+          </dt>
           <dd>
-            Sie bleiben angemeldet, ohne bei jedem Seitenaufruf erneut das
-            Passwort eingeben zu müssen.
+            Enthält nur den Wert <code>1</code> und damit die einzige Auskunft,
+            dass in diesem Browser jemand angemeldet ist &mdash; keine Nummer,
+            keinen Namen, kein Token. Es wird gesetzt, weil die Startseite als
+            fertige Datei ausgeliefert wird und erst im Browser entscheidet, ob
+            die Schaltfläche &bdquo;Jetzt anmelden&ldquo; oder &bdquo;Mein
+            Bereich&ldquo; heißt. Gleiche Laufzeit wie <code>jjk_session</code>,
+            wird zusammen mit ihm gelöscht.
           </dd>
 
-          <dt>Eigenschaften</dt>
+          <dt>
+            <code>jjk_home</code>
+          </dt>
           <dd>
-            <code>httpOnly</code> (für JavaScript im Browser nicht lesbar),{" "}
-            <code>sameSite=lax</code> (wird nicht an fremde Seiten
-            mitgeschickt), im Betrieb zusätzlich <code>secure</code> (nur über
-            HTTPS).
+            Enthält nur den Wert <code>1</code>. Angemeldete Mitglieder werden
+            beim Aufruf der Startseite in den Mitgliederbereich geleitet; dieses
+            Cookie setzt die Weiterleitung aus, wenn Sie dort auf
+            &bdquo;Startseite&ldquo; klicken, damit Sie den öffentlichen Teil
+            auch wirklich sehen können. Es endet mit dem Schließen des Browsers.
           </dd>
 
-          <dt>Laufzeit</dt>
-          <dd>90 Tage; beim Abmelden wird es sofort gelöscht.</dd>
-
-          <dt>Rechtsgrundlage</dt>
+          <dt>Rechtsgrundlage für alle drei</dt>
           <dd>
             § 165 Abs. 3 TKG 2021 in Verbindung mit Art. 6 Abs. 1 lit. b DSGVO.
-            Das Cookie ist für den ausdrücklich gewünschten Dienst &bdquo;Login&ldquo;
-            unbedingt erforderlich und bedarf daher keiner Einwilligung. Aus
-            demselben Grund gibt es auf dieser Website kein Cookie-Banner.
+            Alle drei sind für ausdrücklich gewünschte Funktionen &mdash;
+            Anmelden und Bedienen des Mitgliederbereichs &mdash; unbedingt
+            erforderlich und bedürfen daher keiner Einwilligung. Aus demselben
+            Grund gibt es auf dieser Website kein Cookie-Banner.
           </dd>
         </dl>
+        <p>
+          Zusätzlich legt die Website einen Eintrag im lokalen Speicher Ihres
+          Browsers ab (<code>jjk.intro.seen</code>). Er hält fest, dass Sie die
+          Eröffnungsanimation einmal gesehen haben, damit sie beim nächsten
+          Besuch nicht erneut läuft. Der Eintrag enthält keine
+          personenbezogenen Daten, wird an niemanden übertragen und bleibt in
+          Ihrem Browser; Sie können ihn über dessen Einstellungen jederzeit
+          löschen.
+        </p>
         <p>
           Weitere Cookies werden nicht gesetzt: insbesondere keine für Analyse,
           Reichweitenmessung oder Werbung.
