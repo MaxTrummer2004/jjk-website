@@ -78,12 +78,17 @@ export default function DatenschutzPage(): ReactNode {
 
           <dt>Anschrift</dt>
           <dd>
-            <Todo>ZUSTELLANSCHRIFT DES VEREINS</Todo>
+            8160 Weiz, Andelberggasse 11
+            <br />
+            <span className="text-muted-foreground">
+              Anschrift laut Vereinsregister. Trainingsstätte:{" "}
+              {siteConfig.address.street}, {siteConfig.address.city}
+            </span>
           </dd>
 
           <dt>Vertreten durch</dt>
           <dd>
-            <Todo>VERTRETUNGSBERECHTIGTE PERSON</Todo>
+            Wolfgang Kern (Obmann)
           </dd>
 
           <dt>E-Mail</dt>

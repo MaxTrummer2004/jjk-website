@@ -11,11 +11,16 @@
  * steht als <Todo>-Platzhalter und faellt im Browser rot auf. Ueber jedem
  * Platzhalterabschnitt steht ein Kommentar, was dort hineingehoert.
  *
- * HERKUNFT DER AUSGEFUELLTEN FELDER: Vereinsname, Sitz, Zweck und die
- * Vertretungsregel stammen aus den Statuten (§§ 1, 2, 13). Der Verein ist
- * angezeigt, und der Auftraggeber hat bestaetigt, dass diese Angaben der
- * eingetragenen Fassung entsprechen. Wer sie spaeter aendert, aendert sie in
- * den Statuten zuerst und hier danach.
+ * HERKUNFT DER ANGABEN: Name, Sitz, Zustellanschrift, ZVR-Zahl, Behoerde und
+ * die Namen der Organe stammen aus dem Vereinsregisterauszug zum Stichtag
+ * 25.09.2026; der Vereinszweck aus § 2 der Statuten. Nichts davon ist
+ * geschaetzt oder weitergedacht.
+ *
+ * WAS SICH AENDERN KANN: Die Funktionsperioden laufen "unbestimmt", aber ein
+ * Wechsel im Vorstand macht diese Seite falsch — und zwar still, ohne dass
+ * irgendetwas kaputtgeht. Nach jeder Generalversammlung, die Funktionen neu
+ * besetzt, gehoert dieser Abschnitt gegen den dann aktuellen Auszug
+ * geprueft.
  *
  * BEWUSST NICHT ENTHALTEN: ein Link auf die EU-Plattform zur
  * Online-Streitbeilegung (ec.europa.eu/odr). Die Plattform hat den Betrieb
@@ -80,27 +85,33 @@ export default function ImpressumPage(): ReactNode {
           </dd>
 
           <dt>ZVR-Zahl</dt>
-          <dd>
-            <Todo>ZVR-ZAHL</Todo>
-          </dd>
+          <dd>1414986922</dd>
 
           <dt>Vereinssitz</dt>
           <dd>Graz (§ 1 Abs. 2 der Statuten)</dd>
 
-          <dt>Anschrift</dt>
+          <dt>Zustellanschrift</dt>
+          {/* Die Zustellanschrift laut Register ist NICHT die Trainingsstaette.
+              Beide stehen hier, getrennt benannt: die eine, weil die Behoerde
+              sie fuehrt und ein Impressum nicht von ihr abweichen sollte, die
+              andere, weil jeder Besucher sie sucht. Wird die Zustellanschrift
+              bei der LPD spaeter auf die Triester Strasse geaendert, faellt
+              die erste Zeile weg. */}
           <dd>
-            <Todo>ZUSTELLANSCHRIFT DES VEREINS</Todo>
+            8160 Weiz, Andelberggasse 11
             <br />
-            {/* Die Trainingsstaette steht hier als Hinweis, weil sie im Rest
-                der Seite genannt wird (lib/config.ts). Sie ist NICHT
-                automatisch die Zustelladresse des Vereins — wenn beides
-                dasselbe ist, den Platzhalter oben einfach durch diese Zeile
-                ersetzen und den Zusatz loeschen. */}
             <span className="text-muted-foreground">
-              (Trainingsstätte laut Website: {siteConfig.address.street},{" "}
-              {siteConfig.address.city})
+              Anschrift laut Vereinsregister
             </span>
           </dd>
+
+          <dt>Trainingsstätte</dt>
+          <dd>
+            {siteConfig.address.street}, {siteConfig.address.city}
+          </dd>
+
+          <dt>Entstehungsdatum</dt>
+          <dd>24. September 2026</dd>
         </dl>
       </section>
 
@@ -114,20 +125,31 @@ export default function ImpressumPage(): ReactNode {
       <section>
         <h2>Vertretungsberechtigte Organe</h2>
         <dl>
-          <dt>Obmann / Obfrau</dt>
-          <dd>
-            <Todo>NAME DES OBMANNS / DER OBFRAU</Todo>
-          </dd>
-          <dd className="text-muted-foreground">
-            Nach § 13 Abs. 2 der Statuten vertritt der Obmann oder die Obfrau
-            den Verein nach außen. Schriftliche Ausfertigungen brauchen
-            zusätzlich die Unterschrift der Schriftführung, in Geldangelegenheiten
-            die der Kassierin oder des Kassiers.
-          </dd>
+          <dt>Obmann</dt>
+          <dd>Wolfgang Kern</dd>
 
-          <dt>Stellvertretung</dt>
-          <dd>
-            <Todo>STELLVERTRETUNG: oder diese Zeile streichen, falls es keine gibt</Todo>
+          <dt>Obmann-Stellvertreter</dt>
+          <dd>DI Matthias Ambrosig</dd>
+
+          <dt>Kassier</dt>
+          <dd>Liridon Kryeziu</dd>
+
+          <dt>Kassier-Stellvertreter</dt>
+          <dd>Walter Kern</dd>
+
+          <dt>Schriftführer</dt>
+          <dd>Max Trummer</dd>
+
+          <dt>Schriftführer-Stellvertreter</dt>
+          <dd>Ervin Latic</dd>
+
+          <dt>Vertretungsregelung</dt>
+          <dd className="text-muted-foreground">
+            Der Obmann vertritt den Verein nach außen. Schriftliche
+            Ausfertigungen bedürfen zu ihrer Gültigkeit der Unterschriften des
+            Obmanns und des Schriftführers, in Geldangelegenheiten der
+            Unterschriften des Obmanns und des Kassiers. Im Fall der
+            Verhinderung treten die jeweiligen Stellvertreter an ihre Stelle.
           </dd>
         </dl>
       </section>
@@ -200,10 +222,7 @@ export default function ImpressumPage(): ReactNode {
         <dl>
           <dt>Behörde</dt>
           <dd>
-            <Todo>
-              VEREINSBEHÖRDE LAUT VEREINSREGISTERAUSZUG: bei Vereinssitz in
-              Graz üblicherweise die Landespolizeidirektion Steiermark
-            </Todo>
+            Landespolizeidirektion Steiermark, SVA 3
           </dd>
 
           <dt>Rechtsgrundlage</dt>
