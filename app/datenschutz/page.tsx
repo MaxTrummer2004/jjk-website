@@ -167,10 +167,14 @@ export default function DatenschutzPage(): ReactNode {
 
           <dt>Speicherdauer</dt>
           <dd>
-            <Todo>
-              AUFBEWAHRUNGSDAUER DER SERVER-LOGS laut Vercel-Plan: im
-              Vercel-Dashboard unter Observability nachsehen
-            </Todo>
+            Im Tarif Hobby, auf dem diese Website läuft, sind die
+            Laufzeitprotokolle <strong>eine Stunde</strong> lang einsehbar und
+            werden danach nicht mehr angezeigt (Vercel-Dokumentation,
+            Laufzeitprotokolle, Stand August 2026). Vercel behält sich in
+            seinen Nutzungsbedingungen allerdings vor, aus dem Betrieb
+            entstehende Protokoll- und Nutzungsdaten darüber hinaus für eigene
+            Zwecke aufzubewahren; die Stunde ist die Frist, in der wir sie
+            sehen können, nicht die Lebensdauer der Daten bei Vercel.
           </dd>
         </dl>
         <p>
@@ -377,15 +381,14 @@ export default function DatenschutzPage(): ReactNode {
 
         <h3>Hosting: Vercel</h3>
         <dl>
-          {/* Diese Anschrift stammt aus einer aelteren Fassung von Vercels
-              Rechtsseiten. In der aktuellen Datenschutzerklaerung taucht eine
-              andere auf (Covina, CA). Vor dem Veroeffentlichen einmal gegen
-              vercel.com/legal/privacy-notice pruefen und die dort genannte
-              uebernehmen — eine falsche Anschrift des Auftragsverarbeiters ist
-              zwar kein Drama, aber sie ist in dreissig Sekunden richtig. */}
+          {/* Anschrift aus vercel.com/legal/privacy-notice (Stand 1. Juni
+              2026), bestaetigt durch dieselbe Angabe im DPA und in den
+              Nutzungsbedingungen. Die frueher hier stehende Adresse in Walnut,
+              CA kommt auf Vercels Seiten nicht mehr vor. */}
           <dt>Anbieter</dt>
           <dd>
-            Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, USA
+            Vercel Inc. (Delaware corporation), 440 N Barranca Avenue #4133,
+            Covina, CA 91723, USA
           </dd>
 
           <dt>Verarbeitet</dt>
@@ -412,21 +415,20 @@ export default function DatenschutzPage(): ReactNode {
 
         <h3>Datenbank: Neon</h3>
         <dl>
-          {/* Neon gehoert seit 2025 zu Databricks und tritt als
-              "Backend von Databricks" auf; die Rechtsseiten unter
-              neon.com/legal sind nicht mehr erreichbar (404), und
-              Datenschutzanfragen verweist Neon selbst an
-              privacy@databricks.com. Welche Gesellschaft heute Vertragspartner
-              ist, muss aus dem Trust Center (trust.neon.com) oder den
-              Rechtsseiten von Databricks kommen — geraten wird hier nichts. */}
+          {/* Neons eigene Rechtsseiten (neon.com/legal/*) sind seit der
+              Uebernahme durch Databricks alle 404. Vertragspartner ist laut
+              Databricks' Auftragsverarbeitungsvertrag und dessen SCC-Anhang
+              "Databricks, Inc."; Neon, LLC ist in Databricks'
+              Datenschutzerklaerung ausdruecklich als von der
+              DPF-Zertifizierung erfasste Gesellschaft genannt. Das Neon-eigene
+              DPA liegt hinter einer Zugangsanfrage im Trust Center und war
+              nicht einsehbar. */}
           <dt>Anbieter</dt>
           <dd>
-            Neon (Serverless Postgres), seit 2025 Teil von Databricks.{" "}
-            <Todo>
-              VERTRAGSPARTNER UND FIRMENANSCHRIFT aus dem Auftragsverarbeitungs-
-              vertrag übernehmen (Trust Center trust.neon.com oder die
-              Rechtsseiten von Databricks)
-            </Todo>
+            Databricks, Inc., 160 Spear Street, Suite 1300, San Francisco,
+            CA 94105, USA. Neon (Serverless Postgres) gehört seit 2025 zu
+            Databricks; die Gesellschaft Neon, LLC ist Teil derselben
+            Unternehmensgruppe.
           </dd>
 
           <dt>Verarbeitet</dt>
@@ -445,9 +447,14 @@ export default function DatenschutzPage(): ReactNode {
 
           <dt>Auftragsverarbeitungsvertrag</dt>
           <dd>
-            <Todo>
-              DPA MIT NEON abschließen und hier Datum bzw. Fundstelle eintragen
-            </Todo>
+            Databricks Data Processing Addendum (Fassung v3 vom 21. Juli 2023),
+            Bestandteil des Master Cloud Services Agreement. Es bezieht die
+            Standardvertragsklauseln der EU-Kommission
+            (Durchführungsbeschluss (EU) 2021/914, Module 2 und 3) ein; für
+            diese gilt irisches Recht und der Gerichtsstand Dublin. Die Liste
+            der Unterauftragsverarbeiter führt Databricks unter
+            databricks.com/legal/databricks-subprocessors, Änderungen werden
+            30 Tage vorher angekündigt.
           </dd>
         </dl>
       </section>
@@ -464,27 +471,33 @@ export default function DatenschutzPage(): ReactNode {
       <section>
         <h2>Datenübermittlung in Drittländer</h2>
         <p>
-          <strong>Die Mitgliederdaten verlassen die EU nicht.</strong> Konten
-          und Anwesenheitseinträge liegen in Frankfurt am Main. Bis zum
-          4. Oktober 2026 lag die Datenbank in Virginia (USA); sie wurde
-          verlegt, und die alte Datenbank wurde anschließend gelöscht.
+          <strong>
+            Die Mitgliederdaten werden in Frankfurt am Main gespeichert.
+          </strong>{" "}
+          Bis zum 4. Oktober 2026 lag die Datenbank in Virginia (USA); sie
+          wurde nach Frankfurt verlegt und die alte Datenbank anschließend
+          gelöscht.
         </p>
         <p>
-          Offen bleibt das Hosting: Vercel Inc. hat seinen Sitz in den USA, und
-          die Auslieferung der Website kann dort verarbeitet werden. Dafür
-          gelten:
+          Das heißt aber nicht, dass gar keine Übermittlung stattfindet: beide
+          Dienstleister sind US-Gesellschaften, und ein Zugriff aus den USA
+          heraus — etwa durch Wartung oder Support — lässt sich nicht
+          ausschließen. Dafür gelten:
         </p>
         <ul>
           <li>
             die Standardvertragsklauseln der EU-Kommission
-            (Durchführungsbeschluss (EU) 2021/914), die Vercel in seinen
-            Auftragsverarbeitungsvertrag einbezieht;
+            (Durchführungsbeschluss (EU) 2021/914). Databricks bezieht sie in
+            der Fassung der Module 2 und 3 in seinen
+            Auftragsverarbeitungsvertrag ein; Vercel bezieht sie in den seinen
+            ein.
           </li>
           <li>
-            ergänzend erklärt Vercel in seiner Datenschutzerklärung, nach dem
-            EU-U.S. Data Privacy Framework zertifiziert zu sein. Zuständige
-            Aufsicht ist die US-Handelsbehörde FTC, Beschwerdestelle ist
-            VeraSafe.
+            Beide Anbieter erklären darüber hinaus, nach dem EU-U.S. Data
+            Privacy Framework zertifiziert zu sein: Databricks ausdrücklich
+            auch für die Gesellschaft Neon, LLC. Zuständige Aufsicht ist die
+            US-Handelsbehörde FTC. Dies ist die Erklärung der Anbieter, nicht
+            eine eigene Feststellung des Vereins.
           </li>
         </ul>
       </section>
