@@ -56,12 +56,25 @@ function getPool(): Pool {
   if (!pool) {
     pool = new Pool({
       connectionString: getConnectionString(),
-      // Scalingos Postgres erzwingt TLS, praesentiert aber ein Zertifikat aus
-      // einer internen CA, die nicht im Trust-Store von Node liegt. Mit der
-      // Standard-Pruefung wuerde `pg` hier mit SELF_SIGNED_CERT_IN_CHAIN
-      // abbrechen. Darum: TLS verschluesselt die Verbindung weiterhin, nur die
-      // Kette wird nicht gegen die System-CAs verifiziert. Das ist die von
-      // Scalingo dokumentierte Einstellung fuer ihren Postgres.
+      // TLS erzwingen, Zertifikatskette nicht pruefen.
+      //
+      // Das ist eine Abwaegung und keine Empfehlung von Scalingo: deren
+      // Dokumentation schweigt zur Zertifikatspruefung voellig — sie nennt
+      // weder eine CA zum Herunterladen noch `sslmode=verify-full`, und die
+      // Verbindungszeichenfolge, die sie ausgeben, traegt `sslmode=prefer`.
+      //
+      // `prefer` ist das Schlechteste von beidem: es versucht TLS, faellt
+      // aber stillschweigend auf eine UNVERSCHLUESSELTE Verbindung zurueck,
+      // wenn der Server nicht mitspielt, und prueft das Zertifikat ohnehin
+      // nicht. Diese Einstellung hier ist strenger: ohne TLS keine
+      // Verbindung. Was fehlt, ist die Pruefung, wer am anderen Ende sitzt.
+      //
+      // Solange App und Datenbank im selben Scalingo-Netz liegen, ist das
+      // vertretbar. Wer es besser machen will, holt sich die Zertifikatskette
+      // des Servers (openssl s_client -starttls postgres) und haengt sie hier
+      // als `ca` ein — dann verifiziert Node wieder. Dazu gehoert, im
+      // Dashboard unter Settings "Force TLS connections" einzuschalten; sonst
+      // erlaubt die Datenbank weiterhin Klartextverbindungen von anderswo.
       ssl: { rejectUnauthorized: false },
     });
   }
