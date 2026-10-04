@@ -73,7 +73,7 @@ export default function DatenschutzPage(): ReactNode {
         <dl>
           <dt>Verein</dt>
           <dd>
-            <Todo>VOLLSTÄNDIGER VEREINSNAME LAUT VEREINSREGISTER</Todo>
+            Jiu Jitsu Kaisen Akademie
           </dd>
 
           <dt>Anschrift</dt>

@@ -11,6 +11,12 @@
  * steht als <Todo>-Platzhalter und faellt im Browser rot auf. Ueber jedem
  * Platzhalterabschnitt steht ein Kommentar, was dort hineingehoert.
  *
+ * ACHTUNG, HERKUNFT DER AUSGEFUELLTEN FELDER: Vereinsname, Sitz, Zweck und
+ * die Vertretungsregel stammen aus der ROHFASSUNG der Statuten vom Oktober
+ * 2026, nicht aus einem Vereinsregisterauszug. Eine Rohfassung kann sich bis
+ * zur Anzeige bei der Vereinsbehoerde noch aendern. Sobald der Auszug da ist,
+ * gehoeren alle vier gegen ihn geprueft — und nur was dort steht, gilt.
+ *
  * BEWUSST NICHT ENTHALTEN: ein Link auf die EU-Plattform zur
  * Online-Streitbeilegung (ec.europa.eu/odr). Die Plattform hat den Betrieb
  * am 20. Juli 2025 eingestellt; ein Link darauf waere heute ein toter Link
@@ -60,7 +66,12 @@ export default function ImpressumPage(): ReactNode {
         <dl>
           <dt>Verein</dt>
           <dd>
-            <Todo>VOLLSTÄNDIGER VEREINSNAME LAUT VEREINSREGISTER</Todo>
+            Jiu Jitsu Kaisen Akademie
+            {/* Schreibweise exakt aus § 1 Abs. 1 der Statuten: ohne
+                Bindestrich, und "Akademie" deutsch. Der Auftritt auf der
+                uebrigen Website heisst "Jiu-Jitsu Kaisen Academy" — das darf
+                abweichen, das Impressum muss aber den eingetragenen Namen
+                tragen. */}
           </dd>
 
           <dt>Rechtsform</dt>
@@ -74,9 +85,7 @@ export default function ImpressumPage(): ReactNode {
           </dd>
 
           <dt>Vereinssitz</dt>
-          <dd>
-            <Todo>VEREINSSITZ: politische Gemeinde laut Statuten, z. B. Graz</Todo>
-          </dd>
+          <dd>Graz (§ 1 Abs. 2 der Statuten)</dd>
 
           <dt>Anschrift</dt>
           <dd>
@@ -107,7 +116,13 @@ export default function ImpressumPage(): ReactNode {
         <dl>
           <dt>Obmann / Obfrau</dt>
           <dd>
-            <Todo>VERTRETUNGSBERECHTIGTE PERSON</Todo>
+            <Todo>NAME DES OBMANNS / DER OBFRAU</Todo>
+          </dd>
+          <dd className="text-muted-foreground">
+            Nach § 13 Abs. 2 der Statuten vertritt der Obmann oder die Obfrau
+            den Verein nach außen. Schriftliche Ausfertigungen brauchen
+            zusätzlich die Unterschrift der Schriftführung, in Geldangelegenheiten
+            die der Kassierin oder des Kassiers.
           </dd>
 
           <dt>Stellvertretung</dt>
@@ -151,10 +166,16 @@ export default function ImpressumPage(): ReactNode {
         <h2>Vereinszweck und grundlegende Richtung</h2>
         <h3>Vereinszweck</h3>
         <p>
-          <Todo>
-            VEREINSZWECK LAUT STATUTEN: der Wortlaut aus dem Statutenpunkt
-            &bdquo;Zweck&ldquo;, sinngemäß übernommen
-          </Todo>
+          Der Verein ist nicht auf Gewinn gerichtet und verfolgt ausschließlich
+          und unmittelbar gemeinnützige Zwecke im Sinne der §§ 34 ff der
+          Bundesabgabenordnung. Er bezweckt die Förderung und Ausübung des
+          Körpersports, insbesondere des Brazilian Jiu-Jitsu sowie verwandter
+          Grappling- und Selbstverteidigungssportarten: deren Vermittlung und
+          Pflege, die körperliche Ertüchtigung und persönliche Entwicklung der
+          Mitglieder, die Förderung des sportlichen Nachwuchses und der
+          Jugendarbeit, die Vorbereitung auf und Teilnahme an Wettkämpfen und
+          Lehrgängen sowie die Pflege der Gemeinschaft im Vereinsleben.
+          (§ 2 der Statuten)
         </p>
         <h3>Grundlegende Richtung dieser Website (Blattlinie)</h3>
         <p>
