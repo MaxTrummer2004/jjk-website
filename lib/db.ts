@@ -1,49 +1,102 @@
-import { neon } from "@neondatabase/serverless";
+import { Pool } from "pg";
 
 /**
- * Mitglieder-Datenbank (Postgres, ueber die Vercel-Postgres/Neon-Integration
- * des Projekts). `@vercel/postgres` ist mittlerweile deprecated — Vercel
- * verweist selbst auf Neons eigenes SDK, das genau dieselbe
- * Tagged-Template-API bietet, deshalb direkt das hier.
+ * Mitglieder-Datenbank (Postgres auf Scalingo).
  *
- * WICHTIG (anders als bei @vercel/postgres!): `sql\`...\`` liefert direkt
- * ein Array von Zeilen zurueck, kein `{ rows, rowCount }`-Objekt.
+ * Vorher lief das ueber `@neondatabase/serverless`. Der Treiber spricht mit
+ * Neon ueber HTTPS und funktioniert gegen einen normalen Postgres NICHT — mit
+ * dem Umzug zu Scalingo ist er deshalb raus und durch `pg` ersetzt.
  *
- * Verbindung kommt aus DATABASE_URL (Neons Standardname) oder POSTGRES_URL
- * (falls Vercel die Variable so benennt) — lokal muss dafuer `vercel env
- * pull` gelaufen sein bzw. die Variable in .env.local stehen.
+ * Die exportierte Schnittstelle ist bewusst identisch geblieben, damit kein
+ * Aufrufer sich aendern muss:
+ *   - `sql\`...\`` ist ein Tagged Template und liefert DIREKT ein Array von
+ *     Zeilen zurueck (kein `{ rows, rowCount }`-Objekt) — genau wie bei Neon.
+ *   - `sql.query(text)` fuehrt reines DDL/SQL ohne Parameter aus und liefert
+ *     ebenfalls die Zeilen als Array.
+ *
+ * EIN Pool, modulweit — nicht pro Anfrage einen neuen. `pg` verwaltet darin
+ * mehrere Verbindungen und reicht sie an die Requests weiter; ein Pool pro
+ * Request wuerde bei jedem Aufruf einen TCP+TLS-Handshake zahlen und die
+ * Verbindungen der DB in Minuten aufbrauchen.
+ *
+ * Verbindung aus SCALINGO_POSTGRESQL_URL (so heisst die Variable, die Scalingo
+ * dem Dyno automatisch setzt), hilfsweise DATABASE_URL.
  *
  * `ensureSchema()` legt die Tabellen an, falls sie noch fehlen — einmal pro
  * Server-Prozess ausgefuehrt (nicht bei jedem Request neu), damit das erste
  * Deployment ohne manuelle Migration funktioniert.
  */
 type SqlRow = Record<string, unknown>;
-type SqlFn = ReturnType<typeof neon>;
 
-let sqlInstance: SqlFn | null = null;
+interface Sql {
+  <T extends SqlRow = SqlRow>(
+    strings: TemplateStringsArray,
+    ...values: unknown[]
+  ): Promise<T[]>;
+  query<T extends SqlRow = SqlRow>(text: string): Promise<T[]>;
+}
+
+let pool: Pool | null = null;
 
 function getConnectionString(): string {
   const url =
-    process.env.DATABASE_URL ??
-    process.env.POSTGRES_URL ??
-    process.env.DATABASE_URL_UNPOOLED;
+    process.env.SCALINGO_POSTGRESQL_URL ?? process.env.DATABASE_URL;
   if (!url) {
     throw new Error(
-      "Keine Datenbank-Verbindung gefunden (DATABASE_URL bzw. POSTGRES_URL " +
-        "fehlt). In Vercel unter Storage eine Postgres-Datenbank anlegen: " +
-        "die Env-Var wird dann automatisch gesetzt."
+      "Keine Datenbank-Verbindung gefunden (SCALINGO_POSTGRESQL_URL bzw. " +
+        "DATABASE_URL fehlt). Auf Scalingo setzt das PostgreSQL-Addon " +
+        "SCALINGO_POSTGRESQL_URL automatisch; lokal die Variable in " +
+        ".env.local eintragen."
     );
   }
   return url;
 }
 
-export function sql<T extends SqlRow = SqlRow>(
+function getPool(): Pool {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: getConnectionString(),
+      // Scalingos Postgres erzwingt TLS, praesentiert aber ein Zertifikat aus
+      // einer internen CA, die nicht im Trust-Store von Node liegt. Mit der
+      // Standard-Pruefung wuerde `pg` hier mit SELF_SIGNED_CERT_IN_CHAIN
+      // abbrechen. Darum: TLS verschluesselt die Verbindung weiterhin, nur die
+      // Kette wird nicht gegen die System-CAs verifiziert. Das ist die von
+      // Scalingo dokumentierte Einstellung fuer ihren Postgres.
+      ssl: { rejectUnauthorized: false },
+    });
+  }
+  return pool;
+}
+
+// Tagged-Template-Werte -> parametrisierte Query ($1, $2, ...). So landen die
+// Werte als gebundene Parameter beim Treiber, nie im Query-Text — dieselbe
+// SQL-Injection-Sicherheit, die Neons Tagged Template bot.
+function buildQuery(
+  strings: TemplateStringsArray,
+  values: unknown[]
+): { text: string; params: unknown[] } {
+  let text = strings[0] ?? "";
+  for (let i = 0; i < values.length; i++) {
+    text += `$${i + 1}` + (strings[i + 1] ?? "");
+  }
+  return { text, params: values };
+}
+
+const sqlFn = async <T extends SqlRow = SqlRow>(
   strings: TemplateStringsArray,
   ...values: unknown[]
-): Promise<T[]> {
-  if (!sqlInstance) sqlInstance = neon(getConnectionString());
-  return sqlInstance(strings, ...values) as Promise<T[]>;
-}
+): Promise<T[]> => {
+  const { text, params } = buildQuery(strings, values);
+  const result = await getPool().query(text, params);
+  return result.rows as T[];
+};
+
+export const sql: Sql = Object.assign(sqlFn, {
+  async query<T extends SqlRow = SqlRow>(text: string): Promise<T[]> {
+    const result = await getPool().query(text);
+    return result.rows as T[];
+  },
+});
 
 let schemaReady: Promise<void> | null = null;
 

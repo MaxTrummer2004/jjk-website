@@ -5,6 +5,11 @@ import { dirname } from "node:path";
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  // Scalingo laeuft nicht serverless, sondern als langlebiger Node-Prozess.
+  // Mit "standalone" bauet Next einen self-contained Server (.next/standalone/
+  // server.js) inkl. der tatsaechlich benutzten node_modules — kein `next
+  // start`, kein Mitschleppen des ganzen Projekts auf dem Dyno.
+  output: "standalone",
   // Pin the workspace root to this project (multiple lockfiles exist on the machine)
   turbopack: {
     root: projectRoot,
