@@ -18,9 +18,10 @@
  *   app/layout.tsx        — Schriften seit dem Umbau selbst gehostet, kein
  *                           Google-CDN mehr
  *
- * Was NUR der Verein weiss — Anschrift, Vertretung, Auftragsverarbeiter-
- * Vertraege, Serverregion der Datenbank — steht als <Todo>-Platzhalter.
- * Ueber jedem Platzhalterabschnitt steht ein Kommentar, was hineingehoert.
+ * Seit 4. Oktober 2026 laeuft alles bei Scalingo SAS (Strasbourg), Region
+ * osc-fr1, Rechenzentren Paris-Pantin und Magny-les-Hameaux. Vorher: Vercel
+ * (USA) plus Neon/Databricks. Ein Drittlandabschnitt ist deshalb entfallen,
+ * Platzhalter gibt es keine mehr.
  *
  * Kein Tracking, keine Analytics, keine Werbe-Cookies: in package.json ist
  * kein Analyse-Paket eingebunden, und die Seite laedt keine Skripte Dritter.
@@ -29,7 +30,7 @@
  * notwendig (§ 165 Abs. 3 TKG 2021) und braucht keine.
  */
 
-import { LegalPage, Todo } from "@/components/legal-page";
+import { LegalPage } from "@/components/legal-page";
 import { createMetadata } from "@/lib/metadata";
 import { siteConfig } from "@/lib/config";
 import type { Metadata } from "next";
@@ -132,10 +133,11 @@ export default function DatenschutzPage(): ReactNode {
 
       {/* ------------------------------------------------------------------
           SERVER-LOGFILES
-          Vercel protokolliert Requests. Wie lange genau, haengt vom gebuchten
-          Plan ab (Hobby / Pro / Enterprise) — das steht im Vercel-Dashboard
-          unter Observability bzw. in den Limits des Plans. Bitte dort
-          nachsehen und die tatsaechliche Aufbewahrungsdauer eintragen.
+          Scalingo haelt alle Logs ein Jahr (doc.scalingo.com/platform/app/logs,
+          "all logs on Scalingo are kept for 1 year"; im DPA Art. 12 als zwoelf
+          Monate). Die Router-Logs — also die Zeile pro Request mit IP — sind
+          laut derselben Doku "not enable by default" und fuer diese App nicht
+          eingeschaltet. Plan-abhaengig ist daran nichts.
           ------------------------------------------------------------------ */}
       <section>
         <h2>Server-Protokolldaten</h2>
@@ -167,14 +169,20 @@ export default function DatenschutzPage(): ReactNode {
 
           <dt>Speicherdauer</dt>
           <dd>
-            Im Tarif Hobby, auf dem diese Website läuft, sind die
-            Laufzeitprotokolle <strong>eine Stunde</strong> lang einsehbar und
-            werden danach nicht mehr angezeigt (Vercel-Dokumentation,
-            Laufzeitprotokolle, Stand August 2026). Vercel behält sich in
-            seinen Nutzungsbedingungen allerdings vor, aus dem Betrieb
-            entstehende Protokoll- und Nutzungsdaten darüber hinaus für eigene
-            Zwecke aufzubewahren; die Stunde ist die Frist, in der wir sie
-            sehen können, nicht die Lebensdauer der Daten bei Vercel.
+            Ein Jahr. Scalingo schreibt dazu: &bdquo;all logs on Scalingo are
+            kept for 1 year&ldquo; und begründet das mit französischem und
+            europäischem Recht, das Betreiber zur Vorhaltung von
+            Verbindungsdaten verpflichtet. Im Auftragsverarbeitungsvertrag ist
+            dieselbe Frist als zwölf Monate genannt.
+          </dd>
+
+          <dt>Umfang</dt>
+          <dd>
+            Die Protokollierung der einzelnen Seitenaufrufe
+            (&bdquo;Router-Logs&ldquo;, die Liste oben) ist bei Scalingo
+            standardmäßig <strong>nicht eingeschaltet</strong> und für diese
+            Website nicht aktiviert. Protokolliert wird, was die Anwendung
+            selbst ausgibt, sowie Verbindungsdaten auf Netzebene.
           </dd>
         </dl>
         <p>
@@ -359,148 +367,67 @@ export default function DatenschutzPage(): ReactNode {
         </p>
       </section>
 
-      {/* ------------------------------------------------------------------
-          AUFTRAGSVERARBEITER
-          Beide brauchen einen Auftragsverarbeitungsvertrag nach Art. 28 DSGVO.
-          Vercel und Neon stellen beide standardmaessig ein DPA bereit, das
-          sich im jeweiligen Dashboard abschliessen bzw. herunterladen laesst —
-          das muss der Verein tun und danach hier vermerken, ab wann es gilt.
-          Bei Neon ist ausserdem die Region der Datenbank wichtig: sie kann in
-          der EU (z. B. Frankfurt) oder in den USA liegen, und davon haengt
-          Abschnitt "Datenübermittlung in Drittländer" ab. Die Region steht im
-          Neon-Dashboard beim Projekt.
-          ------------------------------------------------------------------ */}
       <section>
         <h2>Empfänger und Auftragsverarbeiter</h2>
         <p>
           Die Daten werden nicht verkauft und nicht zu Werbezwecken
-          weitergegeben. Zum Betrieb der Website sind zwei Dienstleister
-          eingebunden, die als Auftragsverarbeiter nach Art. 28 DSGVO tätig
-          werden:
+          weitergegeben. Zum Betrieb der Website ist ein einziger Dienstleister
+          eingebunden, der als Auftragsverarbeiter nach Art. 28 DSGVO tätig
+          wird:
         </p>
 
-        <h3>Hosting: Vercel</h3>
         <dl>
-          {/* Anschrift aus vercel.com/legal/privacy-notice (Stand 1. Juni
-              2026), bestaetigt durch dieselbe Angabe im DPA und in den
-              Nutzungsbedingungen. Die frueher hier stehende Adresse in Walnut,
-              CA kommt auf Vercels Seiten nicht mehr vor. */}
           <dt>Anbieter</dt>
           <dd>
-            Vercel Inc. (Delaware corporation), 440 N Barranca Avenue #4133,
-            Covina, CA 91723, USA
+            Scalingo SAS, 13 rue Jacques Peirotes, 67000 Strasbourg,
+            Frankreich. Datenschutzbeauftragter: dpo@scalingo.com
           </dd>
 
           <dt>Verarbeitet</dt>
           <dd>
-            Server-Protokolldaten sowie alle Daten, die beim Aufruf der Website
-            technisch durchlaufen.
-          </dd>
-
-          {/* ACHTUNG: Vercels DPA gilt laut eigenem Wortlaut fuer Kunden auf
-              Enterprise- und Pro-Tarifen. Dieses Projekt laeuft auf Hobby —
-              ob der Vertrag damit ueberhaupt greift, steht dort nicht. Das ist
-              zu klaeren, bevor hier ein Datum eingetragen wird: ein Verweis
-              auf einen Vertrag, der fuer den eigenen Tarif nicht gilt, ist
-              schlimmer als ein offener Platzhalter. */}
-          <dt>Auftragsverarbeitungsvertrag</dt>
-          <dd>
-            <Todo>
-              DPA MIT VERCEL: klären, ob es für den Hobby-Tarif gilt
-              (vercel.com/legal/dpa nennt Enterprise und Pro), danach Datum
-              bzw. Fundstelle eintragen
-            </Todo>
-          </dd>
-        </dl>
-
-        <h3>Datenbank: Neon</h3>
-        <dl>
-          {/* Neons eigene Rechtsseiten (neon.com/legal/*) sind seit der
-              Uebernahme durch Databricks alle 404. Vertragspartner ist laut
-              Databricks' Auftragsverarbeitungsvertrag und dessen SCC-Anhang
-              "Databricks, Inc."; Neon, LLC ist in Databricks'
-              Datenschutzerklaerung ausdruecklich als von der
-              DPF-Zertifizierung erfasste Gesellschaft genannt. Das Neon-eigene
-              DPA liegt hinter einer Zugangsanfrage im Trust Center und war
-              nicht einsehbar. */}
-          <dt>Anbieter</dt>
-          <dd>
-            Databricks, Inc., 160 Spear Street, Suite 1300, San Francisco,
-            CA 94105, USA. Neon (Serverless Postgres) gehört seit 2025 zu
-            Databricks; die Gesellschaft Neon, LLC ist Teil derselben
-            Unternehmensgruppe.
-          </dd>
-
-          <dt>Verarbeitet</dt>
-          <dd>
-            Die Konto- und Anwesenheitsdaten des Mitgliederbereichs (Tabellen{" "}
+            Den gesamten Betrieb: Auslieferung der Website, Server-Protokolle
+            und die Datenbank des Mitgliederbereichs (Tabellen{" "}
             <code>members</code> und <code>attendance_votes</code>).
           </dd>
 
           <dt>Serverstandort</dt>
           <dd>
-            Frankfurt am Main, Deutschland (AWS-Region{" "}
-            <code>aws-eu-central-1</code>). Die Datenbank wurde am 4. Oktober
-            2026 aus der Region Virginia (USA) dorthin verlegt; die Region
-            eines Neon-Projekts ist danach unveränderlich.
+            Paris-Pantin und Magny-les-Hameaux, Frankreich (Region{" "}
+            <code>osc-fr1</code>). Auch die Sicherungskopien der Datenbank und
+            die archivierten Protokolle liegen dort.
           </dd>
 
           <dt>Auftragsverarbeitungsvertrag</dt>
           <dd>
-            Databricks Data Processing Addendum (Fassung v3 vom 21. Juli 2023),
-            Bestandteil des Master Cloud Services Agreement. Es bezieht die
-            Standardvertragsklauseln der EU-Kommission
-            (Durchführungsbeschluss (EU) 2021/914, Module 2 und 3) ein; für
-            diese gilt irisches Recht und der Gerichtsstand Dublin. Die Liste
-            der Unterauftragsverarbeiter führt Databricks unter
-            databricks.com/legal/databricks-subprocessors, Änderungen werden
-            30 Tage vorher angekündigt.
+            Scalingos Data Processing Agreement, abrufbar unter
+            scalingo.com/data-processing-agreement. Es ist nach seinem eigenen
+            Wortlaut &bdquo;an integral part of the Agreement&ldquo; und gilt
+            mit dem Vertrag, ohne dass es gesondert abgeschlossen werden muss.
+          </dd>
+
+          <dt>Unterauftragsverarbeiter</dt>
+          <dd>
+            Für das Hosting genau einer: OUTSCALE, 1 rue Royale, 92210
+            Saint-Cloud, Frankreich, für den Betrieb der Rechenzentren. Der
+            Vertrag vermerkt dazu ausdrücklich &bdquo;N/A (no transfer)&ldquo;
+            — es findet keine Übermittlung außerhalb der EU statt. Eine
+            geplante Änderung muss Scalingo ankündigen; der Verein kann ihr
+            binnen acht Kalendertagen widersprechen.
           </dd>
         </dl>
       </section>
 
       {/* ------------------------------------------------------------------
-          DRITTLANDTRANSFER
-          Haengt an der Antwort aus dem Abschnitt darueber. Liegt die
-          Neon-Datenbank in der EU, betrifft dieser Abschnitt nur Vercel.
-          Liegt sie in den USA, betrifft er beide. Bitte pruefen, ob die
-          jeweilige US-Gesellschaft unter dem EU-U.S. Data Privacy Framework
-          zertifiziert ist — nachsehen auf dataprivacyframework.gov — und das
-          Ergebnis hier eintragen.
+          KEIN DRITTLANDABSCHNITT MEHR
+          Bis zum 4. Oktober 2026 lief die Seite bei Vercel (USA) mit einer
+          Datenbank bei Neon/Databricks, zuerst in Virginia, dann in Frankfurt.
+          Beides ist abgeloest. Anbieter, Rechenzentren, Sicherungskopien und
+          Protokollarchive liegen jetzt vollstaendig in Frankreich, und der
+          einzige Unterauftragsverarbeiter sitzt ebenfalls dort. Damit gibt es
+          nichts mehr zu rechtfertigen — der Abschnitt entfaellt ersatzlos,
+          statt mit einer Floskel ueber Standardvertragsklauseln stehen zu
+          bleiben, die niemanden mehr betrifft.
           ------------------------------------------------------------------ */}
-      <section>
-        <h2>Datenübermittlung in Drittländer</h2>
-        <p>
-          <strong>
-            Die Mitgliederdaten werden in Frankfurt am Main gespeichert.
-          </strong>{" "}
-          Bis zum 4. Oktober 2026 lag die Datenbank in Virginia (USA); sie
-          wurde nach Frankfurt verlegt und die alte Datenbank anschließend
-          gelöscht.
-        </p>
-        <p>
-          Das heißt aber nicht, dass gar keine Übermittlung stattfindet: beide
-          Dienstleister sind US-Gesellschaften, und ein Zugriff aus den USA
-          heraus — etwa durch Wartung oder Support — lässt sich nicht
-          ausschließen. Dafür gelten:
-        </p>
-        <ul>
-          <li>
-            die Standardvertragsklauseln der EU-Kommission
-            (Durchführungsbeschluss (EU) 2021/914). Databricks bezieht sie in
-            der Fassung der Module 2 und 3 in seinen
-            Auftragsverarbeitungsvertrag ein; Vercel bezieht sie in den seinen
-            ein.
-          </li>
-          <li>
-            Beide Anbieter erklären darüber hinaus, nach dem EU-U.S. Data
-            Privacy Framework zertifiziert zu sein: Databricks ausdrücklich
-            auch für die Gesellschaft Neon, LLC. Zuständige Aufsicht ist die
-            US-Handelsbehörde FTC. Dies ist die Erklärung der Anbieter, nicht
-            eine eigene Feststellung des Vereins.
-          </li>
-        </ul>
-      </section>
 
       {/* ------------------------------------------------------------------
           KONTAKTAUFNAHME
@@ -621,6 +548,16 @@ export default function DatenschutzPage(): ReactNode {
           <li>
             Der Mitgliederbereich ist ohne gültige Anmeldung nicht erreichbar.
           </li>
+          <li>
+            Der Hosting-Dienstleister verschlüsselt alle auf der Plattform
+            gespeicherten Daten im Ruhezustand und wechselt die Schlüssel
+            regelmäßig.
+          </li>
+          <li>
+            Von der Datenbank werden regelmäßig Sicherungskopien angelegt,
+            redundant und an mehreren Orten gespeichert und auf
+            Wiederherstellbarkeit getestet.
+          </li>
         </ul>
       </section>
 
@@ -643,13 +580,7 @@ export default function DatenschutzPage(): ReactNode {
         </p>
       </section>
 
-      {/* ------------------------------------------------------------------
-          STAND
-          Datum eintragen, an dem die Platzhalter ersetzt wurden.
-          ------------------------------------------------------------------ */}
-      <p className="jjk-legal-stand">
-        Stand: <Todo>DATUM</Todo>
-      </p>
+      <p className="jjk-legal-stand">Stand: 4. Oktober 2026</p>
     </LegalPage>
   );
 }

@@ -20,8 +20,8 @@ function getSecret(): Uint8Array {
   const secret = process.env.AUTH_SECRET;
   if (!secret) {
     throw new Error(
-      "AUTH_SECRET fehlt. In Vercel unter Project Settings -> Environment " +
-        "Variables setzen (irgendein langer, zufaelliger String reicht)."
+      "AUTH_SECRET fehlt. Im Scalingo-Dashboard unter Environment setzen " +
+        "(irgendein langer, zufaelliger String reicht)."
     );
   }
   return new TextEncoder().encode(secret);

@@ -36,8 +36,9 @@ function formatDateLabel(iso: string): string {
 /**
  * Zeigt einen freundlichen Hinweis statt eines kaputten 500ers, wenn die
  * Postgres-Verbindung (noch) fehlt — das ist der einzige Schritt, den nur
- * ihr in Vercel selbst machen koennt (Datenbank anlegen + AUTH_SECRET
- * setzen), nicht etwas, das sich per Code-Aenderung loesen liesse.
+ * ihr bei Scalingo selbst machen koennt (Postgres-Addon anlegen +
+ * AUTH_SECRET setzen), nicht etwas, das sich per Code-Aenderung loesen
+ * liesse.
  */
 function SetupHint({ message }: { message: string }): ReactNode {
   return (
@@ -56,7 +57,7 @@ export default async function MitgliederPage(): Promise<ReactNode> {
     await ensureSchema();
   } catch {
     return (
-      <SetupHint message="Es fehlt entweder die Postgres-Datenbank oder AUTH_SECRET in den Vercel-Umgebungsvariablen des Projekts. Beides unter Project Settings → Environment Variables anlegen, danach neu deployen." />
+      <SetupHint message="Es fehlt entweder das Postgres-Addon oder AUTH_SECRET in den Umgebungsvariablen der App. Beides im Scalingo-Dashboard unter Environment anlegen, danach neu deployen." />
     );
   }
 
