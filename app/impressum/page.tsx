@@ -11,11 +11,11 @@
  * steht als <Todo>-Platzhalter und faellt im Browser rot auf. Ueber jedem
  * Platzhalterabschnitt steht ein Kommentar, was dort hineingehoert.
  *
- * ACHTUNG, HERKUNFT DER AUSGEFUELLTEN FELDER: Vereinsname, Sitz, Zweck und
- * die Vertretungsregel stammen aus der ROHFASSUNG der Statuten vom Oktober
- * 2026, nicht aus einem Vereinsregisterauszug. Eine Rohfassung kann sich bis
- * zur Anzeige bei der Vereinsbehoerde noch aendern. Sobald der Auszug da ist,
- * gehoeren alle vier gegen ihn geprueft — und nur was dort steht, gilt.
+ * HERKUNFT DER AUSGEFUELLTEN FELDER: Vereinsname, Sitz, Zweck und die
+ * Vertretungsregel stammen aus den Statuten (§§ 1, 2, 13). Der Verein ist
+ * angezeigt, und der Auftraggeber hat bestaetigt, dass diese Angaben der
+ * eingetragenen Fassung entsprechen. Wer sie spaeter aendert, aendert sie in
+ * den Statuten zuerst und hier danach.
  *
  * BEWUSST NICHT ENTHALTEN: ein Link auf die EU-Plattform zur
  * Online-Streitbeilegung (ec.europa.eu/odr). Die Plattform hat den Betrieb
