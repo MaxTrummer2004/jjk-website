@@ -7,9 +7,12 @@
  * § 25 MedienG, weil sie eine "wiederkehrende elektronische Publikation"
  * ist (Offenlegung: Medieninhaber, Sitz, Vereinsorgane, Blattlinie).
  *
- * HIER IST NICHTS ERFUNDEN. Jede Angabe, die nur der Verein selbst kennt,
- * steht als <Todo>-Platzhalter und faellt im Browser rot auf. Ueber jedem
- * Platzhalterabschnitt steht ein Kommentar, was dort hineingehoert.
+ * HIER IST NICHTS ERFUNDEN, UND ES IST NICHTS MEHR OFFEN. Diese Seite hatte
+ * rote <Todo>-Platzhalter an jeder Stelle, die nur der Verein kennt; alle sind
+ * jetzt durch Angaben aus dem Vereinsregisterauszug und den Statuten ersetzt.
+ * Wer hier etwas aendert, ersetzt es durch eine belegte Angabe oder setzt den
+ * Platzhalter wieder ein — eine halb ausgefuellte Offenlegung ist schlechter
+ * als eine sichtbar unfertige.
  *
  * HERKUNFT DER ANGABEN: Name, Sitz, Zustellanschrift, ZVR-Zahl, Behoerde und
  * die Namen der Organe stammen aus dem Vereinsregisterauszug zum Stichtag
@@ -29,7 +32,7 @@
  * mit der Verordnung (EU) 2024/3228 entfallen.
  */
 
-import { LegalPage, Todo } from "@/components/legal-page";
+import { LegalPage } from "@/components/legal-page";
 import { createMetadata } from "@/lib/metadata";
 import { siteConfig } from "@/lib/config";
 import type { Metadata } from "next";
@@ -230,23 +233,6 @@ export default function ImpressumPage(): ReactNode {
         </dl>
       </section>
 
-      {/* ------------------------------------------------------------------
-          UMSATZSTEUER
-          Nur ausfuellen, falls der Verein unternehmerisch taetig und
-          umsatzsteuerpflichtig ist (dann besteht eine UID-Nummer). Viele
-          gemeinnuetzige Sportvereine sind das NICHT — in dem Fall diesen
-          ganzen Abschnitt ersatzlos loeschen statt "keine UID" hinzuschreiben.
-          ------------------------------------------------------------------ */}
-      <section>
-        <h2>Umsatzsteuer</h2>
-        <p>
-          <Todo>
-            UID-NUMMER, falls der Verein umsatzsteuerpflichtig ist: sonst
-            diesen Abschnitt ganz entfernen
-          </Todo>
-        </p>
-      </section>
-
       <section>
         <h2>Haftung für Inhalte und Links</h2>
         <p>
@@ -306,7 +292,7 @@ export default function ImpressumPage(): ReactNode {
           Datum eintragen, an dem die Platzhalter ersetzt wurden.
           ------------------------------------------------------------------ */}
       <p className="jjk-legal-stand">
-        Stand: <Todo>DATUM</Todo>
+        Stand: 4. Oktober 2026
       </p>
     </LegalPage>
   );
