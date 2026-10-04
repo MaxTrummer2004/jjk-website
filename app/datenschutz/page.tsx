@@ -270,11 +270,10 @@ export default function DatenschutzPage(): ReactNode {
             ---------------------------------------------------------------- */}
         <h3>Speicherdauer</h3>
         <p>
-          <Todo>
-            AUFBEWAHRUNGSFRIST FÜR KONTEN UND ANWESENHEITSEINTRÄGE festlegen:
-            z. B. Löschung des Kontos samt Einträgen binnen X Monaten nach
-            Austritt oder auf Wunsch
-          </Todo>
+          Konten und Anwesenheitseinträge werden spätestens zwölf Monate nach
+          dem Austritt aus dem Verein gelöscht, auf Wunsch jederzeit früher.
+          Die Frist gibt dem Verein Zeit, offene Beiträge und Ansprüche aus der
+          Mitgliedschaft abzuwickeln, und ist nicht länger als dafür nötig.
         </p>
         <p>
           Bis dahin gilt: Ein Konto kann jederzeit gelöscht werden. Schicken Sie
@@ -378,6 +377,12 @@ export default function DatenschutzPage(): ReactNode {
 
         <h3>Hosting: Vercel</h3>
         <dl>
+          {/* Diese Anschrift stammt aus einer aelteren Fassung von Vercels
+              Rechtsseiten. In der aktuellen Datenschutzerklaerung taucht eine
+              andere auf (Covina, CA). Vor dem Veroeffentlichen einmal gegen
+              vercel.com/legal/privacy-notice pruefen und die dort genannte
+              uebernehmen — eine falsche Anschrift des Auftragsverarbeiters ist
+              zwar kein Drama, aber sie ist in dreissig Sekunden richtig. */}
           <dt>Anbieter</dt>
           <dd>
             Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, USA
@@ -389,21 +394,39 @@ export default function DatenschutzPage(): ReactNode {
             technisch durchlaufen.
           </dd>
 
+          {/* ACHTUNG: Vercels DPA gilt laut eigenem Wortlaut fuer Kunden auf
+              Enterprise- und Pro-Tarifen. Dieses Projekt laeuft auf Hobby —
+              ob der Vertrag damit ueberhaupt greift, steht dort nicht. Das ist
+              zu klaeren, bevor hier ein Datum eingetragen wird: ein Verweis
+              auf einen Vertrag, der fuer den eigenen Tarif nicht gilt, ist
+              schlimmer als ein offener Platzhalter. */}
           <dt>Auftragsverarbeitungsvertrag</dt>
           <dd>
             <Todo>
-              DPA MIT VERCEL abschließen und hier Datum bzw. Fundstelle
-              eintragen
+              DPA MIT VERCEL: klären, ob es für den Hobby-Tarif gilt
+              (vercel.com/legal/dpa nennt Enterprise und Pro), danach Datum
+              bzw. Fundstelle eintragen
             </Todo>
           </dd>
         </dl>
 
         <h3>Datenbank: Neon</h3>
         <dl>
+          {/* Neon gehoert seit 2025 zu Databricks und tritt als
+              "Backend von Databricks" auf; die Rechtsseiten unter
+              neon.com/legal sind nicht mehr erreichbar (404), und
+              Datenschutzanfragen verweist Neon selbst an
+              privacy@databricks.com. Welche Gesellschaft heute Vertragspartner
+              ist, muss aus dem Trust Center (trust.neon.com) oder den
+              Rechtsseiten von Databricks kommen — geraten wird hier nichts. */}
           <dt>Anbieter</dt>
           <dd>
-            Neon Inc. (Neon Serverless Postgres),{" "}
-            <Todo>FIRMENANSCHRIFT LAUT NEON-VERTRAG</Todo>
+            Neon (Serverless Postgres), seit 2025 Teil von Databricks.{" "}
+            <Todo>
+              VERTRAGSPARTNER UND FIRMENANSCHRIFT aus dem Auftragsverarbeitungs-
+              vertrag übernehmen (Trust Center trust.neon.com oder die
+              Rechtsseiten von Databricks)
+            </Todo>
           </dd>
 
           <dt>Verarbeitet</dt>
@@ -414,10 +437,10 @@ export default function DatenschutzPage(): ReactNode {
 
           <dt>Serverstandort</dt>
           <dd>
-            <Todo>
-              REGION DER NEON-DATENBANK: im Neon-Dashboard beim Projekt
-              ablesen, z. B. eu-central-1 (Frankfurt)
-            </Todo>
+            Frankfurt am Main, Deutschland (AWS-Region{" "}
+            <code>aws-eu-central-1</code>). Die Datenbank wurde am 4. Oktober
+            2026 aus der Region Virginia (USA) dorthin verlegt; die Region
+            eines Neon-Projekts ist danach unveränderlich.
           </dd>
 
           <dt>Auftragsverarbeitungsvertrag</dt>
@@ -441,21 +464,27 @@ export default function DatenschutzPage(): ReactNode {
       <section>
         <h2>Datenübermittlung in Drittländer</h2>
         <p>
-          Soweit Daten an Server außerhalb der EU bzw. des EWR übermittelt
-          werden, stützt sich die Übermittlung auf:
+          <strong>Die Mitgliederdaten verlassen die EU nicht.</strong> Konten
+          und Anwesenheitseinträge liegen in Frankfurt am Main. Bis zum
+          4. Oktober 2026 lag die Datenbank in Virginia (USA); sie wurde
+          verlegt, und die alte Datenbank wurde anschließend gelöscht.
+        </p>
+        <p>
+          Offen bleibt das Hosting: Vercel Inc. hat seinen Sitz in den USA, und
+          die Auslieferung der Website kann dort verarbeitet werden. Dafür
+          gelten:
         </p>
         <ul>
           <li>
-            <Todo>
-              ZERTIFIZIERUNG NACH DEM EU-U.S. DATA PRIVACY FRAMEWORK prüfen
-              (dataprivacyframework.gov) und hier eintragen, für welche
-              Dienstleister sie vorliegt
-            </Todo>
+            die Standardvertragsklauseln der EU-Kommission
+            (Durchführungsbeschluss (EU) 2021/914), die Vercel in seinen
+            Auftragsverarbeitungsvertrag einbezieht;
           </li>
           <li>
-            ergänzend die Standardvertragsklauseln der EU-Kommission
-            (Durchführungsbeschluss (EU) 2021/914), soweit sie Bestandteil des
-            jeweiligen Auftragsverarbeitungsvertrags sind.
+            ergänzend erklärt Vercel in seiner Datenschutzerklärung, nach dem
+            EU-U.S. Data Privacy Framework zertifiziert zu sein. Zuständige
+            Aufsicht ist die US-Handelsbehörde FTC, Beschwerdestelle ist
+            VeraSafe.
           </li>
         </ul>
       </section>
