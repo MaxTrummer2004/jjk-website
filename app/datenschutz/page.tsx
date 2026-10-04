@@ -353,13 +353,13 @@ export default function DatenschutzPage(): ReactNode {
           </dd>
         </dl>
         <p>
-          Zusätzlich legt die Website einen Eintrag im lokalen Speicher Ihres
-          Browsers ab (<code>jjk.intro.seen</code>). Er hält fest, dass Sie die
-          Eröffnungsanimation einmal gesehen haben, damit sie beim nächsten
-          Besuch nicht erneut läuft. Der Eintrag enthält keine
-          personenbezogenen Daten, wird an niemanden übertragen und bleibt in
-          Ihrem Browser; Sie können ihn über dessen Einstellungen jederzeit
-          löschen.
+          Im lokalen Speicher Ihres Browsers legt die Website nichts ab. Hier
+          stand bis zum 5. Oktober 2026 ein Eintrag
+          <code>jjk.intro.seen</code>, der festhielt, dass Sie die
+          Eröffnungsanimation schon gesehen hatten; die Animation läuft jetzt
+          bei jedem Aufruf, der Eintrag wird nicht mehr geschrieben. Ein alter
+          Eintrag aus früheren Besuchen wird nicht mehr gelesen und kann über
+          die Browsereinstellungen gelöscht werden.
         </p>
         <p>
           Weitere Cookies werden nicht gesetzt: insbesondere keine für Analyse,
@@ -580,7 +580,7 @@ export default function DatenschutzPage(): ReactNode {
         </p>
       </section>
 
-      <p className="jjk-legal-stand">Stand: 4. Oktober 2026</p>
+      <p className="jjk-legal-stand">Stand: 5. Oktober 2026</p>
     </LegalPage>
   );
 }

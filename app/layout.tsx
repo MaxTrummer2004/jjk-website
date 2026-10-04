@@ -141,6 +141,37 @@ export default function RootLayout({
             fonts.gstatic.com. Die sind raus — siehe die localFont-Aufrufe
             oben. Von dieser Seite darf keine Anfrage mehr an eine
             Google-Domain gehen. */}
+
+        {/* ── Loader-Weiche, vor dem ersten Frame ──────────────────────────
+            Der Hero (components/jjk-hero.tsx) wird vorgerendert und zwar im
+            Loader-Zustand: das ausgelieferte HTML enthaelt die helle Flaeche
+            #f5f3ef ueber dem ganzen Viewport. Die malt der Browser, sobald
+            das HTML da ist — React laeuft erst viel spaeter. In den Faellen,
+            in denen der Loader uebersprungen wird (Ankerlink, Neuladen weiter
+            unten, Zurueck-Taste), blitzte sie deshalb kurz auf, bevor die
+            Komponente sie wegnehmen konnte. Kein Effekt kann das verhindern,
+            auch useLayoutEffect nicht: der erste Frame ist schon gemalt.
+
+            Also entscheidet ein blockierendes Inline-Skript VOR dem ersten
+            Frame und setzt das Ergebnis als Attribut auf <html>; globals.css
+            blendet .jjk-intro-veil daraufhin sofort aus.
+
+            Die Bedingung muss mit introShouldPlay() in jjk-hero.tsx
+            uebereinstimmen — wer eine der beiden aendert, muss die andere
+            nachziehen. Ohne dangerouslySetInnerHTML geht es nicht, JSX
+            escaped sonst die Operatoren. Alles in try/catch: schlaegt die
+            Pruefung fehl, laeuft der Loader, und das ist der harmlose Fall.
+            ---------------------------------------------------------------- */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              '(function(){try{var s=location.hash.length>1;if(!s){' +
+              'var e=performance.getEntriesByType("navigation")[0];' +
+              's=!!e&&e.type!=="navigate"}if(s){' +
+              'document.documentElement.setAttribute("data-jjk-intro","skip")}' +
+              "}catch(x){}})()",
+          }}
+        />
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <Providers>

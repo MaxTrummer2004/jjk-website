@@ -54,31 +54,38 @@ type Phase = "counting" | "transition" | "done";
  * Genau einmal pro Browser, beim allerersten Besuch. Danach nie wieder.
  *
  * Der Loader gehoert zum Ankommen: man faehrt von aussen in die Seite hinein,
- * sieht einmal, wo man gelandet ist, und ist drin. Beim zweiten Mal ist er
- * keine Ankunft mehr, sondern eine Wartezeit — und da er das Scrollen sperrt,
- * eine erzwungene. Wer die Seite kennt, will zum Stundenplan.
+ * sieht einmal, wo man gelandet ist, und ist drin. Er laeuft bei JEDEM Aufruf
+ * der Seite, auch beim zehnten — das ist eine bewusste Entscheidung, sie war
+ * zwischenzeitlich anders. Hier stand einmal ein localStorage-Schluessel
+ * `jjk.intro.seen`, der ihn Wiederbesuchern erspart hat; er ist wieder raus.
+ * Wer ihn zurueckholt, muss ihn auch im Inline-Skript in app/layout.tsx
+ * nachziehen, sonst widersprechen sich die beiden Antworten.
  *
- * Drei Faelle fallen zusaetzlich raus, in denen der Besucher gar nicht oben
- * landet und vom Loader nichts sieht: ein Link mit Anker
- * (jjk.academy/#schedule), ein Neuladen weiter unten (der Browser stellt die
- * Scrollposition wieder her) und die Zurueck-Taste. Frueher lief er dort
- * unsichtbar ab und sperrte vier Sekunden lang eine Seite, an der nichts
- * erklaerte, warum sie klemmt.
+ * Drei Faelle fallen raus, in denen der Besucher gar nicht oben landet und vom
+ * Loader nichts sieht: ein Link mit Anker (jjk.academy/#schedule), ein
+ * Neuladen weiter unten (der Browser stellt die Scrollposition wieder her) und
+ * die Zurueck-Taste. Frueher lief er dort unsichtbar ab und sperrte vier
+ * Sekunden lang eine Seite, an der nichts erklaerte, warum sie klemmt.
  *
- * Zwei Quellen, beide ohne Wettlauf mit dem Browser:
+ * Woran das erkannt wird, ohne Wettlauf mit dem Browser: am Anker in der URL
+ * und an der Navigation-Timing-API, die sagt, wie die Seite aufgerufen wurde.
+ * Beides steht sofort fest, anders als die Scrollposition, auf die man warten
+ * muesste.
  *
- * - localStorage haelt fest, dass der Loader schon einmal gelaufen ist. Das
- *   ist der Unterschied zum Modulwert `introAlreadyPlayed`, der nur die
- *   clientseitige Ruecknavigation ueberlebt und mit jedem Neuladen vergisst.
- * - Die Navigation-Timing-API sagt, wie die Seite aufgerufen wurde. Sie steht
- *   sofort fest, anders als die Scrollposition, auf die man warten muesste.
+ * Dieselbe Pruefung steht ein zweites Mal als Inline-Skript in app/layout.tsx
+ * und setzt dort `data-jjk-intro="skip"` auf <html>. Der Grund: dieser Hero
+ * wird vorgerendert, und das ausgelieferte HTML zeigt den Loader-Zustand —
+ * also die helle Flaeche. Die malt der Browser, lange bevor React hydriert.
+ * In den uebersprungenen Faellen blitzte sie deshalb kurz auf. Das Attribut
+ * ist vor dem ersten Frame da, und globals.css blendet die Loader-Ebenen
+ * (.jjk-intro-veil) damit schon im ersten Frame aus. Hier zu reagieren ist zu
+ * spaet, egal ob in useEffect oder useLayoutEffect.
  *
  * Die Antwort wird fuer die Dauer des Seitenaufrufs gemerkt. Sie MUSS stabil
- * sein: der Sperr-Effekt fragt bei jedem Phasenwechsel erneut, und wuerde die
- * Notiz gleich zu Beginn gesetzt, gaebe die Funktion mitten im Loader
- * ploetzlich false zurueck und die Sperre fiele, waehrend er noch laeuft.
+ * sein: der Sperr-Effekt fragt bei jedem Phasenwechsel erneut, und waere sie
+ * nicht festgehalten, koennte die Funktion mitten im Loader ploetzlich false
+ * zurueckgeben und die Sperre fallen, waehrend er noch laeuft.
  */
-const SEEN_KEY = "jjk.intro.seen";
 let introDecision: boolean | null = null;
 
 function introShouldPlay(): boolean {
@@ -95,18 +102,6 @@ function introShouldPlay(): boolean {
     // Ohne Eintrag (sehr alte Browser) im Zweifel spielen: ein Loader zu viel
     // ist harmloser als ein Titelbild, das nie ankommt.
     decision = !entry || entry.type === "navigate";
-  }
-
-  // Jeder Zugriff in try/catch: im privaten Fenster und bei gesperrten
-  // Website-Daten wirft schon das Lesen. Nicht lesbar heisst "noch nicht
-  // gesehen" — lieber ein Loader zu viel als eine Seite, die nie ankommt.
-  if (decision) {
-    try {
-      if (window.localStorage.getItem(SEEN_KEY)) decision = false;
-      else window.localStorage.setItem(SEEN_KEY, "1");
-    } catch {
-      /* egal */
-    }
   }
 
   introDecision = decision;
@@ -414,7 +409,7 @@ export function JJKHero(): ReactNode {
             weg, der dunkle Grund darunter kommt durch. */}
         <motion.div
           aria-hidden="true"
-          className="absolute inset-0 bg-[#f5f3ef]"
+          className="jjk-intro-veil absolute inset-0 bg-[#f5f3ef]"
           style={{ opacity: lightOpacity }}
         />
 
@@ -539,7 +534,7 @@ export function JJKHero(): ReactNode {
             initial={false}
             animate={{ opacity: progress >= 100 ? 0 : 1 }}
             transition={{ duration: 0.5, ease: softEase }}
-            className="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 z-20 text-[clamp(56px,11vw,150px)] leading-none tracking-tighter tabular-nums text-black font-medium select-none"
+            className="jjk-intro-veil absolute bottom-6 right-6 sm:bottom-10 sm:right-10 z-20 text-[clamp(56px,11vw,150px)] leading-none tracking-tighter tabular-nums text-black font-medium select-none"
           >
             {progress}
           </motion.p>

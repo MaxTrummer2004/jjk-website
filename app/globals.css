@@ -6704,3 +6704,27 @@ p,
   color: var(--foreground);
   text-wrap: balance;
 }
+
+/* ── Uebersprungener Loader: kein Aufblitzen ──────────────────────────────
+   Das Inline-Skript in app/layout.tsx setzt data-jjk-intro="skip" auf <html>,
+   bevor der erste Frame gemalt wird — naemlich dann, wenn der Besucher nicht
+   oben landet (Ankerlink, Neuladen weiter unten, Zurueck-Taste) und den
+   Loader deshalb gar nicht sehen soll.
+
+   Nur: der Hero ist vorgerendert, und sein ausgeliefertes HTML IST der
+   Loader-Zustand — die helle Flaeche #f5f3ef ueber dem ganzen Viewport, plus
+   der Zaehler unten rechts. Die malt der Browser, sobald das HTML da ist;
+   React hydriert erst viel spaeter und kann den hellen Frame nicht mehr
+   verhindern. Deshalb entscheidet es die CSS-Ebene, die vor dem ersten Frame
+   greift.
+
+   !important, weil beide Ebenen ihre Deckkraft als Inline-Style tragen
+   (motion schreibt style="opacity: ..."), und ein Inline-Style gewinnt gegen
+   jede Klasse. Nach dem Hydrieren stehen diese Ebenen im uebersprungenen Fall
+   ohnehin auf 0 — die Regel darf also stehen bleiben, sie nimmt nichts weg,
+   was spaeter noch gebraucht wird. Bei einem normalen Aufruf fehlt das
+   Attribut und die Regel greift nie.
+   -------------------------------------------------------------------------- */
+html[data-jjk-intro="skip"] .jjk-intro-veil {
+  opacity: 0 !important;
+}
