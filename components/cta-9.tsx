@@ -44,9 +44,9 @@ export default function Cta9() {
         <div className="jjk-rule mx-auto mt-8 w-40" aria-hidden="true" />
 
         <p className="mx-auto mt-8 max-w-md text-lg leading-relaxed text-foreground-dim">
-          Ein Probetraining kostet 20 €. Kurze Hose, T-Shirt, den Rest leihen
-          wir dir. Die Mitgliedschaft kostet 60 € im Monat und enthält alles
-          aus dem Stundenplan.
+          Das Probetraining ist gratis. Kurze Hose, T-Shirt, Wasser &mdash;
+          mehr brauchst du nicht. Was eine Mitgliedschaft kostet, steht oben
+          bei den Preisen.
         </p>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">

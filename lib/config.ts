@@ -256,6 +256,9 @@ export type ScheduleClass = {
 /**
  * Der Wochenplan nach dem Aushang vom September 2026.
  *
+ * Montag standen No-Gi und Ringen bis zum 6. Oktober 2026 vertauscht: Ringen
+ * um 17:45, No-Gi um 19:05. Richtig ist umgekehrt.
+ *
  * Zwei Kursschienen pro Werktag (17:45–19:00 und 19:05–20:20) plus Open Mat am
  * Samstag. Matte frei ab 16:30 (Di/Do 16:45) und Dehnen 17:15 (Mo/Mi/Fr)
  * stehen bewusst NICHT als Zeilen hier: es sind keine Kurse, sondern offene
@@ -265,8 +268,8 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   {
     day: "Mo",
     classes: [
-      { time: "17:45–19:00", name: "Ringen", note: "Eine Woche Fokus Kondition, eine Woche Fokus Technik", program: "Ringen", kind: "ringen", level: "intermediate" },
-      { time: "19:05–20:20", name: "No-Gi Training", note: "Technik & Sparring ohne Gi", program: "No-Gi Training", kind: "nogi", level: "intermediate" },
+      { time: "17:45–19:00", name: "No-Gi Training", note: "Technik & Sparring ohne Gi", program: "No-Gi Training", kind: "nogi", level: "intermediate" },
+      { time: "19:05–20:20", name: "Ringen", note: "Eine Woche Fokus Kondition, eine Woche Fokus Technik", program: "Ringen", kind: "ringen", level: "intermediate" },
     ],
   },
   {
@@ -355,7 +358,10 @@ export const pricing = {
       name: "Probetraining",
       price: "gratis",
       per: "erstes Training",
-      note: "Einen Gi leihen wir dir",
+      // Hier stand "Einen Gi leihen wir dir". Der Verein hat derzeit keine
+      // Leih-Gis — eine Zusage, die beim ersten Training platzt, ist schlimmer
+      // als gar keine.
+      note: "Kurze Hose und T-Shirt reichen",
       featured: false,
     },
     {
@@ -384,7 +390,7 @@ export const faqs = [
   {
     question: "Was brauche ich für die erste Einheit?",
     answer:
-      "Kurze Hose, T-Shirt, Wasser. Einen Gi leihen wir dir, wenn du eine Gi-Stunde probieren willst. Komm 15 Minuten früher, dann zeigen wir dir alles.",
+      "Kurze Hose, T-Shirt, Wasser — mehr brauchst du nicht. Für die Stunden im Gi brauchst du einen eigenen; zum Anfangen reichen die No-Gi-Einheiten völlig, davon gibt es jede Woche mehrere. Komm 15 Minuten früher, dann zeigen wir dir alles.",
   },
   {
     question: "Muss ich fit oder beweglich sein, um anzufangen?",
