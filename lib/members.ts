@@ -86,14 +86,16 @@ export async function getCurrentMember(): Promise<MemberRecord | null> {
 
 /**
  * Wer Vorstand ist, steht in der Umgebungsvariable BOARD_EMAILS (Komma-Liste),
- * gesetzt im Scalingo-Dashboard — NICHT in der Datenbank. Eine Rolle in der
+ * gesetzt im Scalingo-Dashboard — NICHT in der Datenbank. Trennzeichen egal. Eine Rolle in der
  * Datenbank liesse sich ueber jede Luecke im Code hochstufen; eine
  * Umgebungsvariable aendert nur, wer Zugang zum Hosting hat.
  */
 export function isBoardEmail(email: string | null): boolean {
   if (!email) return false;
   const list = (process.env.BOARD_EMAILS ?? "")
-    .split(",")
+    // Komma, Strichpunkt oder Leerzeichen — im Scalingo-Dashboard wurde die
+    // Liste zuerst mit Leerzeichen eingetragen, und dann war niemand Vorstand.
+    .split(/[\s,;]+/)
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
   return list.includes(email.toLowerCase());
