@@ -123,6 +123,65 @@ async function createSchema(): Promise<void> {
       joined_at date not null default current_date
     );
   `;
+
+  // ── Beitrittserklaerung (seit Oktober 2026) ─────────────────────────────
+  // Nur Erweiterungen: jede Spalte nullable oder mit Vorgabe, damit
+  // bestehende Zeilen gueltig bleiben. `username` verliert sein NOT NULL —
+  // eingeloggt wird jetzt per E-Mail, der Benutzername bleibt nur fuer
+  // Altkonten stehen.
+  //
+  // `status` ist der Aufnahmestand nach § 5 Abs. 2 der Statuten (der Vorstand
+  // entscheidet). Altkonten von vor der Beitrittserklaerung gelten als
+  // aufgenommen, sonst saehen sie ihren eigenen Bereich nicht mehr.
+  await sql.query(`
+    alter table members alter column username drop not null;
+    alter table members add column if not exists email text;
+    alter table members add column if not exists first_name text;
+    alter table members add column if not exists last_name text;
+    alter table members add column if not exists address text;
+    alter table members add column if not exists birth_date date;
+    alter table members add column if not exists phone text;
+    alter table members add column if not exists guardian_first_name text;
+    alter table members add column if not exists guardian_last_name text;
+    alter table members add column if not exists guardian_phone text;
+    alter table members add column if not exists guardian_email text;
+    alter table members add column if not exists plan text;
+    alter table members add column if not exists reduced_requested boolean not null default false;
+    alter table members add column if not exists reduced_verified boolean not null default false;
+    alter table members add column if not exists guardian_consent_received boolean not null default false;
+    alter table members add column if not exists consent_photos boolean not null default false;
+    alter table members add column if not exists consent_whatsapp boolean not null default false;
+    alter table members add column if not exists terms_accepted_at timestamptz;
+    alter table members add column if not exists status text not null default 'active';
+    alter table members add column if not exists applied_at timestamptz;
+    alter table members add column if not exists decided_at timestamptz;
+    alter table members add column if not exists decided_by integer;
+    create unique index if not exists members_email_key on members (email);
+  `);
+
+  // Eine Zeile je bezahltem Posten. Heute setzt sie der Kassier per Haekchen
+  // (source = 'manual'), spaeter schreibt die Online-Zahlung dieselbe Zeile
+  // mit source = 'online' — der Statusblock unterscheidet das nicht.
+  //
+  // `period` ist der Monatserste fuer Monatsbeitraege und NULL fuer die
+  // Einschreibgebuehr und den 10er-Block. Der Unique-Index arbeitet mit
+  // coalesce, weil Postgres zwei NULLs nicht als gleich ansieht und sonst
+  // dieselbe Einschreibgebuehr zweimal eingetragen werden koennte.
+  await sql.query(`
+    create table if not exists payments (
+      id serial primary key,
+      member_id integer not null references members(id) on delete cascade,
+      kind text not null check (kind in ('month', 'enrollment', 'block')),
+      period date,
+      amount_cents integer not null,
+      source text not null default 'manual' check (source in ('manual', 'online')),
+      recorded_by integer references members(id) on delete set null,
+      recorded_at timestamptz not null default now()
+    );
+    create unique index if not exists payments_once
+      on payments (member_id, kind, coalesce(period, date '1900-01-01'));
+  `);
+
   await sql`
     create table if not exists attendance_votes (
       id serial primary key,

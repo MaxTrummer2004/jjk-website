@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import Link from "next/link";
 import {
   AnimatePresence,
   motion,
@@ -49,14 +50,18 @@ interface MemberStats {
 interface RankedMember {
   id: number;
   name: string;
-  username: string;
   stats: MemberStats;
 }
 
 interface Props {
   memberId: number;
   name: string;
-  username: string;
+  /** Unter dem Namen, z. B. "ALL IN Flex". Ersetzt das fruehere "@benutzername". */
+  subtitle: string;
+  /** Der Statusblock (app/mitglieder/status-panel.tsx), vom Server gerendert. */
+  status: ReactNode;
+  /** Nur fuer den Vorstand: Link auf /vorstand. */
+  boardLink: boolean;
   stats: MemberStats;
   ranked: RankedMember[];
   trainingDateLabel: string;
@@ -68,7 +73,9 @@ type View = "profil" | "rangliste";
 export function MemberProfile({
   memberId,
   name,
-  username,
+  subtitle,
+  status,
+  boardLink,
   stats,
   ranked,
   trainingDateLabel,
@@ -100,6 +107,21 @@ export function MemberProfile({
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="min-h-screen w-full px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24"
     >
+      {/* Statusblock: Zahlungsstand, rot oder gruen. Steht ueber allem, weil
+          er das Einzige auf der Seite ist, das etwas von einem verlangt. */}
+      <div className="mx-auto mb-8 w-full max-w-lg">{status}</div>
+
+      {boardLink ? (
+        <div className="mx-auto mb-8 flex w-full max-w-lg justify-center">
+          <Link
+            href="/vorstand"
+            className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card-plate px-5 text-sm font-medium text-foreground transition-colors hover:border-border-hot"
+          >
+            Vorstandsbereich →
+          </Link>
+        </div>
+      ) : null}
+
       {/* View switcher */}
       <div className="mx-auto mb-8 flex w-full max-w-lg rounded-full border border-white/10 bg-white/[0.04] p-1">
         {(["profil", "rangliste"] as View[]).map((v) => (
@@ -187,7 +209,7 @@ export function MemberProfile({
               <h1 className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl" style={{ fontFamily: "var(--font-display)" }}>
                 {name}
               </h1>
-              <p className="mt-1.5 text-sm text-foreground-dim">@{username} · JJK Academy</p>
+              <p className="mt-1.5 text-sm text-foreground-dim">{subtitle} · JJK Academy</p>
             </motion.div>
 
             {/* Stats */}

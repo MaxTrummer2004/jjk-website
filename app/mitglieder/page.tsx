@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
 import { HomeLink } from "./home-link";
 import { ensureSchema, sql } from "@/lib/db";
-import { getSessionMemberId } from "@/lib/auth";
+import { getCurrentMember, isBoard } from "@/lib/members";
+import { getPaymentStatus } from "@/lib/payments";
+import { StatusPanel } from "./status-panel";
+import { PendingView } from "./pending-view";
 import {
   computeStats,
   mostRecentTrainingDay,
@@ -14,6 +17,13 @@ import { DismissTransition } from "@/components/dismiss-transition";
 
 export const dynamic = "force-dynamic";
 
+const PLAN_LABEL_SHORT = {
+  year: "ALL IN Jahr",
+  quarter: "ALL IN 3 Monate",
+  flex: "ALL IN Flex",
+  block: "10er-Block",
+} as const;
+
 // `type`, nicht `interface`: nur Type-Aliase bekommen von TypeScript eine
 // implizite Index-Signatur. Als `interface` erfuellt MemberRow den Constraint
 // `SqlRow = Record<string, unknown>` in lib/db.ts nicht — sql<MemberRow>`...`
@@ -22,7 +32,6 @@ export const dynamic = "force-dynamic";
 type MemberRow = {
   id: number;
   name: string;
-  username: string;
   joined_at: string;
 };
 
@@ -61,14 +70,45 @@ export default async function MitgliederPage(): Promise<ReactNode> {
     );
   }
 
-  const memberId = await getSessionMemberId();
+  const member = await getCurrentMember();
 
-  if (!memberId) {
+  if (!member) {
     return <><DismissTransition /><AuthLogin /></>;
   }
+  const memberId = member.id;
 
+  const payment = await getPaymentStatus(member);
+  const statusPanel = (
+    <StatusPanel
+      status={member.status}
+      plan={member.plan}
+      reducedRequested={member.reducedRequested}
+      reducedVerified={member.reducedVerified}
+      isMinor={member.isMinor}
+      guardianConsentReceived={member.guardianConsentReceived}
+      payment={payment}
+      firstName={member.firstName ?? member.name.split(" ")[0] ?? member.name}
+      fullName={member.name}
+    />
+  );
+
+  // Antrag offen oder abgelehnt: nur der eigene Status. Rangliste und
+  // Abstimmung gibt es erst nach der Aufnahme durch den Vorstand (§ 5 Abs. 2
+  // der Statuten) — vorher waere man in einer Liste, in die man noch nicht
+  // gehoert, und saehe die Namen aller anderen.
+  if (member.status !== "active") {
+    return (
+      <>
+        <DismissTransition />
+        <PendingView>{statusPanel}</PendingView>
+      </>
+    );
+  }
+
+  // Die Rangliste zeigt nur aufgenommene Mitglieder — offene Antraege haben
+  // dort nichts verloren.
   const [membersResult, votesResult] = await Promise.all([
-    sql<MemberRow>`select id, name, username, joined_at from members order by id asc`,
+    sql<MemberRow>`select id, name, joined_at from members where status = 'active' order by id asc`,
     sql<{ member_id: number; training_date: string; present: boolean }>`
       select member_id, training_date::text as training_date, present
       from attendance_votes
@@ -107,8 +147,10 @@ export default async function MitgliederPage(): Promise<ReactNode> {
       <DismissTransition />
       <MemberProfile
         memberId={memberId}
-        name={me?.name ?? "Mitglied"}
-        username={me?.username ?? ""}
+        name={me?.name ?? member.name}
+        subtitle={member.plan ? PLAN_LABEL_SHORT[member.plan] : "Mitglied"}
+        status={statusPanel}
+        boardLink={isBoard(member)}
         stats={me?.stats ?? { presentDays: 0, attendancePct: 0, reliabilityPct: 0 }}
         ranked={ranked}
         trainingDateLabel={formatDateLabel(trainingDate)}

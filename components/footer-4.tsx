@@ -36,6 +36,8 @@ const COLUMNS = [
       { text: "Probetraining", href: "#pricing" },
       { text: "FAQ", href: "#faq" },
       { text: "Kontakt", href: "#contact" },
+      { text: "Mitglied werden", href: "/beitreten" },
+      { text: "Mitgliederbereich", href: "/mitglieder" },
       { text: "Impressum", href: "/impressum" },
       { text: "Datenschutz", href: "/datenschutz" },
     ],

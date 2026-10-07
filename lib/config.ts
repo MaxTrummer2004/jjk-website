@@ -14,6 +14,17 @@ export const siteConfig = {
   url: "https://jjk.academy",
   email: "info@jjk.academy",
   phone: "+43 699 17261640",
+  /**
+   * Vereinskonto fuer die Beitraege. Leer, solange die Daten nicht vorliegen —
+   * dann sagt der Statusblock im Mitgliederbereich "bekommst du im Training"
+   * statt eine erfundene Nummer zu zeigen. Eine falsche IBAN auf einer
+   * Zahlungsaufforderung ist schlimmer als keine.
+   */
+  bank: {
+    holder: "Jiu Jitsu Kaisen Academy",
+    iban: "",
+    bic: "",
+  },
   address: {
     street: "Triester Straße 391",
     city: "8055 Graz",
@@ -39,12 +50,11 @@ export const nav = {
   /**
    * Die Haupthandlung der Seite, als Knopf in der Kopfleiste.
    *
-   * `href` zeigt vorlaeufig auf die Preise, weil es das Anmeldeformular noch
-   * nicht gibt: ein Knopf, der ins Leere springt, ist schlimmer als keiner.
-   * Sobald das Formular als Sektion steht, ist hier "#anmeldung" einzutragen
-   * und sonst nichts — die Kopfleiste liest ausschliesslich diese Zeile.
+   * Fuehrt seit Oktober 2026 auf die Beitrittserklaerung (/beitreten).
+   * Vorher zeigte er auf die Preise, weil es das Formular noch nicht gab.
+   * Die Kopfleiste liest ausschliesslich diese Zeile.
    */
-  signup: { label: "Jetzt anmelden", href: "#pricing" },
+  signup: { label: "Jetzt anmelden", href: "/beitreten" },
 } as const;
 
 /**

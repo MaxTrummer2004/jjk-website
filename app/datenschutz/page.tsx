@@ -11,7 +11,7 @@
  *                           HS256-JWT im Cookie `jjk_session`, httpOnly,
  *                           sameSite lax, Pfad /, 90 Tage
  *   app/mitglieder/page.tsx — die Rangliste: jedes eingeloggte Mitglied sieht
- *                           Name, Benutzername und Anwesenheitsquote JEDES
+ *                           Name und Anwesenheitsquote JEDES
  *                           anderen Mitglieds. Das ist eine Offenlegung
  *                           innerhalb des Mitgliederbereichs und steht
  *                           deshalb ausdruecklich in Abschnitt 4.
@@ -124,9 +124,12 @@ export default function DatenschutzPage(): ReactNode {
             Social-Media-Einbettungen und keine Inhalte von fremden Servern.
           </li>
           <li>
-            <strong>Der Mitgliederbereich</strong> unter{" "}
-            <a href="/mitglieder">/mitglieder</a> verarbeitet Zugangsdaten und
-            Anwesenheiten. Er ist nur nach Registrierung und Login zugänglich.
+            <strong>Die Beitrittserklärung</strong> unter{" "}
+            <a href="/beitreten">/beitreten</a> und der{" "}
+            <strong>Mitgliederbereich</strong> unter{" "}
+            <a href="/mitglieder">/mitglieder</a> verarbeiten die Angaben aus dem
+            Beitritt, Zugangsdaten, den Zahlungsstand und Anwesenheiten. Der
+            Mitgliederbereich ist nur nach Login zugänglich.
           </li>
         </ul>
       </section>
@@ -193,21 +196,54 @@ export default function DatenschutzPage(): ReactNode {
       </section>
 
       <section>
-        <h2>Mitgliederbereich: Konto und Anwesenheit</h2>
+        <h2>Beitritt und Mitgliederbereich</h2>
         <p>
-          Der Mitgliederbereich ist eine Anwesenheitsliste für das Training. Wer
-          ein Konto anlegt, gibt folgende Daten an, und folgende Daten entstehen
-          durch die Nutzung:
+          Über die Beitrittserklärung auf dieser Website beantragen Sie die
+          Mitgliedschaft im Verein. Über die Aufnahme entscheidet der Vorstand
+          (§ 5 Abs. 2 der Statuten). Mit dem Antrag entsteht zugleich Ihr Zugang
+          zum Mitgliederbereich.
         </p>
 
+        {/* ----------------------------------------------------------------
+            Die Liste entspricht 1:1 den Spalten in lib/db.ts (members,
+            payments, attendance_votes). Wer dort eine Spalte ergaenzt, muss
+            sie hier nachtragen.
+
+            Offen: Die Beitrittserklaerung (PDF) nennt eine "Meldung an den
+            Dachverband". Ueber diese Website wird nichts an einen Dachverband
+            uebermittelt. Sobald feststeht, welcher Verband das ist und welche
+            Daten er bekommt, gehoert das als Empfaenger hierher.
+            ---------------------------------------------------------------- */}
         <h3>Welche Daten gespeichert werden</h3>
         <ul>
           <li>
-            <strong>Name</strong>: frei gewählt bei der Registrierung, dient
-            der Zuordnung im Training.
+            <strong>Aus der Beitrittserklärung</strong>: Vor- und Nachname,
+            Adresse, Geburtsdatum, Telefonnummer, E-Mail-Adresse, die gewählte
+            Mitgliedschaft und ob Sie den Schüler- oder Studentenpreis
+            beantragen.
           </li>
           <li>
-            <strong>Benutzername</strong>: frei gewählt, dient dem Login.
+            <strong>Bei Minderjährigen</strong>: Vor- und Nachname,
+            Telefonnummer und, falls angegeben, E-Mail-Adresse eines
+            Erziehungsberechtigten sowie der Vermerk, ob dessen schriftliche
+            Zustimmung vorliegt. Die unterschriebene Zustimmung selbst wird auf
+            Papier aufbewahrt, nicht auf der Website.
+          </li>
+          <li>
+            <strong>Ausweis</strong>: nur der Vermerk, dass der Vorstand einen
+            gültigen Schüler- oder Studentenausweis gesehen hat. Es wird keine
+            Kopie, kein Foto und keine Ausweisnummer gespeichert.
+          </li>
+          <li>
+            <strong>Einwilligungen</strong>: ob Sie der Verwendung von Fotos und
+            Videos und der Aufnahme in vereinsinterne WhatsApp-Gruppen
+            zugestimmt haben (jeweils ja/nein), sowie der Zeitpunkt, zu dem Sie
+            die Bedingungen der Mitgliedschaft bestätigt haben.
+          </li>
+          <li>
+            <strong>Antrag und Aufnahme</strong>: Datum des Antrags, Stand
+            (offen, aufgenommen, abgelehnt), Datum der Entscheidung und welches
+            Vorstandsmitglied sie eingetragen hat.
           </li>
           <li>
             <strong>Passwort</strong>: wird <strong>nicht</strong> gespeichert.
@@ -217,9 +253,10 @@ export default function DatenschutzPage(): ReactNode {
             Verein kann Ihr Passwort nicht einsehen.
           </li>
           <li>
-            <strong>Beitrittsdatum des Kontos</strong>: das Datum der
-            Registrierung. Es ist der Startpunkt, ab dem die Anwesenheitsquote
-            gerechnet wird.
+            <strong>Zahlungsstand</strong>: je bezahltem Posten
+            (Einschreibgebühr, Monatsbeitrag, 10er-Block) die Art, der Monat,
+            der Betrag, wann er eingetragen wurde und von wem. Es werden keine
+            Kontonummern, Kartendaten oder Bankauszüge gespeichert.
           </li>
           <li>
             <strong>Anwesenheitseinträge</strong>: je Trainingstag ein Eintrag
@@ -228,64 +265,73 @@ export default function DatenschutzPage(): ReactNode {
             Mitglied selbst.
           </li>
         </ul>
-        <p>
-          Darüber hinaus werden im Mitgliederbereich keine weiteren Daten
-          erhoben: keine E-Mail-Adresse, keine Telefonnummer, keine Adresse, kein
-          Geburtsdatum, keine Zahlungsdaten.
-        </p>
 
         <h3>Wer diese Daten sieht</h3>
-        <p>
-          Der Mitgliederbereich enthält eine Rangliste. Jedes eingeloggte
-          Mitglied sieht darin <strong>Name, Benutzername und
-          Anwesenheitsquote aller anderen Mitglieder</strong>. Das ist die
-          Funktion des Bereichs und keine Panne: wer sich registriert, macht
-          seine Trainingsanwesenheit für die übrigen Mitglieder sichtbar. Für
-          Personen ohne Konto ist nichts davon zugänglich.
-        </p>
+        <ul>
+          <li>
+            <strong>Sie selbst</strong> sehen im Mitgliederbereich Ihren
+            Aufnahmestand und Ihren eigenen Zahlungsstand.
+          </li>
+          <li>
+            <strong>Andere aufgenommene Mitglieder</strong> sehen in der
+            Rangliste Ihren <strong>Namen und Ihre Anwesenheitsquote</strong>{" "}
+            &mdash; sonst nichts, insbesondere nicht Ihren Zahlungsstand und
+            keine Kontaktdaten. Solange ein Antrag offen ist, erscheint er in
+            keiner Liste, und man sieht auch selbst noch keine anderen
+            Mitglieder.
+          </li>
+          <li>
+            <strong>Der Vorstand</strong> sieht alle oben genannten Angaben
+            aller Mitglieder, einschließlich Kontaktdaten und Zahlungsstand. Er
+            braucht sie für Aufnahme, Beitragsabrechnung und
+            Mitgliederverwaltung.
+          </li>
+        </ul>
 
         <h3>Zweck und Rechtsgrundlage</h3>
         <dl>
-          <dt>Zweck</dt>
+          <dt>Beitritt, Mitgliederverwaltung, Beiträge</dt>
           <dd>
-            Führen einer Anwesenheitsübersicht für das Training sowie
-            Verwaltung des Zugangs zum Mitgliederbereich.
+            Art. 6 Abs. 1 lit. b DSGVO: Die Angaben sind für die Aufnahme und die
+            Durchführung des Mitgliedschaftsverhältnisses erforderlich. Ohne sie
+            ist ein Beitritt nicht möglich. Das gilt auch für die Angaben zu
+            Erziehungsberechtigten, weil die Aufnahme Minderjähriger nach § 5
+            Abs. 1 der Statuten deren schriftliche Zustimmung voraussetzt.
           </dd>
 
-          <dt>Rechtsgrundlage</dt>
+          <dt>Fotos, Videos, WhatsApp</dt>
           <dd>
-            Art. 6 Abs. 1 lit. b DSGVO: die Verarbeitung erfolgt zur
-            Durchführung des Mitgliedschaftsverhältnisses, dessen Teil die
-            Teilnahme am Training ist. Soweit die Nutzung des Bereichs
-            freiwillig über das Mitgliedschaftsverhältnis hinausgeht, stützt
-            sich die Verarbeitung zusätzlich auf Art. 6 Abs. 1 lit. f DSGVO
-            (berechtigtes Interesse des Vereins an einer nachvollziehbaren
-            Trainingsorganisation).
+            Art. 6 Abs. 1 lit. a DSGVO: Ihre Einwilligung. Sie ist freiwillig,
+            keine Voraussetzung für die Mitgliedschaft und jederzeit für die
+            Zukunft widerrufbar, formlos an{" "}
+            <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>.
           </dd>
 
-          <dt>Freiwilligkeit</dt>
+          <dt>Anwesenheitsliste</dt>
           <dd>
-            Die Registrierung ist freiwillig. Wer kein Konto anlegt, kann
-            trainieren wie zuvor; es entsteht kein Nachteil.
+            Art. 6 Abs. 1 lit. b DSGVO, weil die Teilnahme am Training Teil des
+            Mitgliedschaftsverhältnisses ist; soweit die Nutzung darüber
+            hinausgeht, Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse des
+            Vereins an einer nachvollziehbaren Trainingsorganisation). Das
+            Eintragen der Anwesenheit ist freiwillig.
           </dd>
         </dl>
 
-        {/* ----------------------------------------------------------------
-            SPEICHERDAUER
-            Hier steht bewusst noch kein Zeitraum, weil es im Code keinen gibt:
-            weder actions.ts noch db.ts loeschen jemals etwas, und es gibt
-            derzeit auch keine Funktion "Konto loeschen". Der Verein muss
-            festlegen, wie lange Konten und Anwesenheitseintraege aufbewahrt
-            werden (ueblich: bis zum Austritt plus die Frist fuer moegliche
-            Rechtsansprueche), und diese Frist hier eintragen — und sie dann
-            auch einhalten.
-            ---------------------------------------------------------------- */}
         <h3>Speicherdauer</h3>
         <p>
-          Konten und Anwesenheitseinträge werden spätestens zwölf Monate nach
-          dem Austritt aus dem Verein gelöscht, auf Wunsch jederzeit früher.
-          Die Frist gibt dem Verein Zeit, offene Beiträge und Ansprüche aus der
-          Mitgliedschaft abzuwickeln, und ist nicht länger als dafür nötig.
+          Mitgliedsdaten und Anwesenheitseinträge werden spätestens zwölf
+          Monate nach dem Austritt aus dem Verein gelöscht, auf Wunsch
+          jederzeit früher. Die Frist gibt dem Verein Zeit, offene Beiträge und
+          Ansprüche aus der Mitgliedschaft abzuwickeln, und ist nicht länger als
+          dafür nötig.
+        </p>
+        <p>
+          Ausgenommen sind die Aufzeichnungen über Zahlungen: Sie bewahrt der
+          Verein so lange auf, wie gesetzliche Aufbewahrungspflichten es
+          verlangen, in der Regel sieben Jahre (§ 132 BAO).
+        </p>
+        <p>
+          Abgelehnte Anträge löscht der Vorstand, auf Wunsch sofort.
         </p>
         <p>
           Bis dahin gilt: Ein Konto kann jederzeit gelöscht werden. Schicken Sie
@@ -580,7 +626,7 @@ export default function DatenschutzPage(): ReactNode {
         </p>
       </section>
 
-      <p className="jjk-legal-stand">Stand: 5. Oktober 2026</p>
+      <p className="jjk-legal-stand">Stand: 7. Oktober 2026</p>
     </LegalPage>
   );
 }

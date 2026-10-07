@@ -2,77 +2,37 @@
 
 import { revalidatePath } from "next/cache";
 import { ensureSchema, sql } from "@/lib/db";
-import {
-  createSession,
-  destroySession,
-  getSessionMemberId,
-  hashPassword,
-  verifyPassword,
-} from "@/lib/auth";
+import { createSession, destroySession, verifyPassword } from "@/lib/auth";
+import { getCurrentMember } from "@/lib/members";
 import { mostRecentTrainingDay, toDateOnly } from "@/lib/attendance";
 
 export interface ActionResult {
   error?: string;
 }
 
-const USERNAME_RE = /^[a-z0-9_.-]{3,24}$/;
-
-export async function registerAction(
-  _prev: ActionResult,
-  formData: FormData
-): Promise<ActionResult> {
-  await ensureSchema();
-
-  const name = String(formData.get("name") ?? "").trim();
-  const username = String(formData.get("username") ?? "")
-    .trim()
-    .toLowerCase();
-  const password = String(formData.get("password") ?? "");
-
-  if (!name) return { error: "Bitte deinen Namen eingeben." };
-  if (!USERNAME_RE.test(username)) {
-    return {
-      error: "Benutzername: 3–24 Zeichen, nur Buchstaben, Zahlen, . _ -",
-    };
-  }
-  if (password.length < 6) {
-    return { error: "Passwort braucht mindestens 6 Zeichen." };
-  }
-
-  const existing = await sql`select id from members where username = ${username}`;
-  if (existing.length > 0) {
-    return { error: "Der Benutzername ist schon vergeben." };
-  }
-
-  const passwordHash = await hashPassword(password);
-  const inserted = await sql`
-    insert into members (name, username, password_hash)
-    values (${name}, ${username}, ${passwordHash})
-    returning id
-  `;
-  const memberId = inserted[0]?.id as number;
-  await createSession(memberId, formData.get("remember") !== null);
-  revalidatePath("/mitglieder");
-  return {};
-}
-
+/**
+ * Registrieren gibt es hier nicht mehr: ein Konto entsteht nur noch ueber die
+ * Beitrittserklaerung (app/beitreten). Mit ihr ist auch `lookupUsernameAction`
+ * gegangen — sie lieferte OHNE Login zu jedem Benutzernamen den echten Namen,
+ * also eine Liste, wer Mitglied ist, fuer jeden, der raten mag.
+ */
 export async function loginAction(
   _prev: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
   await ensureSchema();
 
-  const username = String(formData.get("username") ?? "")
+  const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") ?? "");
 
   const result = await sql`
-    select id, password_hash from members where username = ${username}
+    select id, password_hash, status from members where email = ${email}
   `;
   const row = result[0];
   if (!row || !(await verifyPassword(password, row.password_hash as string))) {
-    return { error: "Benutzername oder Passwort falsch." };
+    return { error: "E-Mail-Adresse oder Passwort falsch." };
   }
 
   // Kein Haken heisst: das Cookie endet mit dem Browser. Das ist der Grund,
@@ -81,21 +41,6 @@ export async function loginAction(
   await createSession(row.id as number, formData.get("remember") !== null);
   revalidatePath("/mitglieder");
   return {};
-}
-
-export async function lookupUsernameAction(
-  username: string
-): Promise<{ name?: string }> {
-  try {
-    await ensureSchema();
-    const result = await sql<{ name: string }>`
-      select name from members where username = ${username.trim().toLowerCase()} limit 1
-    `;
-    const name = result[0]?.name;
-    return name !== undefined ? { name } : {};
-  } catch {
-    return {};
-  }
 }
 
 export async function logoutAction(): Promise<void> {
@@ -109,8 +54,12 @@ export async function voteAction(
 ): Promise<ActionResult> {
   await ensureSchema();
 
-  const memberId = await getSessionMemberId();
-  if (!memberId) return { error: "Bitte zuerst einloggen." };
+  const member = await getCurrentMember();
+  if (!member) return { error: "Bitte zuerst einloggen." };
+  if (member.status !== "active") {
+    return { error: "Abstimmen geht, sobald der Vorstand dich aufgenommen hat." };
+  }
+  const memberId = member.id;
 
   const present = formData.get("present") === "true";
   const trainingDate = toDateOnly(mostRecentTrainingDay(new Date()));
