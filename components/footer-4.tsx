@@ -46,6 +46,7 @@ const COLUMNS = [
       { text: "Triester Straße 391", href: "#" },
       { text: "8055 Graz", href: "#" },
       { text: "Mo bis Fr, 16:30 bis 20:30 Uhr", href: "#" },
+      { text: "Sa, 11:00 bis 12:30 Uhr", href: "#" },
     ],
   },
   {
