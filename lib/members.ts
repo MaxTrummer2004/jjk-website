@@ -23,6 +23,8 @@ export interface MemberRecord {
   isMinor: boolean;
   guardianConsentReceived: boolean;
   joinedAt: string;
+  mollieCustomerId: string | null;
+  mollieSubscriptionId: string | null;
 }
 
 type Row = {
@@ -38,6 +40,8 @@ type Row = {
   is_minor: boolean;
   guardian_consent_received: boolean;
   joined_at: string;
+  mollie_customer_id: string | null;
+  mollie_subscription_id: string | null;
 };
 
 function toStatus(value: string): MemberStatus {
@@ -58,6 +62,8 @@ export function toRecord(r: Row): MemberRecord {
     isMinor: r.is_minor,
     guardianConsentReceived: r.guardian_consent_received,
     joinedAt: r.joined_at,
+    mollieCustomerId: r.mollie_customer_id,
+    mollieSubscriptionId: r.mollie_subscription_id,
   };
 }
 
@@ -65,7 +71,7 @@ export function toRecord(r: Row): MemberRecord {
 export const MEMBER_COLUMNS = `
   id, name, email, first_name, last_name, status, plan,
   reduced_requested, reduced_verified, guardian_consent_received,
-  joined_at::text as joined_at,
+  joined_at::text as joined_at, mollie_customer_id, mollie_subscription_id,
   (birth_date is not null and birth_date > (current_date - interval '18 years')) as is_minor
 `;
 

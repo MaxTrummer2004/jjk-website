@@ -3,6 +3,7 @@ import { HomeLink } from "./home-link";
 import { ensureSchema, sql } from "@/lib/db";
 import { getCurrentMember, isBoard } from "@/lib/members";
 import { getPaymentStatus } from "@/lib/payments";
+import { isMollieConfigured } from "@/lib/mollie";
 import { StatusPanel } from "./status-panel";
 import { PendingView } from "./pending-view";
 import {
@@ -61,7 +62,12 @@ function SetupHint({ message }: { message: string }): ReactNode {
   );
 }
 
-export default async function MitgliederPage(): Promise<ReactNode> {
+export default async function MitgliederPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<ReactNode> {
+  const justReturned = (await searchParams).zahlung === "1";
   try {
     await ensureSchema();
   } catch {
@@ -89,6 +95,9 @@ export default async function MitgliederPage(): Promise<ReactNode> {
       payment={payment}
       firstName={member.firstName ?? member.name.split(" ")[0] ?? member.name}
       fullName={member.name}
+      payEnabled={isMollieConfigured()}
+      hasSubscription={Boolean(member.mollieSubscriptionId)}
+      justReturned={justReturned}
     />
   );
 

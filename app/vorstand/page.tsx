@@ -58,6 +58,7 @@ type Row = {
   consent_whatsapp: boolean;
   is_minor: boolean;
   applied_at: string | null;
+  has_subscription: boolean;
 };
 
 type PayRow = { member_id: number; kind: string; period: string | null; source: string };
@@ -147,6 +148,7 @@ export default async function BoardPage(): Promise<ReactNode> {
     select id, name, email, phone, address, birth_date::text as birth_date,
       guardian_first_name, guardian_last_name, guardian_phone, guardian_email,
       plan, status, reduced_requested, reduced_verified, guardian_consent_received,
+      (mollie_subscription_id like 'sub_%') as has_subscription,
       consent_photos, consent_whatsapp, applied_at::text as applied_at,
       (birth_date is not null and birth_date > (current_date - interval '18 years')) as is_minor
     from members
@@ -265,6 +267,7 @@ export default async function BoardPage(): Promise<ReactNode> {
                     <span className="text-sm text-foreground-dim">
                       {info.label.replace("ALL IN – ", "")} · {euro(dueCents(plan, m.reduced_verified))}
                       {m.reduced_verified ? " erm." : ""}
+                      {m.has_subscription ? " · SEPA-Abo" : ""}
                     </span>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">

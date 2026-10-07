@@ -5,6 +5,7 @@ import { sql } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 import { getCurrentMember, getMember, isBoard, type MemberRecord } from "@/lib/members";
 import { ENROLLMENT_FEE_CENTS, PLAN_INFO, dueCents, monthKey } from "@/lib/membership";
+import { isMollieConfigured, mollie, toValue } from "@/lib/mollie";
 
 /**
  * Vorstandsaktionen. JEDE prueft selbst, ob der Aufrufer Vorstand ist — eine
@@ -75,6 +76,13 @@ export async function toggleFlagAction(formData: FormData): Promise<void> {
     await sql`update members set guardian_consent_received = not guardian_consent_received where id = ${id}`;
   } else if (flag === "reduced") {
     await sql`update members set reduced_verified = not reduced_verified where id = ${id}`;
+    // Laeuft ein SEPA-Abo, bucht es sonst weiter den alten Betrag ab.
+    const m = await getMember(id);
+    if (m?.plan && m.mollieCustomerId && m.mollieSubscriptionId?.startsWith("sub_") && isMollieConfigured()) {
+      await mollie("PATCH", `/customers/${m.mollieCustomerId}/subscriptions/${m.mollieSubscriptionId}`, {
+        amount: { currency: "EUR", value: toValue(dueCents(m.plan, m.reducedVerified)) },
+      });
+    }
   } else {
     return;
   }

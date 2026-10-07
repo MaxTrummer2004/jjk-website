@@ -157,6 +157,8 @@ async function createSchema(): Promise<void> {
     alter table members add column if not exists decided_at timestamptz;
     alter table members add column if not exists decided_by integer;
     create unique index if not exists members_email_key on members (email);
+    alter table members add column if not exists mollie_customer_id text;
+    alter table members add column if not exists mollie_subscription_id text;
   `);
 
   // Eine Zeile je bezahltem Posten. Heute setzt sie der Kassier per Haekchen
@@ -180,6 +182,11 @@ async function createSchema(): Promise<void> {
     );
     create unique index if not exists payments_once
       on payments (member_id, kind, coalesce(period, date '1900-01-01'));
+    -- Mollie-Zahlungs-ID: der Webhook kann mehrfach kommen (Mollie wiederholt
+    -- bis zu zehnmal), eingetragen wird trotzdem nur einmal.
+    alter table payments add column if not exists provider_ref text;
+    create unique index if not exists payments_provider_ref
+      on payments (provider_ref) where provider_ref is not null;
   `);
 
   await sql`

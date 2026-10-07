@@ -419,7 +419,8 @@ export default function DatenschutzPage(): ReactNode {
           Die Daten werden nicht verkauft und nicht zu Werbezwecken
           weitergegeben. Zum Betrieb der Website ist ein einziger Dienstleister
           eingebunden, der als Auftragsverarbeiter nach Art. 28 DSGVO tätig
-          wird:
+          wird; für Online-Zahlungen kommt ein Zahlungsdienstleister dazu
+          (siehe unten):
         </p>
 
         <dl>
@@ -459,6 +460,55 @@ export default function DatenschutzPage(): ReactNode {
             — es findet keine Übermittlung außerhalb der EU statt. Eine
             geplante Änderung muss Scalingo ankündigen; der Verein kann ihr
             binnen acht Kalendertagen widersprechen.
+          </dd>
+        </dl>
+
+        {/* ----------------------------------------------------------------
+            MOLLIE
+            Rolle laut mollie.com/legal/privacy: "For all activities and
+            purposes mentioned in this Privacy Statement, Mollie acts as the
+            controller" — darunter "To process payments". Deshalb hier als
+            eigener Verantwortlicher und NICHT als Auftragsverarbeiter.
+            Anschrift aus dem DPA (mollie.com/legal/data-processing-agreement).
+            Was die Website selbst speichert: lib/db.ts, Spalten
+            mollie_customer_id, mollie_subscription_id, payments.provider_ref.
+            ---------------------------------------------------------------- */}
+        <h3>Online-Zahlung</h3>
+        <dl>
+          <dt>Anbieter</dt>
+          <dd>
+            Mollie B.V., Keizersgracht 126, 1015 CW Amsterdam, Niederlande, ein
+            von der niederländischen Zentralbank zugelassenes
+            E-Geld-Institut.
+          </dd>
+
+          <dt>Was übermittelt wird</dt>
+          <dd>
+            Wenn Sie im Mitgliederbereich auf &bdquo;Jetzt bezahlen&ldquo;
+            tippen: Ihr Name, Ihre E-Mail-Adresse, der Betrag und wofür
+            bezahlt wird. Ihre Bankdaten geben Sie direkt bei Mollie bzw. Ihrer
+            Bank ein, nicht auf dieser Website. Bei Monatsbeiträgen erteilen
+            Sie dabei ein SEPA-Lastschriftmandat, über das Mollie die folgenden
+            Beiträge abbucht.
+          </dd>
+
+          <dt>Was der Verein davon sieht</dt>
+          <dd>
+            Auf der Website wird nur gespeichert, welche Posten bezahlt sind,
+            sowie die Kennungen, die Mollie für Sie, Ihre Zahlungen und Ihr
+            Lastschrift-Abo vergibt. Im Konto des Vereins bei Mollie sind
+            zusätzlich die Angaben zur jeweiligen Zahlung einsehbar, bei
+            Lastschriften auch Kontoinhaber und IBAN.
+          </dd>
+
+          <dt>Rolle und Rechtsgrundlage</dt>
+          <dd>
+            Mollie verarbeitet die Zahlungsdaten als eigener Verantwortlicher,
+            unter anderem wegen seiner Pflichten als Finanzinstitut
+            (Geldwäsche- und Betrugsprävention). Die Übermittlung an Mollie
+            erfolgt nach Art. 6 Abs. 1 lit. b DSGVO zur Abwicklung der
+            Mitgliedsbeiträge. Mehr dazu in der Datenschutzerklärung von Mollie
+            unter mollie.com/privacy.
           </dd>
         </dl>
       </section>
@@ -626,7 +676,7 @@ export default function DatenschutzPage(): ReactNode {
         </p>
       </section>
 
-      <p className="jjk-legal-stand">Stand: 7. Oktober 2026</p>
+      <p className="jjk-legal-stand">Stand: 8. Oktober 2026</p>
     </LegalPage>
   );
 }
