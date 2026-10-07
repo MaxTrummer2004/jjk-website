@@ -381,7 +381,7 @@ export const pricing = {
     {
       name: "Probetraining",
       price: "gratis",
-      per: "erstes Training",
+      per: "",
       note: "Kurze Hose und T-Shirt reichen",
       featured: false,
     },

@@ -4026,16 +4026,11 @@ p,
    heute Abend?" ist aber genau die, mit der jemand einen Gym-Stundenplan
    aufmacht, und die Antwort kostet hier eine Spalte in Farbe.
    Schwaecher als der Hover-Zustand, sonst konkurrieren die beiden. */
-.jjk-day[data-today="true"] {
-  background: color-mix(in srgb, var(--accent) 6%, var(--card-plate));
-}
-.jjk-day[data-today="true"]::after {
-  scale: 1 1;
-  opacity: 0.5;
-}
-.jjk-day[data-today="true"]:hover::after {
-  opacity: 1;
-}
+/* Bis 8. Oktober 2026 bekam die Spalte "heute" zusaetzlich einen getoenten
+   Grund und die Glutlinie oben — genau die beiden Dinge, die auch der Hover
+   zeigt. Ergebnis: die Spalte sah aus, als haenge die Maus dauerhaft darauf,
+   und wurde fuer einen Fehler gehalten. Jetzt markiert NUR das Wort "Heute"
+   unter dem Tagesnamen; Grund und Linie gehoeren wieder allein dem Hover. */
 .jjk-day-today {
   display: block;
   margin-top: 0.3rem;

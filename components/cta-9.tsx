@@ -50,8 +50,12 @@ export default function Cta9() {
         </p>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <a id="cursor-cta" href="#contact" className="jjk-btn">
-            Probetraining buchen
+          {/* Hier stand "Probetraining buchen" auf #contact — ein Formular, das
+              nichts abschickt. Ein Probetraining braucht keine Buchung, man
+              kommt einfach. Der Knopf fuehrt jetzt zum Beitritt; sobald online
+              bezahlt werden kann, geht es von dort direkt weiter zur Zahlung. */}
+          <a id="cursor-cta" href="/beitreten" className="jjk-btn">
+            Mitglied werden
           </a>
           <a href="#schedule" className="jjk-btn jjk-btn-quiet">
             Stundenplan

@@ -71,7 +71,7 @@ function PlanRows({
                 Am Desktop tauscht `order` die beiden. */}
             <span className="jjk-plan-price">
               <span>{plan.price === "gratis" ? "gratis" : `${plan.price} €`}</span>
-              <span className="jjk-plan-per">{plan.per}</span>
+              {plan.per ? <span className="jjk-plan-per">{plan.per}</span> : null}
             </span>
             <span className="jjk-plan-note">{plan.note}</span>
           </motion.div>
@@ -97,7 +97,7 @@ export default function Pricing2(): ReactNode {
           className="jjk-section-title max-w-3xl"
         />
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
-          Das erste Training ist gratis.
+          Das Probetraining ist gratis.
         </p>
 
         <div className="mt-12 flex flex-col gap-10 sm:mt-16">
