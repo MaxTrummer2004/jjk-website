@@ -346,17 +346,22 @@ function MatFootnote({ className = "" }: { className?: string }): ReactNode {
       <dl className="flex flex-col gap-1 sm:hidden">
         <div className="flex flex-wrap justify-center gap-x-2">
           <dt className="text-foreground">Matte frei:</dt>
-          <dd>ab 16:30, Di + Do ab 16:45</dd>
+          <dd>ab 16:30</dd>
         </div>
         <div className="flex flex-wrap justify-center gap-x-2">
           <dt className="text-foreground">Dehnen:</dt>
           <dd>Mo, Mi, Fr um 17:15</dd>
         </div>
+        <div className="flex flex-wrap justify-center gap-x-2">
+          <dt className="text-foreground">Einheit:</dt>
+          <dd>60 Minuten, bis zu 75 möglich</dd>
+        </div>
       </dl>
       <p className="hidden sm:block">
-        Vor jedem Training ist die Matte frei zum Drillen: ab 16:30, dienstags
-        und donnerstags ab 16:45. Montag, Mittwoch und Freitag um 17:15
-        gemeinsames Dehnen für BJJ.
+        Vor jedem Training ist die Matte frei zum Drillen: ab 16:30. Montag,
+        Mittwoch und Freitag um 17:15 gemeinsames Dehnen für BJJ. Eine Einheit
+        ist auf 60 Minuten angesetzt; bis zur nächsten liegt eine
+        Viertelstunde, die manche Trainer noch nutzen.
       </p>
     </div>
   );

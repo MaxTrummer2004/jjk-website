@@ -259,45 +259,53 @@ export type ScheduleClass = {
  * Montag standen No-Gi und Ringen bis zum 6. Oktober 2026 vertauscht: Ringen
  * um 17:45, No-Gi um 19:05. Richtig ist umgekehrt.
  *
- * Zwei Kursschienen pro Werktag (17:45–19:00 und 19:05–20:20) plus Open Mat am
- * Samstag. Matte frei ab 16:30 (Di/Do 16:45) und Dehnen 17:15 (Mo/Mi/Fr)
- * stehen bewusst NICHT als Zeilen hier: es sind keine Kurse, sondern offene
- * Zeit davor. Sie laufen als Fussnote unter dem Plan.
+ * Die Zeiten sind seit 7. Oktober 2026 anders gedacht. Vorher standen hier
+ * 17:45–19:00 und 19:05–20:20, also zweimal 75 Minuten mit fuenf Minuten
+ * dazwischen — das war die Obergrenze als Zusage. Angesetzt ist eine Einheit
+ * aber auf 60 Minuten, und bis zur naechsten liegt eine Viertelstunde. Jeder
+ * Trainer KANN damit auf 75 gehen, muss aber nicht, und niemand steht im
+ * Unrecht, wenn er puenktlich aufhoert. Deshalb stehen jetzt die 60 Minuten
+ * im Plan und die Viertelstunde in der Fussnote.
+ *
+ * Zwei Kursschienen pro Werktag (17:45–18:45 und 19:00–20:00) plus Open Mat am
+ * Samstag. Matte frei ab 16:30 und Dehnen 17:15 (Mo/Mi/Fr) stehen bewusst
+ * NICHT als Zeilen hier: es sind keine Kurse, sondern offene Zeit davor. Sie
+ * laufen als Fussnote unter dem Plan.
  */
 export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   {
     day: "Mo",
     classes: [
-      { time: "17:45–19:00", name: "No-Gi Training", note: "Technik & Sparring ohne Gi", program: "No-Gi Training", kind: "nogi", level: "intermediate" },
-      { time: "19:05–20:20", name: "Ringen", note: "Eine Woche Fokus Kondition, eine Woche Fokus Technik", program: "Ringen", kind: "ringen", level: "intermediate" },
+      { time: "17:45–18:45", name: "No-Gi Training", note: "Technik & Sparring ohne Gi", program: "No-Gi Training", kind: "nogi", level: "intermediate" },
+      { time: "19:00–20:00", name: "Ringen", note: "Eine Woche Fokus Kondition, eine Woche Fokus Technik", program: "Ringen", kind: "ringen", level: "intermediate" },
     ],
   },
   {
     day: "Di",
     classes: [
-      { time: "17:45–19:00", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes" },
-      { time: "19:05–20:20", name: "BJJ Basic", note: "No-Gi · für alle ohne Vorkenntnisse", program: "BJJ Basic", kind: "basic", level: "anfaenger" },
+      { time: "17:45–18:45", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes" },
+      { time: "19:00–20:00", name: "BJJ Basic", note: "No-Gi · für alle ohne Vorkenntnisse", program: "BJJ Basic", kind: "basic", level: "anfaenger" },
     ],
   },
   {
     day: "Mi",
     classes: [
-      { time: "17:45–19:00", name: "Advanced Training", note: "Gi", program: "Advanced Training", kind: "advanced", level: "advanced" },
-      { time: "19:05–20:20", name: "Wettkampftraining", note: "oder Special Wednesday · Positionssparring aus selbst bestimmten Positionen", program: "Wettkampftraining", kind: "wettkampf", level: "intermediate" },
+      { time: "17:45–18:45", name: "Advanced Training", note: "Gi", program: "Advanced Training", kind: "advanced", level: "advanced" },
+      { time: "19:00–20:00", name: "Wettkampftraining", note: "oder Special Wednesday · Positionssparring aus selbst bestimmten Positionen", program: "Wettkampftraining", kind: "wettkampf", level: "intermediate" },
     ],
   },
   {
     day: "Do",
     classes: [
-      { time: "17:45–19:00", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes" },
-      { time: "19:05–20:20", name: "Sparring", note: "Freies Rollen, kein Unterricht", program: "Sparring", kind: "sparring", level: "jedes" },
+      { time: "17:45–18:45", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes" },
+      { time: "19:00–20:00", name: "Sparring", note: "Freies Rollen, kein Unterricht", program: "Sparring", kind: "sparring", level: "jedes" },
     ],
   },
   {
     day: "Fr",
     classes: [
-      { time: "17:45–19:00", name: "Advanced Training", note: "No-Gi", program: "Advanced Training", kind: "advanced", level: "advanced" },
-      { time: "19:05–20:20", name: "Gi Training", note: "Technik & Sparring im Gi", program: "Gi Training", kind: "gi", level: "jedes" },
+      { time: "17:45–18:45", name: "Advanced Training", note: "No-Gi", program: "Advanced Training", kind: "advanced", level: "advanced" },
+      { time: "19:00–20:00", name: "Gi Training", note: "Technik & Sparring im Gi", program: "Gi Training", kind: "gi", level: "jedes" },
     ],
   },
   {
@@ -321,35 +329,41 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
  * nie auf einer Matte stand, waehlt nicht zwischen Jahresvertrag und Zehnerblock.
  *
  * Das Jahr ist das Angebot, das der Verein verkaufen will, und der Grund steht
- * als Zahl in `note`: 30 Euro im Monat weniger als monatlich, 360 im Jahr. Kein
+ * als Zahl in `note`: 240 Euro weniger als Flex ueber dasselbe Jahr. Kein
  * "Beliebt", kein "Spar-Angebot" — ein Etikett behauptet einen Vorteil, eine
  * Differenz zeigt ihn.
  *
- * Vorher standen hier drei erfundene Stufen (89/129/169) und eine
- * Behauptung, die erste Stunde sei gratis. Letzteres stimmt jetzt wieder,
- * diesmal absichtlich.
+ * Die Zahlen stammen aus der Preistabelle des Vereins vom 6. Oktober 2026 und
+ * sind dort "ALL IN" genannt. Vorher standen hier 90/75/60 und ein
+ * Zehnerblock zu 120 — das war ein frueherer Stand.
+ *
+ * Der Schueler- und Studentenpreis steht in derselben Zeile wie der regulaere,
+ * nicht in einer zweiten Spalte: eine Spalte mehr heisst am Handy entweder
+ * Querlauf oder eine zweite Tabelle, und der Ermaessigte ist kein eigenes
+ * Angebot, sondern derselbe Vertrag mit Ausweis. Die Bedingung dazu steht
+ * einmal unter dem Block, nicht fuenfmal in den Zeilen.
  */
 export const pricing = {
   membership: [
     {
-      name: "Monat",
+      name: "ALL IN Flex",
       price: "90",
       per: "pro Monat",
-      note: "Monatlich kündbar",
+      note: "Schüler & Studenten 75 € · monatlich kündbar",
       featured: false,
     },
     {
-      name: "3 Monate",
-      price: "75",
+      name: "ALL IN 3 Monate",
+      price: "80",
       per: "pro Monat",
-      note: "225 € gesamt",
+      note: "Schüler & Studenten 65 € · 240 € gesamt",
       featured: false,
     },
     {
-      name: "Jahr",
-      price: "60",
+      name: "ALL IN Jahr",
+      price: "70",
       per: "pro Monat",
-      note: "720 € gesamt, 360 € weniger als monatlich",
+      note: "Schüler & Studenten 55 € · 240 € weniger als Flex",
       featured: true,
     },
   ],
@@ -358,20 +372,23 @@ export const pricing = {
       name: "Probetraining",
       price: "gratis",
       per: "erstes Training",
-      // Hier stand "Einen Gi leihen wir dir". Der Verein hat derzeit keine
-      // Leih-Gis — eine Zusage, die beim ersten Training platzt, ist schlimmer
-      // als gar keine.
       note: "Kurze Hose und T-Shirt reichen",
       featured: false,
     },
     {
       name: "10er-Block",
-      price: "120",
+      price: "140",
       per: "zehn Einheiten",
-      note: "Kein Ablaufdatum",
+      note: "Schüler & Studenten 125 € · kein Ablaufdatum",
       featured: false,
     },
   ],
+  /**
+   * Das Kleingedruckte: die Einschreibgebuehr und der Ausweis. Beides gehoert
+   * sichtbar unter die Preise und nicht in jede Zeile.
+   */
+  fineprint:
+    "Einmalige Einschreibgebühr: 20 €. Die Schüler- und Studentenpreise gelten gegen Vorlage eines gültigen Ausweises.",
   /**
    * Online abschliessen gibt es noch nicht. Ein Satz, kein Kasten: ein
    * Hinweisbalken wuerde genau die Aufmerksamkeit ziehen, die das
@@ -400,7 +417,7 @@ export const faqs = [
   {
     question: "Wann kann ich als Anfänger einsteigen?",
     answer:
-      "Am Dienstag um 19:05 bei BJJ Basic: No-Gi, für alle ohne Vorkenntnisse. Danach stehen dir Gi Training am Freitag, Sparring am Donnerstag und die Open Mat am Samstag offen, die sind für jedes Level. Die Matte ist übrigens schon ab 16:30 zum Drillen offen.",
+      "Am Dienstag um 19:00 bei BJJ Basic: No-Gi, für alle ohne Vorkenntnisse. Danach stehen dir Gi Training am Freitag, Sparring am Donnerstag und die Open Mat am Samstag offen, die sind für jedes Level. Die Matte ist übrigens schon ab 16:30 zum Drillen offen.",
   },
   {
     question: "Gibt es einen langen Vertrag?",

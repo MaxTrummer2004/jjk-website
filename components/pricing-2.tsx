@@ -20,8 +20,7 @@
  * Mal kostet. Deshalb zuerst der Einstieg, dann die Mitgliedschaft.
  *
  * ── Wie das Jahr hervorgehoben ist ──────────────────────────────────────────
- * Mit einer Zahl, nicht mit einem Etikett: "720 € gesamt, 360 € weniger als
- * monatlich". Ein "Beliebt!" behauptet einen Vorteil, eine Differenz zeigt
+ * Mit einer Zahl, nicht mit einem Etikett: "240 € weniger als Flex". Ein "Beliebt!" behauptet einen Vorteil, eine Differenz zeigt
  * ihn. Dazu eine Glutkante links und ein waermerer Grund. Kein Vergroessern,
  * kein Schlagschatten — diese Seite hat keine Tiefe, in die etwas hineinragen
  * koennte, und eine Zeile, die abhebt, kommt von einer anderen Website.
@@ -98,7 +97,7 @@ export default function Pricing2(): ReactNode {
           className="jjk-section-title max-w-3xl"
         />
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
-          Keine Aufnahmegebühr. Das erste Training ist gratis.
+          Das erste Training ist gratis.
         </p>
 
         <div className="mt-12 flex flex-col gap-10 sm:mt-16">
@@ -106,7 +105,14 @@ export default function Pricing2(): ReactNode {
           <PlanRows label="Mitgliedschaft" plans={pricing.membership} from={2} />
         </div>
 
+        {/* Hier stand "Keine Aufnahmegebuehr" — es gibt eine, 20 € einmalig.
+            Sie steht jetzt im Kleingedruckten unter den Zeilen, zusammen mit
+            der Ausweis-Bedingung fuer die ermaessigten Preise. */}
         <p className="mt-8 max-w-2xl text-sm leading-relaxed text-foreground-dim">
+          {pricing.fineprint}
+        </p>
+
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-foreground-dim">
           {pricing.hint}
         </p>
       </div>
