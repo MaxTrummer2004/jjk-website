@@ -61,10 +61,10 @@ type Phase = "counting" | "transition" | "done";
  * Wer ihn zurueckholt, muss ihn auch im Inline-Skript in app/layout.tsx
  * nachziehen, sonst widersprechen sich die beiden Antworten.
  *
- * Drei Faelle fallen raus, in denen der Besucher gar nicht oben landet und vom
- * Loader nichts sieht: ein Link mit Anker (jjk.academy/#schedule), ein
- * Neuladen weiter unten (der Browser stellt die Scrollposition wieder her) und
- * die Zurueck-Taste. Frueher lief er dort unsichtbar ab und sperrte vier
+ * Zwei Faelle fallen raus, in denen der Besucher gar nicht oben landet und vom
+ * Loader nichts sieht: ein Link mit Anker (jjk.academy/#schedule) und die
+ * Zurueck-Taste. (Neuladen fiel bis 8. Oktober 2026 auch darunter; jetzt
+ * startet es oben und spielt den Loader.) Frueher lief er dort unsichtbar ab und sperrte vier
  * Sekunden lang eine Seite, an der nichts erklaerte, warum sie klemmt.
  *
  * Woran das erkannt wird, ohne Wettlauf mit dem Browser: am Anker in der URL
@@ -99,9 +99,15 @@ function introShouldPlay(): boolean {
     const entry = performance.getEntriesByType("navigation")[0] as
       | PerformanceNavigationTiming
       | undefined;
+    // Uebersprungen wird nur noch die Zurueck-/Vor-Taste. Neuladen spielt
+    // (bis 8. Oktober 2026 wurde es uebersprungen — so testet man aber die
+    // Seite, und der Loader "kam nicht immer"); das Inline-Skript in
+    // app/layout.tsx stellt dafuer die Scrollwiederherstellung ab, und hier
+    // geht es sicherheitshalber noch einmal nach oben.
     // Ohne Eintrag (sehr alte Browser) im Zweifel spielen: ein Loader zu viel
     // ist harmloser als ein Titelbild, das nie ankommt.
-    decision = !entry || entry.type === "navigate";
+    decision = !entry || entry.type !== "back_forward";
+    if (entry?.type === "reload") window.scrollTo(0, 0);
   }
 
   introDecision = decision;

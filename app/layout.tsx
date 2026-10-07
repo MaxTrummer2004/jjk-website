@@ -147,14 +147,21 @@ export default function RootLayout({
             Loader-Zustand: das ausgelieferte HTML enthaelt die helle Flaeche
             #f5f3ef ueber dem ganzen Viewport. Die malt der Browser, sobald
             das HTML da ist — React laeuft erst viel spaeter. In den Faellen,
-            in denen der Loader uebersprungen wird (Ankerlink, Neuladen weiter
-            unten, Zurueck-Taste), blitzte sie deshalb kurz auf, bevor die
+            in denen der Loader uebersprungen wird (Ankerlink, Zurueck-Taste),
+            blitzte sie deshalb kurz auf, bevor die
             Komponente sie wegnehmen konnte. Kein Effekt kann das verhindern,
             auch useLayoutEffect nicht: der erste Frame ist schon gemalt.
 
             Also entscheidet ein blockierendes Inline-Skript VOR dem ersten
             Frame und setzt das Ergebnis als Attribut auf <html>; globals.css
             blendet .jjk-intro-veil daraufhin sofort aus.
+
+            Neuladen (F5) spielt den Loader seit 8. Oktober 2026 wieder —
+            vorher wurde jedes Neuladen uebersprungen, und genau so testet man
+            die Seite. Damit der Loader dabei nicht unsichtbar ueber einer
+            weiter unten wiederhergestellten Position laeuft, schaltet das
+            Skript die Wiederherstellung der Scrollposition fuer diesen Aufruf
+            ab: die Seite beginnt oben, wo der Loader steht.
 
             Die Bedingung muss mit introShouldPlay() in jjk-hero.tsx
             uebereinstimmen — wer eine der beiden aendert, muss die andere
@@ -167,7 +174,8 @@ export default function RootLayout({
             __html:
               '(function(){try{var s=location.hash.length>1;if(!s){' +
               'var e=performance.getEntriesByType("navigation")[0];' +
-              's=!!e&&e.type!=="navigate"}if(s){' +
+              'if(e&&e.type==="reload"){history.scrollRestoration="manual"}' +
+              's=!!e&&e.type==="back_forward"}if(s){' +
               'document.documentElement.setAttribute("data-jjk-intro","skip")}' +
               "}catch(x){}})()",
           }}
