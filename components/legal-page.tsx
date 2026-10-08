@@ -33,7 +33,8 @@ export interface LegalPageProps {
 
 const OTHER: Record<string, { href: string; label: string }> = {
   Impressum: { href: "/datenschutz", label: "Datenschutzerklärung" },
-  Datenschutzerklärung: { href: "/impressum", label: "Impressum" },
+  Datenschutzerklärung: { href: "/bedingungen", label: "Bedingungen der Mitgliedschaft" },
+  "Bedingungen der Mitgliedschaft": { href: "/impressum", label: "Impressum" },
 };
 
 function BackLink(): ReactNode {

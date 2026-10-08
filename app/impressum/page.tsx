@@ -52,13 +52,6 @@ export default function ImpressumPage(): ReactNode {
       eyebrow="Offenlegung nach § 5 ECG und §§ 24, 25 MedienG"
       lead="Wer diese Website betreibt, wer den Verein vertritt und wo er eingetragen ist."
     >
-      <div className="jjk-legal-notice">
-        <strong>An den Auftraggeber</strong>
-        Jede rot markierte Stelle ist ein Platzhalter und muss vor dem
-        Veröffentlichen durch die echte Angabe ersetzt werden. Solange auch nur
-        eine davon stehen bleibt, erfüllt diese Seite die Offenlegungspflicht
-        nicht.
-      </div>
 
       {/* ------------------------------------------------------------------
           MEDIENINHABER

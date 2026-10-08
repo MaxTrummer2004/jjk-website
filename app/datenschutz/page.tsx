@@ -50,13 +50,6 @@ export default function DatenschutzPage(): ReactNode {
       eyebrow="Information nach Art. 13 DSGVO"
       lead="Welche Daten diese Website verarbeitet, warum, wie lange sie bleiben und wer sie sieht."
     >
-      <div className="jjk-legal-notice">
-        <strong>An den Auftraggeber</strong>
-        Jede rot markierte Stelle ist ein Platzhalter. Die Beschreibungen der
-        Verarbeitung selbst sind aus dem Code abgelesen und stimmen mit dem
-        überein, was die Anwendung tatsächlich tut: wenn sich der
-        Mitgliederbereich ändert, muss diese Seite mitgeändert werden.
-      </div>
 
       {/* ------------------------------------------------------------------
           VERANTWORTLICHER

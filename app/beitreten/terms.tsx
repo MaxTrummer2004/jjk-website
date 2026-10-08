@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
  * nach Vorstandsbeschluss.
  */
 
-const SECTIONS: { title: string; items: ReactNode[] }[] = [
+export const TERMS_SECTIONS: { title: string; items: ReactNode[] }[] = [
   {
     title: "Art der Mitgliedschaft",
     items: [
@@ -109,7 +109,7 @@ export function MembershipTerms(): ReactNode {
         </span>
       </summary>
       <div className="flex flex-col gap-6 border-t border-border px-4 py-5">
-        {SECTIONS.map((section) => (
+        {TERMS_SECTIONS.map((section) => (
           <div key={section.title}>
             <h3 className="text-sm font-semibold text-accent">{section.title}</h3>
             <ul className="mt-2 flex list-disc flex-col gap-2 pl-5 text-sm leading-relaxed text-foreground-dim marker:text-accent">

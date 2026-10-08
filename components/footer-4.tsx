@@ -40,6 +40,7 @@ const COLUMNS = [
       { text: "Mitgliederbereich", href: "/mitglieder" },
       { text: "Impressum", href: "/impressum" },
       { text: "Datenschutz", href: "/datenschutz" },
+      { text: "Bedingungen", href: "/bedingungen" },
     ],
   },
   {

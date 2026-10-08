@@ -198,7 +198,11 @@ export function JoinForm(): ReactNode {
           <input type="checkbox" name="accept_terms" required defaultChecked={v.accept_terms === "on"} className="mt-1 size-4 shrink-0 accent-[var(--accent)]" />
           <span>
             Ich beantrage den Beitritt zur Jiu Jitsu Kaisen Academy als außerordentliches Mitglied und
-            bestätige, dass ich die Bedingungen der Mitgliedschaft, den Haftungsausschluss und die{" "}
+            bestätige, dass ich die{" "}
+            <Link href="/bedingungen" className="underline underline-offset-2 hover:text-accent">
+              Bedingungen der Mitgliedschaft
+            </Link>
+            , den Haftungsausschluss und die{" "}
             <Link href="/datenschutz" className="underline underline-offset-2 hover:text-accent">
               Datenschutzerklärung
             </Link>{" "}
