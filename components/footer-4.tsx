@@ -18,6 +18,7 @@
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { siteConfig } from "@/lib/config";
 
 const COLUMNS = [
   {
@@ -55,9 +56,10 @@ const COLUMNS = [
   {
     title: "Folgen",
     links: [
-      { text: "Instagram", href: "https://instagram.com" },
-      { text: "YouTube", href: "https://youtube.com" },
-      { text: "TikTok", href: "https://tiktok.com" },
+      // Bis 11.10.2026 standen hier auch YouTube und TikTok — beide nur
+      // mit den nackten Startseiten der Plattformen, also Links ins Leere.
+      // Zurueck, sobald es echte Kanaele gibt.
+      { text: "Instagram", href: siteConfig.social.instagram },
     ],
   },
 ];
@@ -147,6 +149,9 @@ export default function Footer4() {
                               <li key={link.text}>
                                 <a
                                   href={link.href}
+                                  {...(link.href.startsWith("http")
+                                    ? { target: "_blank", rel: "noopener noreferrer" }
+                                    : {})}
                                   className="text-base text-foreground-dim transition-colors hover:text-accent"
                                 >
                                   {link.text}

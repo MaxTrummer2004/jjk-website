@@ -34,12 +34,9 @@ const LEGAL_LINKS = [
   { label: "Datenschutz", href: "/datenschutz" },
 ];
 
-const SOCIAL_LINKS = [
-  { label: "Instagram", href: siteConfig.social.instagram },
-  { label: "YouTube", href: siteConfig.social.youtube },
-  { label: "TikTok", href: siteConfig.social.tiktok },
-  { label: "Facebook", href: siteConfig.social.facebook },
-];
+// YouTube, TikTok und Facebook standen hier mit den nackten Startseiten der
+// Plattformen — Links ins Leere. Zurueck, sobald es echte Kanaele gibt.
+const SOCIAL_LINKS = [{ label: "Instagram", href: siteConfig.social.instagram }];
 
 // ---- layout constants ----------------------------------------------------
 

@@ -31,7 +31,8 @@ export const siteConfig = {
     maps: "https://maps.google.com/?q=Triester+Stra%C3%9Fe+391+8055+Graz",
   },
   social: {
-    instagram: "https://instagram.com",
+    // Ohne den Tracking-Parameter (?obrf=…) aus dem geteilten Link.
+    instagram: "https://www.instagram.com/jiu.jitsu.kaisen_",
     youtube: "https://youtube.com",
     tiktok: "https://tiktok.com",
     facebook: "https://facebook.com",
