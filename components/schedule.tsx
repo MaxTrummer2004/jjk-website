@@ -86,15 +86,41 @@ const COURSE: Record<
 };
 
 /**
- * 🥋 fuer Einheiten im Gi, 🤼 fuer No-Gi — wie auf dem frueheren Aushang.
- * Nur dort, wo `attire` gesetzt ist (BJJ-Einheiten); Boxen, Ringen und
- * Sparring tragen keins.
+ * 🥋 Gi, 🤼 No-Gi (auch Ringen und Sparring), 🥊 Boxen — wie auf dem
+ * frueheren Aushang. Nur dort, wo `attire` gesetzt ist.
  */
 const ATTIRE: Record<NonNullable<ScheduleClass["attire"]>, { emoji: string; label: string }> = {
   gi:   { emoji: "🥋", label: "im Gi" },
   nogi: { emoji: "🤼", label: "No-Gi" },
   both: { emoji: "🥋🤼", label: "Gi und No-Gi" },
+  box:  { emoji: "🥊", label: "Boxen" },
 };
+
+/**
+ * "Entweder – oder" wie am Aushang: kleine Ueberzeile, erster Kurs, ein
+ * "ODER"-Chip, zweiter Kurs. Nur fuer Slots mit `alt`.
+ */
+function EitherOr({ c, nameClass }: { c: ScheduleClass; nameClass: string }): ReactNode {
+  if (!c.alt) return null;
+  return (
+    <>
+      <span className="font-mono text-[0.55rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        Entweder – oder
+      </span>
+      <span className={nameClass}>
+        {c.name}
+        <AttireMark attire={c.attire} />
+      </span>
+      <span className="my-0.5 inline-flex w-fit rounded-sm border border-white/15 px-1.5 py-px font-mono text-[0.55rem] font-semibold uppercase tracking-[0.16em] text-foreground-dim">
+        oder
+      </span>
+      <span className={nameClass}>
+        {c.alt.name}
+        <AttireMark attire={c.alt.attire} />
+      </span>
+    </>
+  );
+}
 
 function AttireMark({ attire }: { attire: ScheduleClass["attire"] }): ReactNode {
   if (!attire) return null;
@@ -106,21 +132,6 @@ function AttireMark({ attire }: { attire: ScheduleClass["attire"] }): ReactNode 
   );
 }
 
-/**
- * Wie oft es jede Einheit pro Woche gibt — fuer die Aufzaehlung ueber dem
- * Plan. Aus `schedule` gerechnet, nicht abgetippt: aendert sich der Plan,
- * stimmt die Zahl von selbst.
- */
-const WEEKLY: { name: string; count: number; tone: string }[] = (() => {
-  const map = new Map<string, { count: number; tone: string }>();
-  for (const day of schedule) {
-    for (const c of day.classes) {
-      const cur = map.get(c.name);
-      map.set(c.name, { count: (cur?.count ?? 0) + 1, tone: COURSE[c.kind].tone });
-    }
-  }
-  return [...map.entries()].map(([name, v]) => ({ name, ...v }));
-})();
 
 /** Was im Chip steht: das empfohlene Level, nicht die Kursart. */
 const LEVEL_LABEL: Record<ScheduleClass["level"], string> = {
@@ -129,6 +140,24 @@ const LEVEL_LABEL: Record<ScheduleClass["level"], string> = {
   intermediate: "ab Intermediate",
   advanced:     "ab Advanced",
 };
+
+/**
+ * Wie oft es jede STUFE pro Woche gibt — fuer die Aufzaehlung ueber dem Plan
+ * (Wunsch des Vorstands, 11.10.2026: nicht pro Kurs, sondern pro Kategorie).
+ * Freies Training zaehlt als eigene Zeile, nicht unter "Jedes Level". Aus
+ * `schedule` gerechnet, nicht abgetippt: aendert sich der Plan, stimmt die
+ * Zahl von selbst.
+ */
+const LEVEL_ORDER: ScheduleClass["level"][] = ["anfaenger", "jedes", "intermediate", "advanced"];
+const WEEKLY: { name: string; count: number }[] = (() => {
+  const all = schedule.flatMap((d) => d.classes);
+  const frei = all.filter((c) => c.kind === "frei").length;
+  const rows = LEVEL_ORDER.map((level) => ({
+    name: LEVEL_LABEL[level],
+    count: all.filter((c) => c.kind !== "frei" && c.level === level).length,
+  })).filter((r) => r.count > 0);
+  return [{ name: "Freies Training", count: frei }, ...rows].filter((r) => r.count > 0);
+})();
 
 /* Die Schluessel hiessen frueher Mon/Tue/Wed — `schedule` liefert aber
    Mo/Di/Mi. Der Lookup lief also immer ins Leere und kein einziges Kanji
@@ -197,10 +226,14 @@ function DayCard({ col }: { col: (typeof schedule)[number] }) {
               >
                 {c.time}
               </span>
-              <span className="text-foreground text-[0.95rem] leading-snug font-semibold">
-                {c.name}
-                <AttireMark attire={c.attire} />
-              </span>
+              {c.alt ? (
+                <EitherOr c={c} nameClass="text-foreground text-[0.95rem] leading-snug font-semibold" />
+              ) : (
+                <span className="text-foreground text-[0.95rem] leading-snug font-semibold">
+                  {c.name}
+                  <AttireMark attire={c.attire} />
+                </span>
+              )}
               {c.note ? (
                 <span className="text-foreground-dim text-[0.72rem] leading-snug">
                   {c.note}
@@ -463,10 +496,16 @@ function Slot({
       >
         {c.time}
       </span>
-      <span className="jjk-slot-name" style={{ fontWeight: 600, fontSize: "0.95rem" }}>
-        {c.name}
-        <AttireMark attire={c.attire} />
-      </span>
+      {c.alt ? (
+        <span className="flex flex-col">
+          <EitherOr c={c} nameClass="jjk-slot-name font-semibold text-[0.95rem]" />
+        </span>
+      ) : (
+        <span className="jjk-slot-name" style={{ fontWeight: 600, fontSize: "0.95rem" }}>
+          {c.name}
+          <AttireMark attire={c.attire} />
+        </span>
+      )}
       {c.note ? (
         <span className="mt-0.5 block text-[0.72rem] leading-snug text-muted-foreground">
           {c.note}
@@ -843,7 +882,6 @@ function Intro({ headingClass }: { headingClass: string }): ReactNode {
               key={w.name}
               className="flex items-center gap-2 rounded-md border border-border bg-card-plate px-3 py-1.5 text-sm text-foreground"
             >
-              <span aria-hidden="true" className="h-2 w-2 rounded-sm" style={{ background: w.tone }} />
               {w.name}
               <span className="font-mono text-xs font-semibold tabular-nums text-foreground-dim">
                 {w.count}×
@@ -867,11 +905,11 @@ export function Schedule() {
           <div className="mt-10">
             <ScheduleStack
               cardWidth={240}
-              cardHeight={470}
+              cardHeight={510}
               spreadX={22}
               spreadY={-18}
               shadowBlur={40}
-              stackClassName="h-[550px]"
+              stackClassName="h-[590px]"
             />
           </div>
         </div>

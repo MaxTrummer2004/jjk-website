@@ -253,10 +253,15 @@ export type ScheduleClass = {
     | "openmat"
     | "frei";
   /**
-   * Gi oder No-Gi — steht als Emoji hinter dem Namen (🥋 Gi, 🤼 No-Gi).
-   * Nur bei den BJJ-Einheiten; Boxen, Ringen und Sparring tragen keins.
+   * Emoji hinter dem Namen: 🥋 Gi, 🤼 No-Gi / Ringen / Sparring, beides
+   * fuer Gi und No-Gi, 🥊 Boxen. Freies Training traegt keins.
    */
-  attire?: "gi" | "nogi" | "both";
+  attire?: "gi" | "nogi" | "both" | "box";
+  /**
+   * Zweite Moeglichkeit im selben Slot ("entweder – oder"), wie am Aushang
+   * beim Mittwoch: Wettkampftraining ODER Special Wednesday.
+   */
+  alt?: { name: string; attire?: "gi" | "nogi" | "both" | "box" };
   /** Das empfohlene Level — der Text im Chip. */
   level: "anfaenger" | "jedes" | "intermediate" | "advanced";
   /**
@@ -299,14 +304,14 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
     classes: [
       { time: "17:00–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
       { time: "17:45–18:45", name: "BJJ Basic", note: "No-Gi · für alle ohne Vorkenntnisse", program: "BJJ Basic", kind: "basic", level: "anfaenger", attire: "nogi" },
-      { time: "19:00–20:00", name: "Ringen", note: "Eine Woche Fokus Kondition, eine Woche Fokus Technik", program: "Ringen", kind: "ringen", level: "intermediate" },
+      { time: "19:00–20:00", name: "Ringen", note: "Eine Woche Fokus Kondition, eine Woche Fokus Technik", program: "Ringen", kind: "ringen", level: "intermediate", attire: "nogi" },
     ],
   },
   {
     day: "Di",
     classes: [
       { time: "17:00–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
-      { time: "17:45–18:45", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes" },
+      { time: "17:45–18:45", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes", attire: "box" },
       { time: "19:00–20:00", name: "No-Gi Training", note: "Technik & Sparring ohne Gi", program: "No-Gi Training", kind: "nogi", level: "intermediate", attire: "nogi" },
     ],
   },
@@ -315,15 +320,15 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
     classes: [
       { time: "17:00–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
       { time: "17:45–18:45", name: "Advanced Training", note: "Gi", program: "Advanced Training", kind: "advanced", level: "advanced", attire: "gi" },
-      { time: "19:00–20:00", name: "Wettkampftraining", note: "oder Special Wednesday · Positionssparring aus selbst bestimmten Positionen", program: "Wettkampftraining", kind: "wettkampf", level: "intermediate" },
+      { time: "19:00–20:00", name: "Wettkampftraining", note: "Positionssparring aus selbst bestimmten Positionen", program: "Wettkampftraining", kind: "wettkampf", level: "intermediate", attire: "nogi", alt: { name: "Special Wednesday", attire: "both" } },
     ],
   },
   {
     day: "Do",
     classes: [
       { time: "17:00–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
-      { time: "17:45–18:45", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes" },
-      { time: "19:00–20:00", name: "Sparring", note: "Freies Rollen", program: "Sparring", kind: "sparring", level: "jedes" },
+      { time: "17:45–18:45", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes", attire: "box" },
+      { time: "19:00–20:00", name: "Sparring", note: "Freies Rollen", program: "Sparring", kind: "sparring", level: "jedes", attire: "nogi" },
     ],
   },
   {

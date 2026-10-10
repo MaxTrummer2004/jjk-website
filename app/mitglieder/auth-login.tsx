@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import Watercolor from "@/components/watercolor";
 import { lenisRef } from "@/lib/lenis";
 import { AuthForm } from "./auth-form";
+import { HomeLink } from "./home-link";
 
 export function AuthLogin() {
   // position:fixed macht window.scrollY irrelevant — kein Scroll-Reset nötig.
@@ -43,7 +44,11 @@ export function AuthLogin() {
       {/* Auth-3-Layout: Karte links, Brand-Text rechts */}
       <div className="relative z-10 mx-auto flex w-full max-w-[1400px] items-center justify-center gap-12">
         {/* Linke Spalte: Karte + Zurück-Link */}
-        <div className="w-full max-w-md">
+        <div className="flex w-full max-w-md flex-col gap-4">
+          {/* Zurueck zur Startseite. Fehlte hier, obwohl der Kommentar oben
+              ihn versprach: wer versehentlich auf "Für Mitglieder" tippt,
+              kam nur ueber die Browser-Zuruecktaste wieder raus. */}
+          <HomeLink className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-black/40 px-5 py-2.5 text-sm font-medium text-foreground-dim backdrop-blur-sm transition-colors hover:border-white/30 hover:text-foreground" />
           <AuthForm />
         </div>
 
