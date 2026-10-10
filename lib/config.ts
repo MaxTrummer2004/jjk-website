@@ -46,7 +46,7 @@ export const nav = {
     { label: "Preise", href: "#pricing" },
     { label: "Fragen", href: "#faq" },
   ],
-  cta: { label: "Probetraining buchen", href: "#pricing" },
+  cta: { label: "Mitglied werden", href: "/beitreten" },
   /**
    * Die Haupthandlung der Seite, als Knopf in der Kopfleiste.
    *
@@ -54,7 +54,7 @@ export const nav = {
    * Vorher zeigte er auf die Preise, weil es das Formular noch nicht gab.
    * Die Kopfleiste liest ausschliesslich diese Zeile.
    */
-  signup: { label: "Jetzt anmelden", href: "/beitreten" },
+  signup: { label: "Mitglied werden", href: "/beitreten" },
 } as const;
 
 /**

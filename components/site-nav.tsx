@@ -87,7 +87,7 @@ function useIntroDone(): boolean {
  * fuehrt, die ihn ohne gueltige Session nach Hause schickt.
  *
  * useSyncExternalStore und nicht useEffect: die Startseite wird statisch
- * ausgeliefert, im HTML steht also immer "Jetzt anmelden". Der Hook liefert
+ * ausgeliefert, im HTML steht also immer "Mitglied werden". Der Hook liefert
  * beim Hydrieren genau diesen Wert und wechselt erst danach — mit einem
  * Effekt gaebe es entweder eine Hydrierungs-Warnung oder ein sichtbares
  * Umspringen der Beschriftung.

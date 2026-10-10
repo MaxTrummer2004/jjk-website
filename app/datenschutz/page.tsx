@@ -366,7 +366,7 @@ export default function DatenschutzPage(): ReactNode {
             dass in diesem Browser jemand angemeldet ist &mdash; keine Nummer,
             keinen Namen, kein Token. Es wird gesetzt, weil die Startseite als
             fertige Datei ausgeliefert wird und erst im Browser entscheidet, ob
-            die Schaltfläche &bdquo;Jetzt anmelden&ldquo; oder &bdquo;Mein
+            die Schaltfläche &bdquo;Mitglied werden&ldquo; oder &bdquo;Mein
             Bereich&ldquo; heißt. Gleiche Laufzeit wie <code>jjk_session</code>,
             wird zusammen mit ihm gelöscht.
           </dd>

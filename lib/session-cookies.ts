@@ -16,7 +16,7 @@ export const SESSION_COOKIE = "jjk_session";
 /**
  * Sagt nur: hier ist jemand eingeloggt. Absichtlich NICHT httpOnly, damit die
  * statisch ausgelieferte Startseite im Browser entscheiden kann, ob der Knopf
- * "Jetzt anmelden" oder "Mein Bereich" heisst. Es traegt keine Entscheidung,
+ * "Mitglied werden" oder "Mein Bereich" heisst. Es traegt keine Entscheidung,
  * die Schutz braucht.
  */
 export const MEMBER_HINT_COOKIE = "jjk_member";
