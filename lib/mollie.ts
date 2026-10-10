@@ -9,7 +9,7 @@ import { siteConfig } from "@/lib/config";
  * sich wie vor der Online-Zahlung. So entscheidet der Vorstand, wann es live
  * geht, nicht der naechste Push.
  *
- * Ablauf bei ALL IN (monatlich):
+ * Ablauf bei "Alle Kurse" (monatlich):
  *   1. Erste Zahlung mit sequenceType "first" ueber EPS: Einschreibgebuehr +
  *      aktueller Monat. Mollie legt dabei ein SEPA-Lastschriftmandat an
  *      (docs.mollie.com/docs/recurring-payments: eps → directdebit).

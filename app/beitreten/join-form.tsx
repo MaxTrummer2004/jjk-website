@@ -112,13 +112,15 @@ export function JoinForm(): ReactNode {
 
       <Section title="Mitgliedschaft">
         <p className="text-sm leading-relaxed text-foreground-dim">
-          Mit jeder ALL-IN-Mitgliedschaft kannst du alle Kurse im Stundenplan so oft besuchen, wie du
+          Mit jeder Mitgliedschaft „Alle Kurse“ kannst du alle Kurse im Stundenplan so oft besuchen, wie du
           willst.
         </p>
         <div className="flex flex-col gap-3" role="radiogroup">
           {PLANS.map((plan) => {
             const info = PLAN_INFO[plan];
             const per = info.monthly ? " / Monat" : " einmalig";
+            // Die guenstigste Monatsvariante hervorheben (Vorstand, 10.10.2026).
+            const cheapest = plan === "year";
             return (
               <label
                 key={plan}
@@ -134,11 +136,16 @@ export function JoinForm(): ReactNode {
                 />
                 <span className="flex flex-1 flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
                   <span>
+                    {cheapest ? (
+                      <span className="mb-0.5 block font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-accent">
+                        Günstigste Variante
+                      </span>
+                    ) : null}
                     <span className="block font-medium text-foreground">{info.label}</span>
                     <span className="block text-sm text-foreground-dim">{info.detail}</span>
                   </span>
                   <span className="shrink-0 text-sm sm:text-right">
-                    <span className="block font-semibold text-foreground">
+                    <span className={`block font-semibold ${cheapest ? "text-base font-bold text-accent-bright" : "text-foreground"}`}>
                       {euro(info.regularCents)}
                       {per}
                     </span>

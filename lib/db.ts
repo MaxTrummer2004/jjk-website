@@ -189,6 +189,21 @@ async function createSchema(): Promise<void> {
       on payments (provider_ref) where provider_ref is not null;
   `);
 
+  // Probetraining-Anfragen aus dem Fenster auf der Startseite. Kein Konto,
+  // kein Login — nur, was jemand von sich aus hineinschreibt. Der Vorstand
+  // sieht sie unter /vorstand; erledigte und alle ueber drei Monate alten
+  // werden geloescht (siehe app/vorstand/page.tsx und Datenschutzerklaerung).
+  await sql`
+    create table if not exists trial_requests (
+      id serial primary key,
+      name text not null,
+      contact text not null,
+      preferred_day text,
+      message text,
+      created_at timestamptz not null default now()
+    );
+  `;
+
   await sql`
     create table if not exists attendance_votes (
       id serial primary key,

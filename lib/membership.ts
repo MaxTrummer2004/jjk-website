@@ -18,7 +18,7 @@ export type Plan = (typeof PLANS)[number];
 export interface PlanInfo {
   label: string;
   detail: string;
-  /** Regulaer, in Cent. Bei den ALL-IN-Varianten pro Monat, beim Block einmalig. */
+  /** Regulaer, in Cent. Bei den Varianten "Alle Kurse" pro Monat, beim Block einmalig. */
   regularCents: number;
   /** Schueler/Studenten, in Cent. */
   reducedCents: number;
@@ -28,21 +28,21 @@ export interface PlanInfo {
 
 export const PLAN_INFO: Record<Plan, PlanInfo> = {
   year: {
-    label: "ALL IN – Jahresbindung",
+    label: "Alle Kurse – Jahresbindung",
     detail: "Unbegrenzt trainieren · 12 Monate Laufzeit",
     regularCents: 7000,
     reducedCents: 5500,
     monthly: true,
   },
   quarter: {
-    label: "ALL IN – 3-Monatsbindung",
+    label: "Alle Kurse – 3-Monatsbindung",
     detail: "Unbegrenzt trainieren · 3 Monate Laufzeit",
     regularCents: 8000,
     reducedCents: 6500,
     monthly: true,
   },
   flex: {
-    label: "ALL IN – Flex",
+    label: "Alle Kurse – Flex",
     detail: "Unbegrenzt trainieren · ohne Bindung · monatlich im Voraus",
     regularCents: 9000,
     reducedCents: 7500,

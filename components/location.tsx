@@ -171,6 +171,11 @@ export function Location(): ReactNode {
   // Die Adresse kommt erst, wenn ganz hineingezoomt ist.
   const plateOpacity = useTransform(scrollProgress, [0.9, 0.99], [0, 1]);
   const plateY = useTransform(scrollProgress, [0.9, 0.99], [18, 0]);
+  // Der Maps-Hinweis kommt frueher als die Adresse: sobald die Karte fertig
+  // aufgezogen ist. Er hing bis 10.10.2026 an plateOpacity, erschien also erst
+  // ganz am Ende der Strecke, war klein und blass — der Vorstand hat ihn nicht
+  // gefunden und dachte, er sei weg.
+  const hintOpacity = useTransform(scrollProgress, [GROWTH_END, GROWTH_END + 0.08], [0, 1]);
 
   // Manuelles Pin statt CSS `sticky`: davor im Fluss, waehrend der Sektion am
   // Viewport fixiert, danach am unteren Rand der Sektion verankert.
@@ -262,11 +267,11 @@ export function Location(): ReactNode {
             {/* Der Hinweis erscheint mit der Adresse, nicht schon waehrend des
                 Zooms: solange die Karte noch faehrt, ist sie kein Ziel. */}
             <motion.span
-              style={{ opacity: plateOpacity }}
-              className="absolute top-3 right-3 flex items-center gap-1.5 rounded-md border border-white/12 bg-[#0b0b10]/85 px-2.5 py-1.5 text-[0.7rem] font-medium text-foreground/80 backdrop-blur-[2px] transition-colors duration-300 group-hover:border-accent/50 group-hover:text-foreground"
+              style={{ opacity: hintOpacity }}
+              className="absolute top-4 right-4 flex items-center gap-2 rounded-full border border-accent/60 bg-[#0b0b10]/90 px-4 py-2 text-sm font-semibold text-foreground shadow-lg backdrop-blur-[2px] transition-colors duration-300 group-hover:border-accent group-hover:bg-accent group-hover:text-white"
             >
               In Google Maps öffnen
-              <ArrowUpRight className="size-3" strokeWidth={2} aria-hidden="true" />
+              <ArrowUpRight className="size-4" strokeWidth={2.25} aria-hidden="true" />
             </motion.span>
 
             {/* Die Adresse liegt als echter Text darueber, nicht im Canvas:

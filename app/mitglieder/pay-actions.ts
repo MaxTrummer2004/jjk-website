@@ -75,7 +75,7 @@ export async function startPaymentAction(): Promise<void> {
 }
 
 /**
- * ALL IN Flex beenden: das Abo wird bei Mollie gekuendigt, es wird nichts
+ * Flex beenden: das Abo wird bei Mollie gekuendigt, es wird nichts
  * mehr abgebucht. Laut Bedingungen "ohne Bindung" — der bereits bezahlte
  * Monat bleibt. Nur fuer Flex; Bindungen enden von selbst.
  */

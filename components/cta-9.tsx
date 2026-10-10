@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "motion/react";
+import { openTrialDialog } from "@/components/trial/trial-dialog";
 import { useRef } from "react";
 import { KanjiLabel } from "@/components/kanji-label";
 import { useReducedMotion } from "@/lib/motion";
@@ -57,9 +58,9 @@ export default function Cta9() {
           <a id="cursor-cta" href="/beitreten" className="jjk-btn">
             Mitglied werden
           </a>
-          <a href="#schedule" className="jjk-btn jjk-btn-quiet">
-            Stundenplan
-          </a>
+          <button type="button" onClick={openTrialDialog} className="jjk-btn jjk-btn-quiet">
+            Probetraining ausmachen
+          </button>
         </div>
       </motion.div>
     </section>

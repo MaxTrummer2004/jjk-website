@@ -112,7 +112,9 @@ export default function DatenschutzPage(): ReactNode {
           <li>
             <strong>Der öffentliche Teil</strong> (Startseite, Impressum,
             Datenschutz) verarbeitet keine personenbezogenen Daten über die
-            technisch unvermeidbaren Server-Protokolldaten hinaus. Es gibt keine
+            technisch unvermeidbaren Server-Protokolldaten hinaus &mdash;
+            außer Sie schicken uns über &bdquo;Probetraining ausmachen&ldquo;
+            von sich aus eine Anfrage. Es gibt keine
             Analyse-Werkzeuge, kein Tracking, keine Werbenetzwerke, keine
             Social-Media-Einbettungen und keine Inhalte von fremden Servern.
           </li>
@@ -528,7 +530,7 @@ export default function DatenschutzPage(): ReactNode {
           aussieht.
           ------------------------------------------------------------------ */}
       <section>
-        <h2>Kontaktaufnahme per E-Mail oder Telefon</h2>
+        <h2>Kontaktaufnahme und Probetraining-Anfrage</h2>
         <p>
           Wenn Sie uns schreiben oder anrufen, verarbeiten wir Ihre Angaben, um
           die Anfrage zu beantworten. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b
@@ -536,6 +538,15 @@ export default function DatenschutzPage(): ReactNode {
           Abs. 1 lit. f DSGVO. Die Nachrichten werden gelöscht, sobald sie nicht
           mehr benötigt werden und keine gesetzlichen Aufbewahrungspflichten
           entgegenstehen.
+        </p>
+        <p>
+          Über &bdquo;Probetraining ausmachen&ldquo; auf der Startseite können
+          Sie uns eine Anfrage schicken. Gespeichert werden der Name, die
+          angegebene Kontaktmöglichkeit (E-Mail, Telefon oder Instagram-Name),
+          der Wunschtag, Ihre Nachricht und der Zeitpunkt. Sehen kann die
+          Anfrage nur der Vorstand. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b
+          DSGVO (Anbahnung der Teilnahme am Training). Die Anfrage wird
+          gelöscht, sobald sie erledigt ist, spätestens nach drei Monaten.
         </p>
         <p>
           Das Eingabefeld für die E-Mail-Adresse im Fußbereich der Startseite

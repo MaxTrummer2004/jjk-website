@@ -156,3 +156,13 @@ export async function resetPasswordAction(_prev: ResetState, formData: FormData)
   await sql`update members set password_hash = ${hash} where id = ${id}`;
   return { message: "Neues Passwort gesetzt." };
 }
+
+/** Probetraining-Anfrage erledigt: loeschen. Laut Datenschutzerklaerung
+ *  bleiben Anfragen nur, bis sie beantwortet sind. */
+export async function deleteTrialRequestAction(formData: FormData): Promise<void> {
+  await requireBoard();
+  const id = Number(formData.get("request_id"));
+  if (!Number.isInteger(id) || id <= 0) return;
+  await sql`delete from trial_requests where id = ${id}`;
+  revalidatePath("/vorstand");
+}

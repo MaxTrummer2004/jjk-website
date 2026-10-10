@@ -19,9 +19,9 @@ import { DismissTransition } from "@/components/dismiss-transition";
 export const dynamic = "force-dynamic";
 
 const PLAN_LABEL_SHORT = {
-  year: "ALL IN Jahr",
-  quarter: "ALL IN 3 Monate",
-  flex: "ALL IN Flex",
+  year: "Alle Kurse Jahr",
+  quarter: "Alle Kurse 3 Monate",
+  flex: "Alle Kurse Flex",
   block: "10er-Block",
 } as const;
 

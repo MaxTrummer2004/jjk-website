@@ -56,7 +56,7 @@ interface RankedMember {
 interface Props {
   memberId: number;
   name: string;
-  /** Unter dem Namen, z. B. "ALL IN Flex". Ersetzt das fruehere "@benutzername". */
+  /** Unter dem Namen, z. B. "Alle Kurse Flex". Ersetzt das fruehere "@benutzername". */
   subtitle: string;
   /** Der Statusblock (app/mitglieder/status-panel.tsx), vom Server gerendert. */
   status: ReactNode;

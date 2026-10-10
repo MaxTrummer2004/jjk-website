@@ -96,9 +96,6 @@ export default function Pricing2(): ReactNode {
           blur
           className="jjk-section-title max-w-3xl"
         />
-        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-foreground-dim">
-          Das Probetraining ist gratis.
-        </p>
 
         <div className="mt-12 flex flex-col gap-10 sm:mt-16">
           <PlanRows label="Erst einmal ansehen" plans={pricing.single} from={0} />

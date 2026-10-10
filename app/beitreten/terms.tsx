@@ -13,7 +13,7 @@ export const TERMS_SECTIONS: { title: string; items: ReactNode[] }[] = [
     items: [
       <>
         <strong>Außerordentliche Mitgliedschaft:</strong> Jede Mitgliedschaft laut dieser
-        Beitrittserklärung (ALL IN Jahresbindung, ALL IN 3-Monatsbindung, ALL IN Flex und
+        Beitrittserklärung (Alle Kurse – Jahresbindung, Alle Kurse – 3-Monatsbindung, Alle Kurse – Flex und
         10er-Block) ist ausschließlich eine außerordentliche Mitgliedschaft. Sie berechtigt zur
         Teilnahme am Trainingsangebot. Stimm- und Wahlrecht in der Generalversammlung haben nur
         ordentliche Mitglieder. Näheres regeln die Vereinsstatuten.
@@ -33,7 +33,7 @@ export const TERMS_SECTIONS: { title: string; items: ReactNode[] }[] = [
         einfach eine neue Mitgliedschaft ab.
       </>,
       <>
-        <strong>ALL IN Flex:</strong> Du kannst trainieren, solange dein Beitrag bezahlt ist. Wird
+        <strong>Alle Kurse – Flex:</strong> Du kannst trainieren, solange dein Beitrag bezahlt ist. Wird
         ein Monat nicht bezahlt, ruht in diesem Monat das Trainingsrecht &mdash; die
         Vereinsmitgliedschaft bleibt bestehen und du kannst jederzeit wieder einsteigen.
       </>,

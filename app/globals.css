@@ -4361,6 +4361,13 @@ p,
 .jjk-plan[data-featured] .jjk-plan-note {
   color: var(--ember-hot);
 }
+/* Die guenstigste Variante soll man auf den ersten Blick finden (Wunsch des
+   Vorstands, 10.10.2026): der Preis in Rot statt in Weiss, die hellere
+   Stufe, weil #d3202a auf fast Schwarz zu dunkel ist. Gross genug, dass die
+   Farbe als Schrift traegt — 1,9 rem, nicht Kleinschrift. */
+.jjk-plan[data-featured] .jjk-plan-price {
+  color: var(--accent-bright);
+}
 
 @media (min-width: 640px) {
   .jjk-plan {

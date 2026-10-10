@@ -16,6 +16,7 @@ import {
 import {
   admitAction,
   deleteRejectedAction,
+  deleteTrialRequestAction,
   rejectAction,
   toggleFlagAction,
   togglePaymentAction,
@@ -154,6 +155,22 @@ export default async function BoardPage(): Promise<ReactNode> {
     from members
     order by name asc
   `;
+  // Was die Datenschutzerklaerung zusagt: Probetraining-Anfragen bleiben
+  // hoechstens drei Monate. Geloescht wird beim Aufruf dieser Seite — ohne
+  // Zeitplaner, aber verlaesslich, solange der Vorstand hier vorbeischaut.
+  await sql`delete from trial_requests where created_at < now() - interval '3 months'`;
+  const trials = await sql<{
+    id: number;
+    name: string;
+    contact: string;
+    preferred_day: string | null;
+    message: string | null;
+    created: string;
+  }>`
+    select id, name, contact, preferred_day, message,
+      to_char(created_at at time zone 'Europe/Vienna', 'DD.MM.YYYY HH24:MI') as created
+    from trial_requests order by created_at desc
+  `;
   const payments = await sql<PayRow>`
     select member_id, kind, period::text as period, source from payments
   `;
@@ -184,6 +201,40 @@ export default async function BoardPage(): Promise<ReactNode> {
         </Link>
 
         <h1 className="jjk-section-title mt-10">Vorstand</h1>
+
+        {/* ── Probetraining-Anfragen ───────────────────────────────── */}
+        <section className="mt-12">
+          <h2 className="font-mono text-[0.72rem] font-medium uppercase tracking-[0.24em] text-accent">
+            Probetraining-Anfragen ({trials.length})
+          </h2>
+          {trials.length === 0 ? (
+            <p className="mt-4 text-sm text-foreground-dim">Keine offenen Anfragen.</p>
+          ) : (
+            <ul className="mt-4 flex flex-col gap-3">
+              {trials.map((t) => (
+                <li key={t.id} className="rounded-xl border border-border bg-card-plate p-4">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <p className="font-medium text-foreground">{t.name}</p>
+                    <p className="text-xs text-foreground-dim">{t.created}</p>
+                  </div>
+                  <p className="mt-1 text-sm text-foreground">{t.contact}</p>
+                  {t.preferred_day ? (
+                    <p className="mt-1 text-sm text-foreground-dim">Wunschtag: {t.preferred_day}</p>
+                  ) : null}
+                  {t.message ? (
+                    <p className="mt-2 whitespace-pre-line text-sm text-foreground-dim">{t.message}</p>
+                  ) : null}
+                  <form action={deleteTrialRequestAction} className="mt-3">
+                    <input type="hidden" name="request_id" value={t.id} />
+                    <button type="submit" className="h-9 rounded-md border border-border px-3 text-sm text-foreground hover:border-border-hot">
+                      Erledigt (löschen)
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
         {/* ── Antraege ─────────────────────────────────────────────── */}
         <section className="mt-12">
@@ -265,7 +316,7 @@ export default async function BoardPage(): Promise<ReactNode> {
                     />
                     <span className="min-w-[10rem] flex-1 font-medium text-foreground">{m.name}</span>
                     <span className="text-sm text-foreground-dim">
-                      {info.label.replace("ALL IN – ", "")} · {euro(dueCents(plan, m.reduced_verified))}
+                      {info.label.replace("Alle Kurse – ", "")} · {euro(dueCents(plan, m.reduced_verified))}
                       {m.reduced_verified ? " erm." : ""}
                       {m.has_subscription ? " · SEPA-Abo" : ""}
                     </span>

@@ -251,7 +251,7 @@ function CancelFlex(): ReactNode {
   return (
     <form action={cancelFlexAction} className="mt-4">
       <button type="submit" className="text-sm text-white/85 underline underline-offset-2 hover:text-white">
-        ALL IN Flex beenden (keine weiteren Abbuchungen)
+        Flex beenden (keine weiteren Abbuchungen)
       </button>
     </form>
   );

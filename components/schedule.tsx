@@ -80,7 +80,47 @@ const COURSE: Record<
   sparring:  { tone: "#1d4ed8", group: "blau"   }, // blue-700
   wettkampf: { tone: "#0369a1", group: "blau"   }, // sky-700
   boxen:     { tone: "#d97706", group: "orange" }, // amber-600
+  // Freies Training (Mo–Fr 16:45): offen fuer jedes Level, also gruen —
+  // eine Stufe dunkler als BJJ Basic, damit es nicht wie ein Kurs aussieht.
+  frei:      { tone: "#15803d", group: "gruen"  }, // green-700
 };
+
+/**
+ * 🥋 fuer Einheiten im Gi, 🤼 fuer No-Gi — wie auf dem frueheren Aushang.
+ * Nur dort, wo `attire` gesetzt ist (BJJ-Einheiten); Boxen, Ringen und
+ * Sparring tragen keins.
+ */
+const ATTIRE: Record<NonNullable<ScheduleClass["attire"]>, { emoji: string; label: string }> = {
+  gi:   { emoji: "🥋", label: "im Gi" },
+  nogi: { emoji: "🤼", label: "No-Gi" },
+  both: { emoji: "🥋🤼", label: "Gi und No-Gi" },
+};
+
+function AttireMark({ attire }: { attire: ScheduleClass["attire"] }): ReactNode {
+  if (!attire) return null;
+  const a = ATTIRE[attire];
+  return (
+    <span role="img" aria-label={a.label} title={a.label} className="ml-1.5 align-[-0.05em]">
+      {a.emoji}
+    </span>
+  );
+}
+
+/**
+ * Wie oft es jede Einheit pro Woche gibt — fuer die Aufzaehlung ueber dem
+ * Plan. Aus `schedule` gerechnet, nicht abgetippt: aendert sich der Plan,
+ * stimmt die Zahl von selbst.
+ */
+const WEEKLY: { name: string; count: number; tone: string }[] = (() => {
+  const map = new Map<string, { count: number; tone: string }>();
+  for (const day of schedule) {
+    for (const c of day.classes) {
+      const cur = map.get(c.name);
+      map.set(c.name, { count: (cur?.count ?? 0) + 1, tone: COURSE[c.kind].tone });
+    }
+  }
+  return [...map.entries()].map(([name, v]) => ({ name, ...v }));
+})();
 
 /** Was im Chip steht: das empfohlene Level, nicht die Kursart. */
 const LEVEL_LABEL: Record<ScheduleClass["level"], string> = {
@@ -159,6 +199,7 @@ function DayCard({ col }: { col: (typeof schedule)[number] }) {
               </span>
               <span className="text-foreground text-[0.95rem] leading-snug font-semibold">
                 {c.name}
+                <AttireMark attire={c.attire} />
               </span>
               {c.note ? (
                 <span className="text-foreground-dim text-[0.72rem] leading-snug">
@@ -321,51 +362,13 @@ function ScheduleStack({
         <Arrow direction="next" onClick={next} label="Nächster Tag" />
       </div>
 
-
-      <MatFootnote className="mx-auto mt-6 max-w-md text-center" />
     </div>
   );
 }
 
-/**
- * Matte frei und Dehnen stehen absichtlich nicht als eigene Zeilen im Plan:
- * es sind keine Kurse, und als Zeitschienen wuerden sie jede Tageskarte um
- * die Haelfte verlaengern, um zweimal dasselbe zu sagen. Als Fussnote sind
- * sie einmal da und gelten fuer die ganze Woche — in beiden Layouts.
- */
-function MatFootnote({ className = "" }: { className?: string }): ReactNode {
-  return (
-    <div
-      className={`border-t border-border pt-4 text-sm leading-relaxed text-foreground-dim ${className}`}
-    >
-      {/* Am Handy standen hier drei Zeilen Fliesstext unter einem
-          Kartenstapel, und Fliesstext ist die falsche Form fuer zwei Uhrzeiten
-          und drei Wochentage: man liest ihn wie einen Satz, obwohl man ihn wie
-          eine Tabelle benutzt. Dieselbe Auskunft, als zwei Angaben gesetzt.
-          Am Desktop ist im Textblock Platz, dort bleibt der Satz. */}
-      <dl className="flex flex-col gap-1 sm:hidden">
-        <div className="flex flex-wrap justify-center gap-x-2">
-          <dt className="text-foreground">Matte frei:</dt>
-          <dd>ab 16:30</dd>
-        </div>
-        <div className="flex flex-wrap justify-center gap-x-2">
-          <dt className="text-foreground">Dehnen:</dt>
-          <dd>Mo, Mi, Fr um 17:15</dd>
-        </div>
-        <div className="flex flex-wrap justify-center gap-x-2">
-          <dt className="text-foreground">Einheit:</dt>
-          <dd>60 Minuten, bis zu 75 möglich</dd>
-        </div>
-      </dl>
-      <p className="hidden sm:block">
-        Vor jedem Training ist die Matte frei zum Drillen: ab 16:30. Montag,
-        Mittwoch und Freitag um 17:15 gemeinsames Dehnen für BJJ. Eine Einheit
-        ist auf 60 Minuten angesetzt; bis zur nächsten liegt eine
-        Viertelstunde, die manche Trainer noch nutzen.
-      </p>
-    </div>
-  );
-}
+/* Hier stand MatFootnote: "Matte frei ab 16:30 … Dehnen 17:15 … 60 Minuten".
+   Auf Wunsch des Vorstands (10.10.2026) ersatzlos weg; das freie Training
+   steht jetzt als eigene Zeile 16:45–17:45 im Plan. */
 
 // ---- Wochenpanel (nur ab md) ---------------------------------------------
 
@@ -462,6 +465,7 @@ function Slot({
       </span>
       <span className="jjk-slot-name" style={{ fontWeight: 600, fontSize: "0.95rem" }}>
         {c.name}
+        <AttireMark attire={c.attire} />
       </span>
       {c.note ? (
         <span className="mt-0.5 block text-[0.72rem] leading-snug text-muted-foreground">
@@ -787,7 +791,6 @@ function WeekPanel(): ReactNode {
           </div>
       </TiltPlate>
 
-      <MatFootnote className="mt-8" />
       <ProgramSheet detail={detail} onClose={onClose} />
     </div>
   );
@@ -828,6 +831,27 @@ function Intro({ headingClass }: { headingClass: string }): ReactNode {
           </span>
         ))}
       </div>
+
+      {/* Wie oft es jede Einheit pro Woche gibt. */}
+      <div className="mt-6">
+        <p className="font-mono text-[0.68rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+          Pro Woche
+        </p>
+        <ul className="mt-3 flex flex-wrap gap-2">
+          {WEEKLY.map((w) => (
+            <li
+              key={w.name}
+              className="flex items-center gap-2 rounded-md border border-border bg-card-plate px-3 py-1.5 text-sm text-foreground"
+            >
+              <span aria-hidden="true" className="h-2 w-2 rounded-sm" style={{ background: w.tone }} />
+              {w.name}
+              <span className="font-mono text-xs font-semibold tabular-nums text-foreground-dim">
+                {w.count}×
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </>
   );
 }
@@ -843,11 +867,11 @@ export function Schedule() {
           <div className="mt-10">
             <ScheduleStack
               cardWidth={240}
-              cardHeight={360}
+              cardHeight={470}
               spreadX={22}
               spreadY={-18}
               shadowBlur={40}
-              stackClassName="h-[440px]"
+              stackClassName="h-[550px]"
             />
           </div>
         </div>

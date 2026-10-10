@@ -12,7 +12,7 @@ import {
  * Der Zahlungsstand eines Mitglieds, fuer den roten bzw. gruenen Block.
  *
  * Gruen heisst: Einschreibgebuehr bezahlt UND fuer diesen Monat bezahlt
- * (ALL IN) bzw. der Block bezahlt (10er-Block). Alles andere ist rot, und der
+ * ("Alle Kurse") bzw. der Block bezahlt (10er-Block). Alles andere ist rot, und der
  * Block sagt, welcher Posten offen ist und wie viel.
  *
  * 10er-Block: Hier steht nur "bezahlt / nicht bezahlt". Die verbrauchten

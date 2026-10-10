@@ -5,6 +5,7 @@
 let introAlreadyPlayed = false;
 
 import { MagneticLink } from "@/components/magnetic-link";
+import { openTrialDialog } from "@/components/trial/trial-dialog";
 import { softEase, useReducedMotion } from "@/lib/motion";
 import { setOpeningDone } from "@/lib/opening";
 import Watercolor from "@/components/watercolor";
@@ -516,12 +517,18 @@ export function JJKHero(): ReactNode {
             Jiu-Jitsu Kaisen Academy
           </motion.h1>
           <motion.div {...fadeUp(0.28)} className="mt-9 flex items-center gap-3">
+            {/* Oeffnet das Anfrage-Fenster (components/trial). href bleibt
+                #pricing, damit der Link ohne JavaScript noch irgendwo hinfuehrt. */}
             <MagneticLink
               href="#pricing"
               reduce={prefersReducedMotion}
+              onClick={(e) => {
+                e.preventDefault();
+                openTrialDialog();
+              }}
               className="bg-foreground text-background inline-flex h-13 items-center rounded-full px-8 text-sm font-medium transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             >
-              Probetraining
+              Probetraining ausmachen
             </MagneticLink>
             <a
               href="#schedule"

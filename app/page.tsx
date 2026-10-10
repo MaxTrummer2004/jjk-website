@@ -8,6 +8,7 @@ import Pricing2 from "@/components/pricing-2";
 import FAQ1 from "@/components/faq-1";
 import Cta9 from "@/components/cta-9";
 import Footer4 from "@/components/footer-4";
+import { TrialDialog } from "@/components/trial/trial-dialog";
 import { createMetadata } from "@/lib/metadata";
 import { siteConfig } from "@/lib/config";
 import type { Metadata } from "next";
@@ -23,6 +24,7 @@ export default function HomePage(): ReactNode {
   return (
     <>
       <SiteNav />
+      <TrialDialog />
       <main id="main-content" className="relative bg-background-deep">
         <JJKHero />
 
