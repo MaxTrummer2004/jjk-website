@@ -80,7 +80,7 @@ const COURSE: Record<
   sparring:  { tone: "#1d4ed8", group: "blau"   }, // blue-700
   wettkampf: { tone: "#0369a1", group: "blau"   }, // sky-700
   boxen:     { tone: "#d97706", group: "orange" }, // amber-600
-  // Freies Training (Mo–Fr 16:45): offen fuer jedes Level, also gruen —
+  // Freies Training (Mo–Fr 17:00): offen fuer jedes Level, also gruen —
   // eine Stufe dunkler als BJJ Basic, damit es nicht wie ein Kurs aussieht.
   frei:      { tone: "#15803d", group: "gruen"  }, // green-700
 };
@@ -368,7 +368,7 @@ function ScheduleStack({
 
 /* Hier stand MatFootnote: "Matte frei ab 16:30 … Dehnen 17:15 … 60 Minuten".
    Auf Wunsch des Vorstands (10.10.2026) ersatzlos weg; das freie Training
-   steht jetzt als eigene Zeile 16:45–17:45 im Plan. */
+   steht jetzt als eigene Zeile 17:00–17:45 im Plan. */
 
 // ---- Wochenpanel (nur ab md) ---------------------------------------------
 

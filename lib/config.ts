@@ -285,18 +285,19 @@ export type ScheduleClass = {
  *
  * Seit 10. Oktober 2026: BJJ Basic Montag 17:45 (vorher Dienstag 19:00),
  * No-Gi Training Dienstag 19:00 (vorher Montag 17:45). Mo–Fr steht
- * "Freies Training" 16:45–17:45 als eigene Zeile im Plan; die Fussnote mit
+ * "Freies Training" als eigene Zeile im Plan (seit 11.10.2026 17:00–17:45,
+ * weil die Halle um 17:00 oeffnet; davor 16:45); die Fussnote mit
  * "Matte frei ab 16:30 / Dehnen 17:15 / 60 Minuten" ist auf Wunsch des
  * Vorstands ersatzlos weg. "Kein Unterricht" bei Sparring und Open Mat
  * ebenfalls.
  *
- * Drei Schienen pro Werktag (16:45, 17:45, 19:00) plus Open Mat am Samstag.
+ * Drei Schienen pro Werktag (17:00, 17:45, 19:00) plus Open Mat am Samstag.
  */
 export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   {
     day: "Mo",
     classes: [
-      { time: "16:45–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
+      { time: "17:00–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
       { time: "17:45–18:45", name: "BJJ Basic", note: "No-Gi · für alle ohne Vorkenntnisse", program: "BJJ Basic", kind: "basic", level: "anfaenger", attire: "nogi" },
       { time: "19:00–20:00", name: "Ringen", note: "Eine Woche Fokus Kondition, eine Woche Fokus Technik", program: "Ringen", kind: "ringen", level: "intermediate" },
     ],
@@ -304,7 +305,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   {
     day: "Di",
     classes: [
-      { time: "16:45–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
+      { time: "17:00–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
       { time: "17:45–18:45", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes" },
       { time: "19:00–20:00", name: "No-Gi Training", note: "Technik & Sparring ohne Gi", program: "No-Gi Training", kind: "nogi", level: "intermediate", attire: "nogi" },
     ],
@@ -312,7 +313,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   {
     day: "Mi",
     classes: [
-      { time: "16:45–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
+      { time: "17:00–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
       { time: "17:45–18:45", name: "Advanced Training", note: "Gi", program: "Advanced Training", kind: "advanced", level: "advanced", attire: "gi" },
       { time: "19:00–20:00", name: "Wettkampftraining", note: "oder Special Wednesday · Positionssparring aus selbst bestimmten Positionen", program: "Wettkampftraining", kind: "wettkampf", level: "intermediate" },
     ],
@@ -320,7 +321,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   {
     day: "Do",
     classes: [
-      { time: "16:45–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
+      { time: "17:00–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
       { time: "17:45–18:45", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes" },
       { time: "19:00–20:00", name: "Sparring", note: "Freies Rollen", program: "Sparring", kind: "sparring", level: "jedes" },
     ],
@@ -328,7 +329,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   {
     day: "Fr",
     classes: [
-      { time: "16:45–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
+      { time: "17:00–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
       { time: "17:45–18:45", name: "Advanced Training", note: "No-Gi", program: "Advanced Training", kind: "advanced", level: "advanced", attire: "nogi" },
       { time: "19:00–20:00", name: "Gi Training", note: "Technik & Sparring im Gi", program: "Gi Training", kind: "gi", level: "jedes", attire: "gi" },
     ],
@@ -442,12 +443,12 @@ export const faqs = [
   {
     question: "Wann kann ich als Anfänger einsteigen?",
     answer:
-      "Am Montag um 17:45 bei BJJ Basic: No-Gi, für alle ohne Vorkenntnisse. Danach stehen dir Gi Training am Freitag, Sparring am Donnerstag und die Open Mat am Samstag offen, die sind für jedes Level. Montag bis Freitag ist außerdem von 16:45 bis 17:45 freies Training.",
+      "Jederzeit. Für den Anfang empfehlen wir BJJ Basic am Montag um 17:45: No-Gi und für alle ohne Vorkenntnisse gebaut. Das Level bei den Kursen ist aber eine Empfehlung, keine Sperre: Wenn dein Trainer sagt, du bist so weit, kannst du auch in Kurse für Fortgeschrittene gehen. Gi Training am Freitag, Sparring am Donnerstag und die Open Mat am Samstag sind ohnehin für jedes Level offen. Und Montag bis Freitag ist ab 17:00 freies Training.",
   },
   {
     question: "Gibt es einen langen Vertrag?",
     answer:
-      "Musst du nicht. Die Mitgliedschaft läuft monatlich und ist jederzeit kündbar. Wer sich auf drei Monate oder ein Jahr festlegt, zahlt weniger: 75 statt 90 im Monat, im Jahr 60. Und das erste Training ist gratis, daraus folgt nichts.",
+      "Musst du nicht. Mit Alle Kurse Flex zahlst du monatlich 90 € und bist an nichts gebunden. Wer sich auf drei Monate oder ein Jahr festlegt, zahlt weniger: 80 € bzw. 70 € im Monat. Schüler und Studenten zahlen jeweils 15 € weniger. Und das Probetraining ist gratis, daraus folgt nichts.",
   },
   {
     question: "Wie oft sollte ich trainieren?",
