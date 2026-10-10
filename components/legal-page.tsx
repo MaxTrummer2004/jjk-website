@@ -18,7 +18,7 @@
  * app/globals.css, damit hier nichts Zweites entsteht, was Typografie setzt.
  */
 
-import Link from "next/link";
+import { TransitionLink } from "@/components/transition-link";
 import type { ReactNode } from "react";
 
 export interface LegalPageProps {
@@ -39,12 +39,12 @@ const OTHER: Record<string, { href: string; label: string }> = {
 
 function BackLink(): ReactNode {
   return (
-    <Link
+    <TransitionLink
       href="/"
       className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card-plate px-5 text-sm font-medium text-foreground-dim transition-colors hover:border-border-hot hover:bg-card-plate-hot hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
     >
       <span aria-hidden="true">←</span> Startseite
-    </Link>
+    </TransitionLink>
   );
 }
 
@@ -71,12 +71,12 @@ export function LegalPage({ title, eyebrow, lead, children }: LegalPageProps): R
         <footer className="mt-20 flex flex-col gap-5 border-t border-border pt-10 sm:flex-row sm:items-center sm:justify-between">
           <BackLink />
           {other ? (
-            <Link
+            <TransitionLink
               href={other.href}
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             >
               {other.label} →
-            </Link>
+            </TransitionLink>
           ) : null}
         </footer>
       </div>

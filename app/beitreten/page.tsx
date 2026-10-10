@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { TransitionLink } from "@/components/transition-link";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { createMetadata } from "@/lib/metadata";
@@ -21,12 +21,12 @@ export default function JoinPage(): ReactNode {
   return (
     <main id="main-content" className="min-h-screen bg-background-deep">
       <div className="mx-auto w-full max-w-[44rem] px-5 py-16 sm:px-8 sm:py-24">
-        <Link
+        <TransitionLink
           href="/"
           className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card-plate px-5 text-sm font-medium text-foreground-dim transition-colors hover:border-border-hot hover:bg-card-plate-hot hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
         >
           <span aria-hidden="true">←</span> Startseite
-        </Link>
+        </TransitionLink>
 
         <header className="mt-12">
           <p className="font-mono text-[0.68rem] font-medium uppercase tracking-[0.24em] text-accent">

@@ -1,30 +1,23 @@
 "use client";
 
 import { useIsDesktop } from "@/lib/use-is-desktop";
-import { navigateWithTransition, triggerPageTransition } from "@/lib/page-transition";
-import { useRouter } from "next/navigation";
-import { flushSync } from "react-dom";
+import { useSectionTransition } from "@/lib/section-transition";
 import type { ReactNode } from "react";
 
 export function NavLogo(): ReactNode {
   const isDesktop = useIsDesktop();
-  const router = useRouter();
+  const { navigate } = useSectionTransition();
 
   const href = isDesktop ? "#top" : "/mitglieder";
   const label = isDesktop
     ? "JJK: Jiu-Jitsu Kaisen Academy"
     : "Für Mitglieder";
 
-  const handleClick = isDesktop
-    ? undefined
-    : (e: React.MouseEvent) => {
-        e.preventDefault();
-        navigateWithTransition(
-          (href) => router.push(href),
-          "/mitglieder",
-          () => flushSync(() => { triggerPageTransition(); }),
-        );
-      };
+  // Beide Faelle laufen jetzt ueber denselben Uebergang wie jeder andere Link.
+  const handleClick = (e: React.MouseEvent): void => {
+    e.preventDefault();
+    navigate(href);
+  };
 
   return (
     <a

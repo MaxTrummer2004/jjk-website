@@ -6,6 +6,7 @@ let introAlreadyPlayed = false;
 
 import { MagneticLink } from "@/components/magnetic-link";
 import { openTrialDialog } from "@/components/trial/trial-dialog";
+import { TransitionLink } from "@/components/transition-link";
 import { softEase, useReducedMotion } from "@/lib/motion";
 import { setOpeningDone } from "@/lib/opening";
 import Watercolor from "@/components/watercolor";
@@ -530,12 +531,12 @@ export function JJKHero(): ReactNode {
             >
               Probetraining ausmachen
             </MagneticLink>
-            <a
+            <TransitionLink
               href="#schedule"
               className="bg-background text-foreground border-border hover:bg-muted inline-flex h-13 items-center rounded-full border px-8 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             >
               Stundenplan
-            </a>
+            </TransitionLink>
           </motion.div>
         </div>
 

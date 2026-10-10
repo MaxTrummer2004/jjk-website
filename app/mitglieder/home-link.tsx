@@ -14,13 +14,13 @@
  * welche der beiden eigenen Seiten der Besucher sehen will.
  */
 
-import Link from "next/link";
+import { TransitionLink } from "@/components/transition-link";
 import type { ReactNode } from "react";
 import { HOME_OVERRIDE_COOKIE } from "@/lib/session-cookies";
 
 export function HomeLink({ className }: { className?: string }): ReactNode {
   return (
-    <Link
+    <TransitionLink
       href="/"
       onClick={() => {
         try {
@@ -35,7 +35,7 @@ export function HomeLink({ className }: { className?: string }): ReactNode {
       }
     >
       <span aria-hidden>←</span> Startseite
-    </Link>
+    </TransitionLink>
   );
 }
 

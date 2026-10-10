@@ -17,8 +17,8 @@
 
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
-import Link from "next/link";
 import { siteConfig } from "@/lib/config";
+import { TransitionLink } from "@/components/transition-link";
 
 const COLUMNS = [
   {
@@ -136,14 +136,14 @@ export default function Footer4() {
                               deshalb als <Link>, sonst laedt die Seite beim
                               Klick auf "Impressum" komplett neu. */}
                           {column.links.map((link) =>
-                            link.href.startsWith("/") ? (
+                            link.href.startsWith("/") || (link.href.startsWith("#") && link.href.length > 1) ? (
                               <li key={link.text}>
-                                <Link
+                                <TransitionLink
                                   href={link.href}
                                   className="text-base text-foreground-dim transition-colors hover:text-accent"
                                 >
                                   {link.text}
-                                </Link>
+                                </TransitionLink>
                               </li>
                             ) : (
                               <li key={link.text}>
@@ -182,13 +182,13 @@ export default function Footer4() {
                     "AGB" ist ersatzlos weg: der Verein hat keine, und ein
                     Link auf ein Dokument, das es nicht gibt, ist schlechter
                     als kein Link. */}
-                <Link href="/impressum" className="transition-colors hover:text-foreground">
+                <TransitionLink href="/impressum" className="transition-colors hover:text-foreground">
                   Impressum
-                </Link>
+                </TransitionLink>
                 <span className="hidden sm:inline">·</span>
-                <Link href="/datenschutz" className="transition-colors hover:text-foreground">
+                <TransitionLink href="/datenschutz" className="transition-colors hover:text-foreground">
                   Datenschutz
-                </Link>
+                </TransitionLink>
                 {/* Not optional. The hero backdrop is rendered from
                     OpenStreetMap road, rail and building data
                     (scripts/gen-graz-map.py), and ODbL requires the credit on

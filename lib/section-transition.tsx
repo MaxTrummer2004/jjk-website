@@ -2,6 +2,9 @@
 
 import Preloader from "@/components/preloader";
 import { lenisRef } from "@/lib/lenis";
+import { navigateWithTransition, triggerPageTransition } from "@/lib/page-transition";
+import { usePathname, useRouter } from "next/navigation";
+import { flushSync } from "react-dom";
 import {
   createContext,
   useCallback,
@@ -25,12 +28,60 @@ function hardScrollTo(top: number): void {
 /** Fixed header height in px (h-20). Subtracted from anchor target's y. */
 const HEADER_OFFSET = 80;
 
-const Ctx = createContext<{ goToSection: (hash: string) => void } | null>(null);
+/**
+ * EIN Uebergang fuer alles (Wunsch des Vorstands, 10.10.2026): derselbe wie
+ * bei "Für Mitglieder" — erst blendet die Seite in 0,3 s ins Dunkle, dann
+ * laufen die Treppen, und sie bleiben mindestens 0,7 s stehen. Vorher gingen
+ * Abschnittssprünge direkt in die Treppen und waren nach ein paar Frames
+ * wieder weg; das sah wie ein anderer, hastigerer Effekt aus.
+ */
+const COVER_FADE_MS = 320;
+const MIN_DISPLAY_MS = 700;
+
+function fadeCover(then: () => void): void {
+  const cover = document.createElement("div");
+  cover.setAttribute("aria-hidden", "true");
+  cover.style.cssText =
+    "position:fixed;inset:0;z-index:9999;background:#030304;opacity:0;pointer-events:none;transition:opacity 0.3s ease-in;";
+  document.body.appendChild(cover);
+  requestAnimationFrame(() => { cover.style.opacity = "1"; });
+  setTimeout(() => {
+    then();
+    // Die Treppen sind dieselbe Farbe; das Cover darf weg, sobald sie
+    // gemalt sind (zwei Frames).
+    requestAnimationFrame(() => requestAnimationFrame(() => cover.remove()));
+  }, COVER_FADE_MS);
+}
+
+interface TransitionApi {
+  /** Sprung zu einem Abschnitt auf derselben Seite ("#pricing"). */
+  goToSection: (hash: string) => void;
+  /**
+   * Fuer jeden internen Link: "#abschnitt", "/seite" oder "/seite#abschnitt".
+   * Gleiche Seite → Abschnittssprung, andere Seite → Seitenwechsel, beides
+   * mit demselben Uebergang.
+   */
+  navigate: (href: string) => void;
+}
+
+const Ctx = createContext<TransitionApi | null>(null);
 
 export function SectionTransitionProvider({ children }: { children: ReactNode }) {
   const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const busyRef = useRef(false);
+  const coveredAtRef = useRef(0);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Treppen frühestens nach MIN_DISPLAY_MS wieder öffnen.
+  const uncover = useCallback(() => {
+    const wait = Math.max(0, MIN_DISPLAY_MS - (Date.now() - coveredAtRef.current));
+    window.setTimeout(() => {
+      setLoading(false);
+      busyRef.current = false;
+    }, wait);
+  }, []);
 
   // Holds the scroll+stabilize thunk that runs once the stairs are painted.
   const pendingScrollRef = useRef<(() => void) | null>(null);
@@ -80,15 +131,13 @@ export function SectionTransitionProvider({ children }: { children: ReactNode })
     pendingScrollRef.current = () => {
       if (isTop) {
         hardScrollTo(0);
-        setLoading(false);
-        busyRef.current = false;
+        uncover();
         return;
       }
 
       const el = document.getElementById(id);
       if (!el) {
-        setLoading(false);
-        busyRef.current = false;
+        uncover();
         return;
       }
 
@@ -112,20 +161,45 @@ export function SectionTransitionProvider({ children }: { children: ReactNode })
           hardScrollTo(Math.max(0, correction));
           requestAnimationFrame(stabilize);
         } else {
-          setLoading(false);
-          busyRef.current = false;
+          uncover();
         }
       };
       requestAnimationFrame(stabilize);
     };
 
-    // Activate preloader — onCovered fires via onLoadingStart once loading starts.
-    setActive(true);
-    setLoading(true);
-  }, []);
+    // Erst ins Dunkle blenden, dann die Treppen. onCovered feuert ueber
+    // onLoadingStart, sobald sie laufen.
+    fadeCover(() => {
+      coveredAtRef.current = Date.now();
+      setActive(true);
+      setLoading(true);
+    });
+  }, [uncover]);
+
+  const navigate = useCallback(
+    (href: string) => {
+      const hashAt = href.indexOf("#");
+      const path = hashAt === -1 ? href : href.slice(0, hashAt);
+      const hash = hashAt === -1 ? "" : href.slice(hashAt);
+      if (path === "" || path === pathname) {
+        goToSection(hash || "#top");
+        return;
+      }
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        router.push(href);
+        return;
+      }
+      navigateWithTransition(
+        (h) => router.push(h),
+        href,
+        () => flushSync(() => { triggerPageTransition(); }),
+      );
+    },
+    [goToSection, pathname, router],
+  );
 
   return (
-    <Ctx.Provider value={{ goToSection }}>
+    <Ctx.Provider value={{ goToSection, navigate }}>
       {children}
       {active && (
         <Preloader
@@ -146,7 +220,7 @@ export function SectionTransitionProvider({ children }: { children: ReactNode })
   );
 }
 
-export function useSectionTransition(): { goToSection: (hash: string) => void } {
+export function useSectionTransition(): TransitionApi {
   const ctx = useContext(Ctx);
   if (!ctx)
     throw new Error(

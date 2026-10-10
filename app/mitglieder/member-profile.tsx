@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Link from "next/link";
+import { TransitionLink } from "@/components/transition-link";
 import {
   AnimatePresence,
   motion,
@@ -113,12 +113,12 @@ export function MemberProfile({
 
       {boardLink ? (
         <div className="mx-auto mb-8 flex w-full max-w-lg justify-center">
-          <Link
+          <TransitionLink
             href="/vorstand"
             className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card-plate px-5 text-sm font-medium text-foreground transition-colors hover:border-border-hot"
           >
             Vorstandsbereich →
-          </Link>
+          </TransitionLink>
         </div>
       ) : null}
 

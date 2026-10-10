@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, type ReactNode } from "react";
-import Link from "next/link";
+import { TransitionLink } from "@/components/transition-link";
 import { joinAction, type JoinState } from "./actions";
 import {
   ENROLLMENT_FEE_CENTS,
@@ -206,13 +206,13 @@ export function JoinForm(): ReactNode {
           <span>
             Ich beantrage den Beitritt zur Jiu Jitsu Kaisen Academy als außerordentliches Mitglied und
             bestätige, dass ich die{" "}
-            <Link href="/bedingungen" className="underline underline-offset-2 hover:text-accent">
+            <TransitionLink href="/bedingungen" className="underline underline-offset-2 hover:text-accent">
               Bedingungen der Mitgliedschaft
-            </Link>
+            </TransitionLink>
             , den Haftungsausschluss und die{" "}
-            <Link href="/datenschutz" className="underline underline-offset-2 hover:text-accent">
+            <TransitionLink href="/datenschutz" className="underline underline-offset-2 hover:text-accent">
               Datenschutzerklärung
-            </Link>{" "}
+            </TransitionLink>{" "}
             gelesen habe und damit einverstanden bin.
           </span>
         </label>
@@ -230,9 +230,9 @@ export function JoinForm(): ReactNode {
         </button>
         <p className="text-sm text-foreground-dim">
           Schon Mitglied?{" "}
-          <Link href="/mitglieder" className="font-medium text-foreground hover:text-accent">
+          <TransitionLink href="/mitglieder" className="font-medium text-foreground hover:text-accent">
             Einloggen
-          </Link>
+          </TransitionLink>
         </p>
       </div>
     </form>

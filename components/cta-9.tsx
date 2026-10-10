@@ -2,6 +2,7 @@
 
 import { motion, useScroll, useTransform } from "motion/react";
 import { openTrialDialog } from "@/components/trial/trial-dialog";
+import { TransitionLink } from "@/components/transition-link";
 import { useRef } from "react";
 import { KanjiLabel } from "@/components/kanji-label";
 import { useReducedMotion } from "@/lib/motion";
@@ -55,9 +56,9 @@ export default function Cta9() {
               nichts abschickt. Ein Probetraining braucht keine Buchung, man
               kommt einfach. Der Knopf fuehrt jetzt zum Beitritt; sobald online
               bezahlt werden kann, geht es von dort direkt weiter zur Zahlung. */}
-          <a id="cursor-cta" href="/beitreten" className="jjk-btn">
+          <TransitionLink href="/beitreten" className="jjk-btn">
             Mitglied werden
-          </a>
+          </TransitionLink>
           <button type="button" onClick={openTrialDialog} className="jjk-btn jjk-btn-quiet">
             Probetraining ausmachen
           </button>

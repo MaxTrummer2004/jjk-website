@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { TransitionLink } from "@/components/transition-link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -193,12 +193,12 @@ export default async function BoardPage(): Promise<ReactNode> {
   return (
     <main id="main-content" className="min-h-screen bg-background-deep">
       <div className="mx-auto w-full max-w-[60rem] px-5 py-16 sm:px-8 sm:py-20">
-        <Link
+        <TransitionLink
           href="/mitglieder"
           className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card-plate px-5 text-sm font-medium text-foreground-dim hover:text-foreground"
         >
           <span aria-hidden="true">←</span> Mitgliederbereich
-        </Link>
+        </TransitionLink>
 
         <h1 className="jjk-section-title mt-10">Vorstand</h1>
 

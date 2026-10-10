@@ -10,11 +10,7 @@ import { nav, siteConfig } from "@/lib/config";
 import { useSectionTransition } from "@/lib/section-transition";
 import { useIsDesktop } from "@/lib/use-is-desktop";
 import { AnimatePresence, motion, type Variants } from "motion/react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { flushSync } from "react-dom";
-import { navigateWithTransition, triggerPageTransition } from "@/lib/page-transition";
 
 // ---- JJK link sets -------------------------------------------------------
 
@@ -112,11 +108,12 @@ export function SiteNav(): ReactNode {
   const loggedIn = useLoggedIn();
   // Eine Quelle fuer beide Knoepfe, oben und im Menue: zwei Stellen, die
   // dasselbe entscheiden, laufen frueher oder spaeter auseinander.
+  // Rot (laut) = der Weg in den Mitgliederbereich; rechts = Mitglied werden.
+  // So getauscht am 11.10.2026 auf Wunsch des Vorstands.
   const action = loggedIn
     ? { label: "Mein Bereich", href: "/mitglieder" }
-    : nav.signup;
-  const router = useRouter();
-  const { goToSection } = useSectionTransition();
+    : { label: "Für Mitglieder", href: "/mitglieder" };
+  const { navigate } = useSectionTransition();
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const closedWidth = isDesktop ? CLOSED_WIDTH_DESKTOP : CLOSED_WIDTH_MOBILE;
@@ -164,7 +161,7 @@ export function SiteNav(): ReactNode {
               <a
                 key={link.href}
                 href={link.href}
-                onClick={(e) => { e.preventDefault(); goToSection(link.href); }}
+                onClick={(e) => { e.preventDefault(); navigate(link.href); }}
                 className="text-muted-foreground hover:text-foreground hover:bg-card-plate-hot flex h-10 items-center rounded-full px-5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
               >
                 {link.label}
@@ -185,10 +182,8 @@ export function SiteNav(): ReactNode {
             <a
               href={action.href}
               onClick={(e) => {
-                if (action.href.startsWith("#")) {
-                  e.preventDefault();
-                  goToSection(action.href);
-                }
+                e.preventDefault();
+                navigate(action.href);
               }}
               className="jjk-btn jjk-btn-loud h-13 rounded-full px-6 text-sm"
             >
@@ -270,11 +265,9 @@ export function SiteNav(): ReactNode {
                           <a
                             href={action.href}
                             onClick={(e) => {
+                              e.preventDefault();
                               closeMenu();
-                              if (action.href.startsWith("#")) {
-                                e.preventDefault();
-                                goToSection(action.href);
-                              }
+                              navigate(action.href);
                             }}
                             className="jjk-btn jjk-btn-loud w-full rounded-full px-6 py-3.5 text-sm"
                           >
@@ -294,7 +287,7 @@ export function SiteNav(): ReactNode {
                             <motion.a
                               key={link.href}
                               href={link.href}
-                              onClick={(e) => { e.preventDefault(); closeMenu(); goToSection(link.href); }}
+                              onClick={(e) => { e.preventDefault(); closeMenu(); navigate(link.href); }}
                               custom={1 + i}
                               variants={ITEM_VARIANTS}
                               className="text-foreground hover:text-foreground/55 w-fit text-[26px] leading-tight font-medium tracking-tight transition-colors focus-visible:outline-none"
@@ -325,13 +318,13 @@ export function SiteNav(): ReactNode {
                               variants={ITEM_VARIANTS}
                               className="w-fit"
                             >
-                              <Link
+                              <a
                                 href={link.href}
-                                onClick={closeMenu}
+                                onClick={(e) => { e.preventDefault(); closeMenu(); navigate(link.href); }}
                                 className="text-foreground/80 hover:text-foreground text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
                               >
                                 {link.label}
-                              </Link>
+                              </a>
                             </motion.div>
                           ))}
                         </div>
@@ -370,24 +363,15 @@ export function SiteNav(): ReactNode {
           </motion.div>
         </div>
 
-        {/* Right: Für Mitglieder */}
+        {/* Right: Mitglied werden (bis 11.10.2026 stand hier "Für Mitglieder";
+            der Weg in den Mitgliederbereich ist jetzt der rote Knopf links). */}
         <div className="flex items-center gap-2">
-          <Link
-            href="/mitglieder"
+          <a
+            href={nav.signup.href}
             onClick={(e) => {
               e.preventDefault();
               closeMenu();
-              // Toolbar auf aktueller Seite reappear lassen, BEVOR wir navigieren.
-              // Toolbar verschwindet beim Scrollen nach unten; beim Klick käme sie
-              // sonst auf der Auth-Seite zurück und pushed den Viewport. Wir scrollen
-              // hier auf 0 — unter dem Cover-Div, also unsichtbar — damit die Toolbar
-              // schon oben ist wenn die Auth-Seite erscheint.
-              window.scrollTo(0, 0);
-              navigateWithTransition(
-                (href) => router.push(href, { scroll: false }),
-                "/mitglieder",
-                () => flushSync(() => { triggerPageTransition(); }),
-              );
+              navigate(nav.signup.href);
             }}
             // Traegt dieselbe Platte wie die Karten (--card-plate) statt der
             // vollen --accent-Flaeche, damit der Kopf zum Rest der Seite passt.
@@ -401,8 +385,8 @@ export function SiteNav(): ReactNode {
             // damit wirkungslos.
             className="hidden h-13 items-center rounded-full border border-border bg-card-plate px-6 text-sm font-medium text-foreground transition-colors hover:border-border-hot hover:bg-card-plate-hot md:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
           >
-            Für Mitglieder
-          </Link>
+            {nav.signup.label}
+          </a>
         </div>
       </div>
 

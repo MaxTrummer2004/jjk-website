@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, type ReactNode } from "react";
-import Link from "next/link";
+import { TransitionLink } from "@/components/transition-link";
 import { motion } from "motion/react";
 import { loginAction, type ActionResult } from "./actions";
 
@@ -32,9 +32,9 @@ export function AuthForm(): ReactNode {
       <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Einloggen</h1>
       <p className="text-sm text-foreground-dim mb-5 sm:mb-8">
         Noch kein Mitglied?{" "}
-        <Link href="/beitreten" className="text-foreground hover:text-accent font-medium">
+        <TransitionLink href="/beitreten" className="text-foreground hover:text-accent font-medium">
           Beitrittserklärung ausfüllen
-        </Link>
+        </TransitionLink>
       </p>
 
       <form action={formAction} className="mb-5 sm:mb-6 flex flex-col gap-3 sm:gap-4">
