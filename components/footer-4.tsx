@@ -16,11 +16,17 @@
  */
 
 import { motion } from "motion/react";
-import { ArrowRight } from "lucide-react";
 import { siteConfig } from "@/lib/config";
 import { TransitionLink } from "@/components/transition-link";
 
-const COLUMNS = [
+/* Bis 11.10.2026 standen hier auch "Über uns" (#about — die Sektion gibt es
+   nicht mehr) und "Kontakt" (#contact — das ist dieser Footer selbst, der
+   Klick fuehrte also nirgendwohin), und Adresse und Oeffnungszeiten waren
+   Links auf "#". Jetzt: die Adresse oeffnet Google Maps, die Zeiten sind
+   reiner Text. Eintraege ohne href werden als Text gesetzt. */
+type FooterLink = { text: string; href?: string };
+
+const COLUMNS: { title: string; links: FooterLink[] }[] = [
   {
     title: "Training",
     links: [
@@ -33,10 +39,8 @@ const COLUMNS = [
   {
     title: "Academy",
     links: [
-      { text: "Über uns", href: "#about" },
       { text: "Probetraining", href: "/probetraining" },
       { text: "FAQ", href: "#faq" },
-      { text: "Kontakt", href: "#contact" },
       { text: "Mitglied werden", href: "/beitreten" },
       { text: "Mitgliederbereich", href: "/mitglieder" },
       { text: "Impressum", href: "/impressum" },
@@ -47,10 +51,10 @@ const COLUMNS = [
   {
     title: "Besuchen",
     links: [
-      { text: "Triester Straße 391", href: "#" },
-      { text: "8055 Graz", href: "#" },
-      { text: "Mo bis Fr, 17:00 bis 20:30 Uhr", href: "#" },
-      { text: "Sa, 11:00 bis 12:30 Uhr", href: "#" },
+      { text: siteConfig.address.street, href: siteConfig.address.maps },
+      { text: siteConfig.address.city, href: siteConfig.address.maps },
+      { text: "Mo bis Fr, 17:00 bis 20:30 Uhr" },
+      { text: "Sa, 11:00 bis 12:30 Uhr" },
     ],
   },
   {
@@ -100,35 +104,12 @@ export default function Footer4() {
             <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
               <motion.div
                 variants={item}
-                className="grid grid-cols-1 gap-0 lg:grid-cols-[1fr_1.5fr]"
+                className="grid grid-cols-1 gap-0"
               >
-                <div className="border-b border-border py-10 lg:border-b-0 lg:border-r lg:pr-10">
-                  <h3 className="font-mono text-[0.72rem] font-medium uppercase tracking-[0.24em] text-accent">
-                    Stundenplan &amp; Seminar-Einladungen
-                  </h3>
-
-                  <div className="mt-6 flex">
-                    <input
-                      type="email"
-                      placeholder="du@beispiel.at"
-                      aria-label="E-Mail-Adresse"
-                      className="jjk-field"
-                    />
-                    <button
-                      type="button"
-                      className="jjk-btn px-5"
-                      aria-label="Anmelden"
-                    >
-                      <ArrowRight className="h-5 w-5" aria-hidden="true" />
-                    </button>
-                  </div>
-
-                  <p className="mt-5 max-w-sm text-sm text-muted-foreground">
-                    Höchstens eine Mail im Monat. Abmelden geht aus jeder.
-                  </p>
-                </div>
-
-                <div className="py-10 lg:pl-10">
+                {/* Hier stand ein Feld "Stundenplan & Seminar-Einladungen" mit
+                    E-Mail-Eingabe — ohne Funktion, es wurde nie etwas
+                    abgeschickt. Raus am 11.10.2026. */}
+                <div className="py-10">
                   <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
                     {COLUMNS.map((column) => (
                       <div key={column.title}>
@@ -142,7 +123,11 @@ export default function Footer4() {
                               deshalb als <Link>, sonst laedt die Seite beim
                               Klick auf "Impressum" komplett neu. */}
                           {column.links.map((link) =>
-                            link.href.startsWith("/") || (link.href.startsWith("#") && link.href.length > 1) ? (
+                            !link.href ? (
+                              <li key={link.text} className="text-base text-foreground-dim">
+                                {link.text}
+                              </li>
+                            ) : link.href.startsWith("/") || (link.href.startsWith("#") && link.href.length > 1) ? (
                               <li key={link.text}>
                                 <TransitionLink
                                   href={link.href}

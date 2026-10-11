@@ -561,12 +561,6 @@ export default function DatenschutzPage(): ReactNode {
           DSGVO (Anbahnung der Teilnahme am Training). Die Anfrage wird
           gelöscht, sobald sie erledigt ist, spätestens nach drei Monaten.
         </p>
-        <p>
-          Das Eingabefeld für die E-Mail-Adresse im Fußbereich der Startseite
-          ist derzeit ohne Funktion: es wird nichts übermittelt und nichts
-          gespeichert. Sollte daraus ein echter Newsletter werden, wird diese
-          Erklärung vorher entsprechend ergänzt.
-        </p>
       </section>
 
       <section>
