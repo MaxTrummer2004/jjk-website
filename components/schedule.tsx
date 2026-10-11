@@ -864,8 +864,9 @@ function Intro({ headingClass }: { headingClass: string }): ReactNode {
         ))}
       </div>
 
-      {/* Wie oft es jede Einheit pro Woche gibt. */}
-      <div className="mt-6">
+      {/* Wie oft es jede Stufe pro Woche gibt. Nur ab md: am Handy nahm die
+          Liste zu viel Platz vor dem eigentlichen Plan (Vorstand, 11.10.2026). */}
+      <div className="mt-6 hidden md:block">
         <p className="font-mono text-[0.68rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
           Pro Woche
         </p>
@@ -888,8 +889,10 @@ function Intro({ headingClass }: { headingClass: string }): ReactNode {
 }
 
 export function Schedule() {
+  // Am Handy unten weniger Luft: zusammen mit dem Abstand oben bei den
+  // Trainern waren es 14 rem leerer Raum (Vorstand, 11.10.2026).
   return (
-    <section id="schedule" className="w-full px-4 py-28 sm:px-6 sm:py-36 lg:px-8">
+    <section id="schedule" className="w-full px-4 pt-28 pb-6 sm:px-6 sm:py-36 lg:px-8">
       <div className="mx-auto w-full max-w-[1400px]">
 
         {/* Mobile: stacked layout */}
