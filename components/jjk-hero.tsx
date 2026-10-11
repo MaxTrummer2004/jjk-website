@@ -5,7 +5,7 @@
 let introAlreadyPlayed = false;
 
 import { MagneticLink } from "@/components/magnetic-link";
-import { openTrialDialog } from "@/components/trial/trial-dialog";
+import { useSectionTransition } from "@/lib/section-transition";
 import { TransitionLink } from "@/components/transition-link";
 import { softEase, useReducedMotion } from "@/lib/motion";
 import { setOpeningDone } from "@/lib/opening";
@@ -130,6 +130,7 @@ function introShouldPlay(): boolean {
  */
 export function JJKHero(): ReactNode {
   const prefersReducedMotion = useReducedMotion();
+  const { navigate } = useSectionTransition();
   const [phase, setPhase] = useState<Phase>(introAlreadyPlayed ? "done" : "counting");
   const [progress, setProgress] = useState(introAlreadyPlayed ? 100 : 0);
   const [revealed, setRevealed] = useState(introAlreadyPlayed);
@@ -518,14 +519,14 @@ export function JJKHero(): ReactNode {
             Jiu-Jitsu Kaisen Academy
           </motion.h1>
           <motion.div {...fadeUp(0.28)} className="mt-9 flex items-center gap-3">
-            {/* Oeffnet das Anfrage-Fenster (components/trial). href bleibt
-                #pricing, damit der Link ohne JavaScript noch irgendwo hinfuehrt. */}
+            {/* Fuehrt auf /probetraining, mit dem Seitenuebergang. */}
             <MagneticLink
-              href="#pricing"
+              href="/probetraining"
               reduce={prefersReducedMotion}
               onClick={(e) => {
+                if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                 e.preventDefault();
-                openTrialDialog();
+                navigate("/probetraining");
               }}
               className="bg-foreground text-background inline-flex h-13 items-center rounded-full px-8 text-sm font-medium transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             >

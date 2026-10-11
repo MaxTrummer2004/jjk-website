@@ -34,7 +34,7 @@ const COLUMNS = [
     title: "Academy",
     links: [
       { text: "Über uns", href: "#about" },
-      { text: "Probetraining", href: "#pricing" },
+      { text: "Probetraining", href: "/probetraining" },
       { text: "FAQ", href: "#faq" },
       { text: "Kontakt", href: "#contact" },
       { text: "Mitglied werden", href: "/beitreten" },

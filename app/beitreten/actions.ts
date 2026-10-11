@@ -5,6 +5,7 @@ import { ensureSchema, sql } from "@/lib/db";
 import { createSession, hashPassword } from "@/lib/auth";
 import { PLAN_INFO, isAdult, isPlan } from "@/lib/membership";
 import { boardEmails, sendMail } from "@/lib/mail";
+import { isBoardEmail } from "@/lib/members";
 
 /**
  * Die Beitrittserklaerung, online.
@@ -99,6 +100,11 @@ export async function joinAction(prev: JoinState, formData: FormData): Promise<J
   }
 
   const passwordHash = await hashPassword(password);
+  // Vorstandsmitglieder (BOARD_EMAILS bei Scalingo) sind sofort aufgenommen.
+  // Sonst braeuchte das allererste Vorstandsmitglied jemanden, der es
+  // aufnimmt — und den gaebe es nicht. Wer in BOARD_EMAILS steht, hat das
+  // ohnehin der Zugang zum Hosting entschieden, nicht dieses Formular.
+  const initialStatus = isBoardEmail(v.email ?? "") && !minor ? "active" : "pending";
   const name = `${v.first_name} ${v.last_name}`;
   const g = (key: string): string | null => (minor && v[key] ? (v[key] as string) : null);
 
@@ -117,7 +123,7 @@ export async function joinAction(prev: JoinState, formData: FormData): Promise<J
       ${g("guardian_email")},
       ${v.plan}, ${v.reduced === "on"}, ${v.consent_photos === "on"},
       ${v.consent_whatsapp === "on"},
-      now(), 'pending', now()
+      now(), ${initialStatus}, now()
     )
     returning id
   `;

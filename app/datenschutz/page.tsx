@@ -553,7 +553,7 @@ export default function DatenschutzPage(): ReactNode {
           entgegenstehen.
         </p>
         <p>
-          Über den Knopf &bdquo;Probetraining&ldquo; auf der Startseite können
+          Über die Seite &bdquo;Probetraining&ldquo; können
           Sie uns eine Anfrage schicken. Gespeichert werden der Name, die
           angegebene Kontaktmöglichkeit (E-Mail, Telefon oder Instagram-Name),
           der Wunschtag, Ihre Nachricht und der Zeitpunkt. Sehen kann die
