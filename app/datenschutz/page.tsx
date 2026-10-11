@@ -113,7 +113,7 @@ export default function DatenschutzPage(): ReactNode {
             <strong>Der öffentliche Teil</strong> (Startseite, Impressum,
             Datenschutz) verarbeitet keine personenbezogenen Daten über die
             technisch unvermeidbaren Server-Protokolldaten hinaus &mdash;
-            außer Sie schicken uns über &bdquo;Probetraining ausmachen&ldquo;
+            außer Sie schicken uns über über &bdquo;Probetraining ausmachen&ldquo;bdquo;Probetrainingüber &bdquo;Probetraining ausmachen&ldquo;ldquo;
             von sich aus eine Anfrage. Es gibt keine
             Analyse-Werkzeuge, kein Tracking, keine Werbenetzwerke, keine
             Social-Media-Einbettungen und keine Inhalte von fremden Servern.
@@ -459,6 +459,19 @@ export default function DatenschutzPage(): ReactNode {
         </dl>
 
         {/* ----------------------------------------------------------------
+            BREVO — nur aktiv, wenn BREVO_API_KEY gesetzt ist (lib/mail.ts).
+            Anschrift vor dem Live-Schalten aus brevo.com/legal pruefen.
+            ---------------------------------------------------------------- */}
+        <h3>E-Mail-Versand</h3>
+        <p>
+          Bestätigungen nach einem Beitrittsantrag oder einer
+          Probetraining-Anfrage und die Benachrichtigung an den Vorstand werden
+          über Brevo (Sendinblue SAS, Paris, Frankreich) verschickt, als
+          Auftragsverarbeiter nach Art. 28 DSGVO. Übermittelt werden dafür
+          nur Empfängeradresse, Name und der Inhalt der Nachricht.
+        </p>
+
+        {/* ----------------------------------------------------------------
             MOLLIE
             Rolle laut mollie.com/legal/privacy: "For all activities and
             purposes mentioned in this Privacy Statement, Mollie acts as the
@@ -540,7 +553,7 @@ export default function DatenschutzPage(): ReactNode {
           entgegenstehen.
         </p>
         <p>
-          Über &bdquo;Probetraining ausmachen&ldquo; auf der Startseite können
+          Über den Knopf &bdquo;Probetraining&ldquo; auf der Startseite können
           Sie uns eine Anfrage schicken. Gespeichert werden der Name, die
           angegebene Kontaktmöglichkeit (E-Mail, Telefon oder Instagram-Name),
           der Wunschtag, Ihre Nachricht und der Zeitpunkt. Sehen kann die

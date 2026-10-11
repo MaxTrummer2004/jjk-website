@@ -906,7 +906,7 @@ p,
   padding: 0;
   border: 0;
   background: none;
-  cursor: none;
+  cursor: pointer;
   translate: -50% -50%;
   scale: var(--snap, 1);
   transition: opacity 0.18s linear;
@@ -1689,7 +1689,7 @@ p,
   width: 100%;
   padding: 1.05rem 0.25rem;
   text-align: left;
-  cursor: none;
+  cursor: pointer;
   background: none;
   border: 0;
   transition: padding-left 0.42s cubic-bezier(0.22, 1, 0.36, 1);
@@ -2090,7 +2090,7 @@ p,
   --torch: calc(var(--lit, 0) * var(--unlit, 1));
   /* Covered site-wide by the rule at the top of this file; kept here so the
      section is still right if that ever moves. */
-  cursor: none;
+  cursor: auto;
 }
 
 .jjk-wall-section {
@@ -3333,7 +3333,7 @@ p,
   border-radius: 999px;
   background: none;
   color: rgba(211, 60, 26, 0.6);
-  cursor: none;
+  cursor: pointer;
   transition: color 0.3s, border-color 0.3s;
 }
 
@@ -4406,6 +4406,10 @@ p,
 }
 
 /* ---- Question and answer ------------------------------------------------ */
+/* Hier und an vier weiteren Stellen stand `cursor: none` — fuer einen
+   eigenen Ring-Cursor (components/custom-cursor.tsx), den es nicht mehr gibt.
+   Uebrig blieb ein Mauszeiger, der ueber den FAQ verschwand. Seit 11.10.2026
+   wieder der normale Zeiger. */
 .jjk-qa {
   border-bottom: 1px solid var(--border);
 }
@@ -4423,7 +4427,7 @@ p,
   text-align: left;
   background: none;
   border: 0;
-  cursor: none;
+  cursor: pointer;
   font-size: 1.12rem;
   font-weight: 500;
   line-height: 1.35;

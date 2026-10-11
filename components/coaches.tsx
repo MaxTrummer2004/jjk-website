@@ -351,9 +351,13 @@ export function Coaches(): ReactNode {
         </p>
       </div>
 
+      {/* Gleiche Breite wie Ueberschrift, Karte und Stundenplan: bis
+          11.10.2026 lief das Karussell bis an den Bildschirmrand und war das
+          einzige Element, das aus der Spalte fiel (Rueckmeldung Vorstand). */}
+      <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
       <div
         ref={stageRef}
-        className="relative mt-12 h-[300px] cursor-pointer sm:h-[520px]"
+        className="relative mt-12 h-[300px] cursor-pointer overflow-hidden rounded-2xl sm:h-[520px]"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerLeave={onPointerLeave}
@@ -429,6 +433,7 @@ export function Coaches(): ReactNode {
             </div>
           ))}
         </div>
+      </div>
       </div>
 
       {/* Dieselben Schaltflaechen wie vorher, nur nicht mehr sichtbar.

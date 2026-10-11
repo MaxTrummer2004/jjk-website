@@ -1,6 +1,7 @@
 "use server";
 
 import { ensureSchema, sql } from "@/lib/db";
+import { boardEmails, sendMail } from "@/lib/mail";
 
 /**
  * Probetraining-Anfrage. Speichert nur in die Datenbank; der Vorstand sieht
@@ -39,5 +40,22 @@ export async function requestTrialAction(_prev: TrialState, formData: FormData):
     insert into trial_requests (name, contact, preferred_day, message)
     values (${name}, ${contact}, ${day || null}, ${message || null})
   `;
+
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact);
+  await Promise.all([
+    isEmail
+      ? sendMail({
+          to: contact,
+          subject: "Deine Anfrage fürs Probetraining ist angekommen",
+          text: `Hallo ${name},\n\ndanke für deine Anfrage — sie ist bei uns angekommen, wir melden uns bei dir.\n\nJiu Jitsu Kaisen Akademie\nhttps://jjk.academy`,
+        })
+      : Promise.resolve(),
+    sendMail({
+      to: boardEmails(),
+      subject: `Probetraining-Anfrage: ${name}`,
+      text: `${name}\nKontakt: ${contact}\nWunschtag: ${day || "egal"}\n${message ? `\n${message}\n` : ""}\nAlle Anfragen: https://jjk.academy/vorstand`,
+      ...(isEmail ? { replyTo: contact } : {}),
+    }),
+  ]);
   return { ok: true };
 }

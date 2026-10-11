@@ -81,12 +81,18 @@ export default function Footer4() {
           className="pt-16"
         >
           <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
-            <motion.div variants={item} className="py-12">
+            <motion.div
+              variants={item}
+              className="flex flex-col gap-8 py-12 lg:flex-row lg:items-end lg:justify-between"
+            >
               <h2 className="jjk-section-title">
                 Komm zu uns trainieren.
                 <br />
                 Eine Mitgliedschaft, alles dabei.
               </h2>
+              <TransitionLink href="/beitreten" className="jjk-btn jjk-btn-loud w-fit shrink-0">
+                Mitglied werden
+              </TransitionLink>
             </motion.div>
           </div>
 

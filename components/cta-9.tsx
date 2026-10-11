@@ -2,7 +2,6 @@
 
 import { motion, useScroll, useTransform } from "motion/react";
 import { openTrialDialog } from "@/components/trial/trial-dialog";
-import { TransitionLink } from "@/components/transition-link";
 import { useRef } from "react";
 import { KanjiLabel } from "@/components/kanji-label";
 import { useReducedMotion } from "@/lib/motion";
@@ -38,9 +37,9 @@ export default function Cta9() {
         />
 
         <h2 className="jjk-section-title jjk-close-line">
-          Komm auf ein
+          Komm zu einem
           <br />
-          Training vorbei
+          Training
         </h2>
 
         <div className="jjk-rule mx-auto mt-8 w-40" aria-hidden="true" />
@@ -56,11 +55,10 @@ export default function Cta9() {
               nichts abschickt. Ein Probetraining braucht keine Buchung, man
               kommt einfach. Der Knopf fuehrt jetzt zum Beitritt; sobald online
               bezahlt werden kann, geht es von dort direkt weiter zur Zahlung. */}
-          <TransitionLink href="/beitreten" className="jjk-btn">
-            Mitglied werden
-          </TransitionLink>
-          <button type="button" onClick={openTrialDialog} className="jjk-btn jjk-btn-quiet">
-            Probetraining ausmachen
+          {/* "Mitglied werden" ist ganz nach unten gewandert, neben "Komm zu
+              uns trainieren" im Footer (Vorstand, 11.10.2026). */}
+          <button type="button" onClick={openTrialDialog} className="jjk-btn">
+            Probetraining
           </button>
         </div>
       </motion.div>

@@ -529,7 +529,7 @@ export function JJKHero(): ReactNode {
               }}
               className="bg-foreground text-background inline-flex h-13 items-center rounded-full px-8 text-sm font-medium transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             >
-              Probetraining ausmachen
+              Probetraining
             </MagneticLink>
             <TransitionLink
               href="#schedule"

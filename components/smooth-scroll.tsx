@@ -77,6 +77,11 @@ export function SmoothScroll({ children }: { children: ReactNode }): ReactNode {
     mq.addEventListener("change", onChange);
 
     function handleAnchorClick(e: MouseEvent) {
+      // Hat schon jemand anderes den Klick behandelt (Uebergangs-Link,
+      // Probetraining-Knopf), nicht noch zusaetzlich scrollen. Ohne diese
+      // Zeile scrollte "Probetraining" zu den Preisen, waehrend das Fenster
+      // aufging.
+      if (e.defaultPrevented) return;
       const target = e.target as HTMLElement;
       const anchor = target.closest('a[href^="#"]');
       if (!anchor) return;

@@ -87,7 +87,7 @@ export default function Pricing2(): ReactNode {
       <div className="mx-auto w-full max-w-[1400px]">
         <KanjiLabel kanji="入門" furigana="にゅうもん" gloss="Mitgliedschaft" />
         <StaggeredText
-          text="Was es kostet"
+          text="Kosten"
           as="h2"
           segmentBy="words"
           direction="bottom"
@@ -98,14 +98,20 @@ export default function Pricing2(): ReactNode {
         />
 
         <div className="mt-12 flex flex-col gap-10 sm:mt-16">
-          <PlanRows label="Erst einmal ansehen" plans={pricing.single} from={0} />
+          <PlanRows label="Teste die Akademie" plans={pricing.single} from={0} />
           <PlanRows label="Mitgliedschaft" plans={pricing.membership} from={2} />
         </div>
+
+        {/* Schueler/Studenten einmal fuer alle statt in jeder Zeile — am Handy
+            stand sonst zu viel in jeder Nebenzeile (Vorstand, 11.10.2026). */}
+        <p className="mt-8 max-w-2xl text-lg font-semibold text-accent-bright">
+          Schüler und Studenten: −15 € auf alle Tarife.
+        </p>
 
         {/* Hier stand "Keine Aufnahmegebuehr" — es gibt eine, 20 € einmalig.
             Sie steht jetzt im Kleingedruckten unter den Zeilen, zusammen mit
             der Ausweis-Bedingung fuer die ermaessigten Preise. */}
-        <p className="mt-8 max-w-2xl text-sm leading-relaxed text-foreground-dim">
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-foreground-dim">
           {pricing.fineprint}
         </p>
 

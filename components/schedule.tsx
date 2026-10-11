@@ -59,31 +59,24 @@ import { useReducedMotion } from "@/lib/motion";
  * Linien, nie Kleinschrift.
  */
 const GROUPS = {
-  gruen:  { label: "Anfänger & alle Level", tone: "#16a34a" }, // green-600
-  rot:    { label: "Fortgeschrittene",      tone: "#b91c1c" }, // red-700
-  lila:   { label: "Ringen",                tone: "#7e22ce" }, // purple-700
-  blau:   { label: "Sparring & Wettkampf",  tone: "#1d4ed8" }, // blue-700
-  orange: { label: "Boxen",                 tone: "#d97706" }, // amber-600
+  gruen:  { label: "Anfänger & jedes Level", tone: "#16a34a" }, // green-600
+  orange: { label: "Ab Intermediate",        tone: "#ea580c" }, // orange-600
+  rot:    { label: "Ab Advanced",            tone: "#b91c1c" }, // red-700
+  blau:   { label: "Boxen",                  tone: "#1d4ed8" }, // blue-700
 } as const;
 
-/** Kursart → Gruppe (fuer die Legende) und eigener Ton innerhalb der Gruppe. */
-const COURSE: Record<
-  ScheduleClass["kind"],
-  { tone: string; group: keyof typeof GROUPS }
-> = {
-  basic:     { tone: "#16a34a", group: "gruen"  }, // green-600
-  gi:        { tone: "#0f766e", group: "gruen"  }, // teal-700
-  nogi:      { tone: "#0d9488", group: "gruen"  }, // teal-600
-  openmat:   { tone: "#4d7c0f", group: "gruen"  }, // lime-700
-  advanced:  { tone: "#b91c1c", group: "rot"    }, // red-700
-  ringen:    { tone: "#7e22ce", group: "lila"   }, // purple-700
-  sparring:  { tone: "#1d4ed8", group: "blau"   }, // blue-700
-  wettkampf: { tone: "#0369a1", group: "blau"   }, // sky-700
-  boxen:     { tone: "#d97706", group: "orange" }, // amber-600
-  // Freies Training (Mo–Fr 17:00): offen fuer jedes Level, also gruen —
-  // eine Stufe dunkler als BJJ Basic, damit es nicht wie ein Kurs aussieht.
-  frei:      { tone: "#15803d", group: "gruen"  }, // green-700
-};
+/**
+ * Farbe einer Einheit. Seit 11.10.2026 nach STUFE statt nach Richtung
+ * (Vorgabe des Vorstands): Anfaenger und jedes Level gruen, Intermediate
+ * orange, Advanced rot — nur Boxen bekommt unabhaengig von der Stufe blau.
+ * Freies Training ist jedes Level, also gruen.
+ */
+function toneOf(c: ScheduleClass): string {
+  if (c.kind === "boxen") return GROUPS.blau.tone;
+  if (c.level === "advanced") return GROUPS.rot.tone;
+  if (c.level === "intermediate") return GROUPS.orange.tone;
+  return GROUPS.gruen.tone;
+}
 
 /**
  * 🥋 Gi, 🤼 No-Gi (auch Ringen und Sparring), 🥊 Boxen — wie auf dem
@@ -206,7 +199,7 @@ function DayCard({ col }: { col: (typeof schedule)[number] }) {
       {/* class list */}
       <div className="flex flex-col gap-0 overflow-hidden">
         {col.classes.map((c, j) => {
-          const tone = COURSE[c.kind].tone;
+          const tone = toneOf(c);
           return (
             <div
               key={`${c.time}-${j}`}
@@ -484,7 +477,7 @@ function Slot({
   c: ScheduleClass;
   onOpen: (programTitle: string) => void;
 }): ReactNode {
-  const tone = COURSE[c.kind].tone;
+  const tone = toneOf(c);
   const label = LEVEL_LABEL[c.level];
   const openable = Boolean(c.program);
 

@@ -380,21 +380,21 @@ export const pricing = {
       name: "Alle Kurse Flex",
       price: "90",
       per: "pro Monat",
-      note: "Schüler & Studenten 75 € · monatlich kündbar",
+      note: "Monatlich kündbar",
       featured: false,
     },
     {
       name: "Alle Kurse 3 Monate",
       price: "80",
       per: "pro Monat",
-      note: "Schüler & Studenten 65 € · 240 € gesamt",
+      note: "240 € gesamt",
       featured: false,
     },
     {
       name: "Alle Kurse Jahr",
       price: "70",
       per: "pro Monat",
-      note: "Schüler & Studenten 55 € · 240 € weniger als Flex",
+      note: "240 € weniger als Flex",
       featured: true,
     },
   ],
@@ -410,7 +410,7 @@ export const pricing = {
       name: "10er-Block",
       price: "140",
       per: "zehn Einheiten",
-      note: "Schüler & Studenten 125 € · kein Ablaufdatum",
+      note: "Kein Ablaufdatum",
       featured: false,
     },
   ],
@@ -419,7 +419,7 @@ export const pricing = {
    * sichtbar unter die Preise und nicht in jede Zeile.
    */
   fineprint:
-    "Einmalige Einschreibgebühr: 20 €. Die Schüler- und Studentenpreise gelten gegen Vorlage eines gültigen Ausweises.",
+    "Einmalige Einschreibgebühr: 20 €. Der Schüler- und Studentenpreis gilt gegen Vorlage eines gültigen Ausweises.",
   /**
    * Online abschliessen gibt es noch nicht. Ein Satz, kein Kasten: ein
    * Hinweisbalken wuerde genau die Aufmerksamkeit ziehen, die das
@@ -451,13 +451,13 @@ export const faqs = [
       "Jederzeit. Für den Anfang empfehlen wir BJJ Basic am Montag um 17:45: No-Gi und für alle ohne Vorkenntnisse gebaut. Das Level bei den Kursen ist aber eine Empfehlung, keine Sperre: Wenn dein Trainer sagt, du bist so weit, kannst du auch in Kurse für Fortgeschrittene gehen. Gi Training am Freitag, Sparring am Donnerstag und die Open Mat am Samstag sind ohnehin für jedes Level offen. Und Montag bis Freitag ist ab 17:00 freies Training.",
   },
   {
-    question: "Gibt es einen langen Vertrag?",
+    question: "Muss ich mich binden?",
     answer:
-      "Musst du nicht. Mit Alle Kurse Flex zahlst du monatlich 90 € und bist an nichts gebunden. Wer sich auf drei Monate oder ein Jahr festlegt, zahlt weniger: 80 € bzw. 70 € im Monat. Schüler und Studenten zahlen jeweils 15 € weniger. Und das Probetraining ist gratis, daraus folgt nichts.",
+      "Nein. Mit Alle Kurse Flex zahlst du monatlich 90 € und bist an nichts gebunden. Wer sich auf drei Monate oder ein Jahr festlegt, zahlt weniger: 80 € bzw. 70 € im Monat. Schüler und Studenten zahlen jeweils 15 € weniger. Und das Probetraining ist gratis, daraus folgt nichts.",
   },
   {
     question: "Wie oft sollte ich trainieren?",
     answer:
-      "Zweimal die Woche reicht für stetigen Fortschritt. Viele kommen öfter, weil es ihnen taugt. Die Mitgliedschaft deckt alles ab, das ist ganz dir überlassen.",
+      "Zweimal die Woche reicht für stetigen Fortschritt. Viele kommen öfter, weil es ihnen Spaß macht. Die Mitgliedschaft deckt alles ab, das ist ganz dir überlassen.",
   },
 ] as const;

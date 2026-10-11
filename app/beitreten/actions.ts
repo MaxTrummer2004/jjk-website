@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { ensureSchema, sql } from "@/lib/db";
 import { createSession, hashPassword } from "@/lib/auth";
-import { isAdult, isPlan } from "@/lib/membership";
+import { PLAN_INFO, isAdult, isPlan } from "@/lib/membership";
+import { boardEmails, sendMail } from "@/lib/mail";
 
 /**
  * Die Beitrittserklaerung, online.
@@ -128,6 +129,35 @@ export async function joinAction(prev: JoinState, formData: FormData): Promise<J
     }
     throw err;
   }
+
+  // Bestaetigung an den Antragsteller und Hinweis an den Vorstand.
+  // Wartet nicht auf Fehler: sendMail wirft nie.
+  const planLabel = PLAN_INFO[v.plan].label;
+  await Promise.all([
+    sendMail({
+      to: v.email,
+      subject: "Dein Beitrittsantrag ist angekommen",
+      text: [
+        `Hallo ${v.first_name},`,
+        "",
+        "danke für deinen Antrag bei der Jiu Jitsu Kaisen Akademie — er ist bei uns angekommen.",
+        "",
+        `Gewählt: ${planLabel}${v.reduced === "on" ? " (Schüler/Studenten)" : ""}`,
+        "",
+        "Über die Aufnahme entscheidet der Vorstand, meistens beim nächsten Training. Den Stand siehst du jederzeit im Mitgliederbereich: https://jjk.academy/mitglieder",
+        minor ? "\nWeil du unter 18 bist, unterschreibt ein Erziehungsberechtigter beim ersten Training die Zustimmung." : "",
+        "",
+        "Bis bald auf der Matte!",
+        "Jiu Jitsu Kaisen Akademie",
+      ].join("\n"),
+    }),
+    sendMail({
+      to: boardEmails(),
+      subject: `Neuer Beitrittsantrag: ${name}`,
+      text: `${name} hat einen Antrag gestellt (${planLabel}${minor ? ", unter 18" : ""}).\n\nAufnehmen unter https://jjk.academy/vorstand`,
+      replyTo: v.email,
+    }),
+  ]);
 
   await createSession(inserted[0]?.id as number, true);
   redirect("/mitglieder");
