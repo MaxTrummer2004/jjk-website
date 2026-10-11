@@ -844,29 +844,13 @@ function Intro({ headingClass }: { headingClass: string }): ReactNode {
         blur
         className={headingClass}
       />
-      {/* Die Legende nennt die fuenf GRUPPEN, nicht die neun Kursarten.
-          Eine Liste aller Kursarten waere ueberfluessig — ihr Name steht auf
-          jeder Karte. Die Gruppe steht nirgends sonst, und sie ist die
-          Information: sie sagt, in welche Richtung eine Einheit geht. */}
-      <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3">
-        {Object.entries(GROUPS).map(([key, g]) => (
-          <span
-            key={key}
-            className="flex items-center gap-2.5 font-mono text-[0.68rem] font-medium uppercase tracking-[0.16em] text-muted-foreground"
-          >
-            <span
-              aria-hidden="true"
-              className="h-2.5 w-2.5"
-              style={{ background: g.tone, borderRadius: 2 }}
-            />
-            {g.label}
-          </span>
-        ))}
-      </div>
+      {/* Hier stand eine Farblegende (Anfaenger & jedes Level / Ab
+          Intermediate / Ab Advanced / Boxen). Raus am 11.10.2026: dieselbe
+          Information steht schon im Chip jeder Einheit (Vorstand). */}
 
       {/* Wie oft es jede Stufe pro Woche gibt. Nur ab md: am Handy nahm die
           Liste zu viel Platz vor dem eigentlichen Plan (Vorstand, 11.10.2026). */}
-      <div className="mt-6 hidden md:block">
+      <div className="mt-8 hidden md:block">
         <p className="font-mono text-[0.68rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
           Pro Woche
         </p>
