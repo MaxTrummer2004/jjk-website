@@ -46,6 +46,8 @@ export interface WatercolorProps {
   // internen IntersectionObserver. Der Shader rechnet dann nicht weiter,
   // wenn er nicht gebraucht wird.
   paused?: boolean;
+  /** Wird einmal aufgerufen, sobald der WebGL-Kontext steht (zum Einblenden). */
+  onReady?: () => void;
 }
 
 const VERTEX_SHADER = `
@@ -228,7 +230,7 @@ const Watercolor: React.FC<WatercolorProps> = ({
   color1 = "#0a0a0a", color2 = "#e0e0e0",
   colorGain = 1, saturation = 0, brightness = 0.15, opacity = 1,
   cursorInteraction = false, cursorIntensity = 1,
-  color1To, color2To, saturationTo, brightnessTo, blend, paused = false,
+  color1To, color2To, saturationTo, brightnessTo, blend, paused = false, onReady,
 }) => {
   const col1Rgb = useMemo(() => parseHexColor(color1), [color1]);
   const col2Rgb = useMemo(() => parseHexColor(color2), [color2]);
@@ -278,6 +280,12 @@ const Watercolor: React.FC<WatercolorProps> = ({
       <Canvas
         className="absolute inset-0 h-full w-full"
         orthographic
+        // offsetSize: Groesse aus offsetWidth/-Height statt getBoundingClientRect.
+        // Sonst misst r3f in einem skalierten Eltern-Element (z. B. die
+        // Probetraining-Box mit scale 0.93 beim Reinscrollen) die verkleinerte
+        // Groesse, und der Canvas fuellt die Box dann nicht ganz aus.
+        resize={{ offsetSize: true }}
+        onCreated={() => onReady?.()}
         frameloop={active ? "always" : "never"}
         camera={{ position: [0, 0, 1], zoom: 1, left: -1, right: 1, top: 1, bottom: -1 }}
         gl={{ antialias: true, alpha: true }}

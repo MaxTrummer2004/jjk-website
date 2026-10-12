@@ -10,12 +10,22 @@ import { useReducedMotion } from "@/lib/motion";
 // Derselbe Tusche-Hintergrund wie im Hero (dessen Endzustand: dunkel, rot).
 // Nur im Browser, und erst geladen, wenn die Box in die Naehe kommt — sonst
 // haengt schon beim Seitenaufbau ein zweiter WebGL-Canvas mit dran.
-const Watercolor = dynamic(() => import("@/components/watercolor"), { ssr: false });
+const loadWatercolor = () => import("@/components/watercolor");
+const Watercolor = dynamic(loadWatercolor, { ssr: false });
 
 export default function Cta9() {
   const reduced = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
   const [nearby, setNearby] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  // Den Code schon im Leerlauf nach dem Seitenaufbau holen, damit beim
+  // Reinscrollen nicht erst geladen werden muss.
+  useEffect(() => {
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
+    if (w.requestIdleCallback) w.requestIdleCallback(() => void loadWatercolor());
+    else setTimeout(() => void loadWatercolor(), 2000);
+  }, []);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -30,7 +40,7 @@ export default function Cta9() {
           io.disconnect();
         }
       },
-      { rootMargin: "600px 0px" },
+      { rootMargin: "1500px 0px" },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -50,14 +60,24 @@ export default function Cta9() {
     >
       <motion.div
         style={{
-          backgroundColor: "var(--card-plate)",
+          // Ersatz-Hintergrund in den Watercolor-Farben, bis der Canvas steht —
+          // sonst sieht man erst die leere Box und dann einen Sprung.
+          backgroundColor: "#0b0405",
+          backgroundImage:
+            "radial-gradient(ellipse at 30% 35%, rgba(122,26,8,.55), transparent 60%), radial-gradient(ellipse at 75% 70%, rgba(122,26,8,.45), transparent 55%)",
           ...(reduced ? {} : { scale, y: panelY }),
         }}
         className="relative isolate flex flex-col items-center overflow-hidden rounded-[40px] px-6 pt-28 pb-16 text-center sm:pt-36 sm:pb-20"
       >
         {nearby ? (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10 transition-opacity duration-700"
+            style={{ opacity: ready ? 1 : 0 }}
+          >
           <Watercolor
-            className="pointer-events-none absolute inset-0 -z-10"
+            className="absolute inset-0"
+            onReady={() => setReady(true)}
             color1="#030304"
             color2="#7a1a08"
             saturation={0.65}
@@ -68,6 +88,7 @@ export default function Cta9() {
             driftSpeed={0.025}
             warpSpeed={0.05}
           />
+          </div>
         ) : null}
 
         <KanjiLabel
