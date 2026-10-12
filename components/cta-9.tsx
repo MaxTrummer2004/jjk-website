@@ -2,13 +2,39 @@
 
 import { motion, useScroll, useTransform } from "motion/react";
 import { TransitionLink } from "@/components/transition-link";
-import { useRef } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useRef, useState } from "react";
 import { KanjiLabel } from "@/components/kanji-label";
 import { useReducedMotion } from "@/lib/motion";
+
+// Derselbe Tusche-Hintergrund wie im Hero (dessen Endzustand: dunkel, rot).
+// Nur im Browser, und erst geladen, wenn die Box in die Naehe kommt — sonst
+// haengt schon beim Seitenaufbau ein zweiter WebGL-Canvas mit dran.
+const Watercolor = dynamic(() => import("@/components/watercolor"), { ssr: false });
 
 export default function Cta9() {
   const reduced = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
+  const [nearby, setNearby] = useState(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setNearby(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setNearby(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -27,8 +53,23 @@ export default function Cta9() {
           backgroundColor: "var(--card-plate)",
           ...(reduced ? {} : { scale, y: panelY }),
         }}
-        className="flex flex-col items-center overflow-hidden rounded-[40px] px-6 pt-28 pb-16 text-center sm:pt-36 sm:pb-20"
+        className="relative isolate flex flex-col items-center overflow-hidden rounded-[40px] px-6 pt-28 pb-16 text-center sm:pt-36 sm:pb-20"
       >
+        {nearby ? (
+          <Watercolor
+            className="pointer-events-none absolute inset-0 -z-10"
+            color1="#030304"
+            color2="#7a1a08"
+            saturation={0.65}
+            brightness={0.04}
+            opacity={1}
+            speed={0.3}
+            scale={0.8}
+            driftSpeed={0.025}
+            warpSpeed={0.05}
+          />
+        ) : null}
+
         <KanjiLabel
           kanji="一本"
           furigana="いっぽん"
