@@ -4396,6 +4396,55 @@ p,
   }
 }
 
+/* Zwei Preise gleich gross nebeneinander: regulaer und Schueler/Studenten
+   (Vorstand, 12.10.2026). Die Beschriftung steht klein unter jeder Zahl. */
+.jjk-plan-price-duo {
+  align-items: flex-start;
+  gap: 1.4rem;
+}
+.jjk-plan-amt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45rem;
+}
+.jjk-plan-amt .jjk-plan-per {
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+.jjk-plan[data-featured] .jjk-plan-amt + .jjk-plan-amt {
+  color: var(--accent-bright);
+}
+
+.jjk-benefits {
+  display: grid;
+  gap: 0.6rem 2rem;
+  margin-top: 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+.jjk-benefits li {
+  position: relative;
+  padding-left: 1.4rem;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: var(--foreground-dim);
+}
+.jjk-benefits li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 0.6rem;
+  height: 2px;
+  background: var(--accent);
+}
+@media (min-width: 768px) {
+  .jjk-benefits {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .jjk-plan-group {
   font-family: var(--font-mono);
   font-size: 0.62rem;

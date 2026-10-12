@@ -391,26 +391,22 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
  * einmal unter dem Block, nicht fuenfmal in den Zeilen.
  */
 export const pricing = {
+  /**
+   * Nur noch die Jahresbindung (Vorstand, 12.10.2026). Flex (90 €) und
+   * 3 Monate (80 €) stehen nicht mehr auf der Seite: Probe-Besucher haben nur
+   * die 90 gesehen und sich ueber den Preis aufgeregt. Die Tarife gibt es
+   * weiter (Beitrittserklaerung, Bedingungen), die FAQ sagt nur, dass ein
+   * monatlicher Vertrag etwas mehr kostet.
+   *
+   * `reduced` ist der Schueler-/Studentenpreis — gleich gross daneben.
+   */
   membership: [
     {
-      name: "Alle Kurse Flex",
-      price: "90",
-      per: "pro Monat",
-      note: "Monatlich kündbar",
-      featured: false,
-    },
-    {
-      name: "Alle Kurse 3 Monate",
-      price: "80",
-      per: "pro Monat",
-      note: "240 € gesamt",
-      featured: false,
-    },
-    {
-      name: "Alle Kurse Jahr",
+      name: "Alle Kurse – Jahresbindung",
       price: "70",
+      reduced: "55",
       per: "pro Monat",
-      note: "240 € weniger als Flex",
+      note: "",
       featured: true,
     },
   ],
@@ -425,10 +421,18 @@ export const pricing = {
     {
       name: "10er-Block",
       price: "140",
-      per: "zehn Einheiten",
-      note: "Kein Ablaufdatum",
+      reduced: "125",
+      per: "",
+      note: "Zehn Einheiten, kein Ablaufdatum",
       featured: false,
     },
+  ],
+  /** Was in der Mitgliedschaft drin ist (Vorstand, 12.10.2026). */
+  benefits: [
+    "11 Kurse pro Woche: BJJ im Gi und No-Gi, Ringen, Boxen",
+    "Mo bis Fr ab 17:00 freies Training: mach, was du willst",
+    "Samstags Open Mat",
+    "Du willst auf Turniere? Wir bereiten dich vor und begleiten dich",
   ],
   /**
    * Das Kleingedruckte: die Einschreibgebuehr und der Ausweis. Beides gehoert
@@ -469,7 +473,7 @@ export const faqs = [
   {
     question: "Muss ich mich binden?",
     answer:
-      "Nein. Mit Alle Kurse Flex zahlst du monatlich 90 € und bist an nichts gebunden. Wer sich auf drei Monate oder ein Jahr festlegt, zahlt weniger: 80 € bzw. 70 € im Monat. Schüler und Studenten zahlen jeweils 15 € weniger. Und das Probetraining ist gratis, daraus folgt nichts.",
+      "Nein. Du kannst auch einen monatlichen Vertrag machen, dann kostet die Mitgliedschaft etwas mehr.",
   },
   {
     question: "Wie oft sollte ich trainieren?",

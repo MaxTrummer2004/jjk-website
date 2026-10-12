@@ -37,6 +37,8 @@ const ease = [0.22, 1, 0.36, 1] as const;
 interface Plan {
   readonly name: string;
   readonly price: string;
+  /** Schueler-/Studentenpreis, gleich gross neben dem regulaeren. */
+  readonly reduced?: string;
   readonly per: string;
   readonly note: string;
   readonly featured: boolean;
@@ -69,11 +71,24 @@ function PlanRows({
             {/* Steht im Markup vor der Nebenzeile, damit am Handy Name und
                 Preis eine Zeile bilden und die Nebenzeile darunter umbricht.
                 Am Desktop tauscht `order` die beiden. */}
-            <span className="jjk-plan-price">
-              <span>{plan.price === "gratis" ? "gratis" : `${plan.price} €`}</span>
-              {plan.per ? <span className="jjk-plan-per">{plan.per}</span> : null}
-            </span>
-            <span className="jjk-plan-note">{plan.note}</span>
+            {plan.reduced ? (
+              <span className="jjk-plan-price jjk-plan-price-duo">
+                <span className="jjk-plan-amt">
+                  <span>{plan.price} €</span>
+                  <span className="jjk-plan-per">{plan.per || "regulär"}</span>
+                </span>
+                <span className="jjk-plan-amt">
+                  <span>{plan.reduced} €</span>
+                  <span className="jjk-plan-per">Schüler &amp; Studenten</span>
+                </span>
+              </span>
+            ) : (
+              <span className="jjk-plan-price">
+                <span>{plan.price === "gratis" ? "gratis" : `${plan.price} €`}</span>
+                {plan.per ? <span className="jjk-plan-per">{plan.per}</span> : null}
+              </span>
+            )}
+            {plan.note ? <span className="jjk-plan-note">{plan.note}</span> : null}
           </motion.div>
         ))}
       </div>
@@ -99,19 +114,24 @@ export default function Pricing2(): ReactNode {
 
         <div className="mt-12 flex flex-col gap-10 sm:mt-16">
           <PlanRows label="Teste die Akademie" plans={pricing.single} from={0} />
-          <PlanRows label="Mitgliedschaft" plans={pricing.membership} from={2} />
+          <div>
+            <PlanRows label="Mitgliedschaft" plans={pricing.membership} from={2} />
+            {/* Was drin ist — direkt unter dem Preis (Vorstand, 12.10.2026). */}
+            <ul className="jjk-benefits">
+              {pricing.benefits.map((b) => (
+                <li key={b}>{b}</li>
+              ))}
+            </ul>
+          </div>
         </div>
 
-        {/* Schueler/Studenten einmal fuer alle statt in jeder Zeile — am Handy
-            stand sonst zu viel in jeder Nebenzeile (Vorstand, 11.10.2026). */}
-        <p className="mt-8 max-w-2xl text-lg font-semibold text-accent-bright">
-          Schüler und Studenten: −15 € auf alle Tarife.
-        </p>
+        {/* Der Schueler-/Studentenpreis steht jetzt als eigene Zahl in den
+            Zeilen, die Zeile "−15 € auf alle Tarife" ist damit weg. */}
 
         {/* Hier stand "Keine Aufnahmegebuehr" — es gibt eine, 20 € einmalig.
             Sie steht jetzt im Kleingedruckten unter den Zeilen, zusammen mit
             der Ausweis-Bedingung fuer die ermaessigten Preise. */}
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-foreground-dim">
+        <p className="mt-8 max-w-2xl text-sm leading-relaxed text-foreground-dim">
           {pricing.fineprint}
         </p>
 
