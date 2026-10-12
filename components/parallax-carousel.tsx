@@ -313,7 +313,12 @@ const Plane: React.FC<PlaneProps> = ({
       loader.load(
         src,
         (tex) => {
-          tex.colorSpace = THREE.SRGBColorSpace;
+          // KEINE sRGB-Kennzeichnung: three.js wuerde die Farben sonst beim
+          // Auslesen in linear umrechnen, und der eigene Shader rechnet sie
+          // nicht zurueck. Ergebnis war ein dunkler, kontrastreicher,
+          // orangestichiger Look auf allen Trainerfotos. So kommen die
+          // Fotos 1:1 wie die Datei auf den Schirm.
+          tex.colorSpace = THREE.NoColorSpace;
           tex.minFilter = THREE.LinearFilter;
           tex.magFilter = THREE.LinearFilter;
           tex.wrapS = THREE.ClampToEdgeWrapping;

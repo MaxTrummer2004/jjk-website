@@ -238,7 +238,7 @@ export const coaches = [
     name: "Ricardo",
     belt: "Fitnessboxen",
     beltHex: "#1d4ed8",
-    image: "/img/coaches/ricardo.jpg",
+    image: "/img/coaches/ricardo.jpg?v=2",
     bio: "",
     teaches: [] as string[],
   },
