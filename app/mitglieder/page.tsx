@@ -5,6 +5,7 @@ import { getCurrentMember, isBoard } from "@/lib/members";
 import { getPaymentStatus } from "@/lib/payments";
 import { isMollieConfigured } from "@/lib/mollie";
 import { StatusPanel } from "./status-panel";
+import { ChangePassword } from "./change-password";
 import { PendingView } from "./pending-view";
 import {
   computeStats,
@@ -159,7 +160,7 @@ export default async function MitgliederPage({
         memberId={memberId}
         name={me?.name ?? member.name}
         subtitle={member.feeExempt ? "Trainer & Vorstand" : member.plan ? PLAN_LABEL_SHORT[member.plan] : "Mitglied"}
-        status={statusPanel}
+        status={<>{statusPanel}<ChangePassword /></>}
         boardLink={isBoard(member)}
         stats={me?.stats ?? { presentDays: 0, attendancePct: 0, reliabilityPct: 0 }}
         ranked={ranked}

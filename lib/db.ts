@@ -160,6 +160,7 @@ async function createSchema(): Promise<void> {
     alter table members add column if not exists mollie_customer_id text;
     alter table members add column if not exists mollie_subscription_id text;
     alter table members add column if not exists fee_exempt boolean not null default false;
+    alter table members add column if not exists setup_token text;
   `);
 
   // Eine Zeile je bezahltem Posten. Heute setzt sie der Kassier per Haekchen
