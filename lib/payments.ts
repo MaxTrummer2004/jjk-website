@@ -37,7 +37,7 @@ export interface PaymentStatus {
 }
 
 export async function getPaymentStatus(member: MemberRecord, now = new Date()): Promise<PaymentStatus | null> {
-  if (!member.plan) return null;
+  if (member.feeExempt || !member.plan) return null;
   const month = monthKey(now);
   const plan = PLAN_INFO[member.plan];
 

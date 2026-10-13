@@ -98,6 +98,7 @@ export default async function MitgliederPage({
       payEnabled={isMollieConfigured()}
       hasSubscription={Boolean(member.mollieSubscriptionId)}
       justReturned={justReturned}
+      feeExempt={member.feeExempt}
     />
   );
 
@@ -157,7 +158,7 @@ export default async function MitgliederPage({
       <MemberProfile
         memberId={memberId}
         name={me?.name ?? member.name}
-        subtitle={member.plan ? PLAN_LABEL_SHORT[member.plan] : "Mitglied"}
+        subtitle={member.feeExempt ? "Trainer & Vorstand" : member.plan ? PLAN_LABEL_SHORT[member.plan] : "Mitglied"}
         status={statusPanel}
         boardLink={isBoard(member)}
         stats={me?.stats ?? { presentDays: 0, attendancePct: 0, reliabilityPct: 0 }}

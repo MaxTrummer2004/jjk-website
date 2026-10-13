@@ -42,6 +42,8 @@ export interface StatusPanelProps {
   hasSubscription: boolean;
   /** Gerade vom Mollie-Checkout zurueck (?zahlung=1). */
   justReturned: boolean;
+  /** Trainer/Vorstand: kein Beitrag, kein Zahlungsblock. */
+  feeExempt?: boolean;
 }
 
 function BankDetails({ purpose }: { purpose: string }): ReactNode {
@@ -132,6 +134,15 @@ export function StatusPanel(props: StatusPanelProps): ReactNode {
               ))}
             </ul>
           ) : null}
+        </section>
+      ) : null}
+
+      {props.feeExempt && status === "active" ? (
+        <section className="rounded-2xl border border-border bg-card-plate p-6">
+          <p className="font-mono text-[0.68rem] font-medium uppercase tracking-[0.24em] text-accent">
+            Trainer &amp; Vorstand
+          </p>
+          <p className="mt-2 text-sm text-foreground-dim">Beitragsfrei &mdash; hier ist nichts zu zahlen.</p>
         </section>
       ) : null}
 

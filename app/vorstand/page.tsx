@@ -60,6 +60,7 @@ type Row = {
   is_minor: boolean;
   applied_at: string | null;
   has_subscription: boolean;
+  fee_exempt: boolean;
 };
 
 type PayRow = { member_id: number; kind: string; period: string | null; source: string };
@@ -150,7 +151,7 @@ export default async function BoardPage(): Promise<ReactNode> {
       guardian_first_name, guardian_last_name, guardian_phone, guardian_email,
       plan, status, reduced_requested, reduced_verified, guardian_consent_received,
       (mollie_subscription_id like 'sub_%') as has_subscription,
-      consent_photos, consent_whatsapp, applied_at::text as applied_at,
+      consent_photos, consent_whatsapp, applied_at::text as applied_at, fee_exempt,
       (birth_date is not null and birth_date > (current_date - interval '18 years')) as is_minor
     from members
     order by name asc
@@ -182,7 +183,9 @@ export default async function BoardPage(): Promise<ReactNode> {
 
   const pending = members.filter((m) => m.status === "pending");
   const rejected = members.filter((m) => m.status === "rejected");
-  const active = members.filter((m) => m.status === "active" && isPlan(m.plan));
+  const active = members.filter((m) => m.status === "active" && !m.fee_exempt && isPlan(m.plan));
+  // Trainer und Vorstand: beitragsfrei, eigene Liste ohne Rot/Gruen.
+  const staff = members.filter((m) => m.status === "active" && m.fee_exempt);
   const allOk = (m: Row): boolean => {
     if (!isPlan(m.plan)) return false;
     const regular = PLAN_INFO[m.plan].monthly ? paid(m.id, "month", month) : paid(m.id, "block");
@@ -347,6 +350,23 @@ export default async function BoardPage(): Promise<ReactNode> {
             <p className="mt-4 text-sm text-foreground-dim">Noch keine aufgenommenen Mitglieder mit Mitgliedschaft.</p>
           ) : null}
         </section>
+
+        {/* ── Trainer & Vorstand (beitragsfrei) ───────────────────── */}
+        {staff.length > 0 ? (
+          <section className="mt-16">
+            <h2 className="font-mono text-[0.72rem] font-medium uppercase tracking-[0.24em] text-accent">
+              Trainer &amp; Vorstand · beitragsfrei ({staff.length})
+            </h2>
+            <ul className="mt-4 flex flex-col gap-3">
+              {staff.map((m) => (
+                <li key={m.id} className="rounded-xl border border-border bg-card-plate p-4">
+                  <span className="font-medium text-foreground">{m.name}</span>
+                  <Details m={m} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         {/* ── Abgelehnt ────────────────────────────────────────────── */}
         {rejected.length > 0 ? (

@@ -25,6 +25,8 @@ export interface MemberRecord {
   joinedAt: string;
   mollieCustomerId: string | null;
   mollieSubscriptionId: string | null;
+  /** Trainer und Vorstand: zahlen keinen Beitrag. Wird nur per SQL gesetzt. */
+  feeExempt: boolean;
 }
 
 type Row = {
@@ -42,6 +44,7 @@ type Row = {
   joined_at: string;
   mollie_customer_id: string | null;
   mollie_subscription_id: string | null;
+  fee_exempt: boolean;
 };
 
 function toStatus(value: string): MemberStatus {
@@ -64,6 +67,7 @@ export function toRecord(r: Row): MemberRecord {
     joinedAt: r.joined_at,
     mollieCustomerId: r.mollie_customer_id,
     mollieSubscriptionId: r.mollie_subscription_id,
+    feeExempt: r.fee_exempt,
   };
 }
 
@@ -71,7 +75,7 @@ export function toRecord(r: Row): MemberRecord {
 export const MEMBER_COLUMNS = `
   id, name, email, first_name, last_name, status, plan,
   reduced_requested, reduced_verified, guardian_consent_received,
-  joined_at::text as joined_at, mollie_customer_id, mollie_subscription_id,
+  joined_at::text as joined_at, mollie_customer_id, mollie_subscription_id, fee_exempt,
   (birth_date is not null and birth_date > (current_date - interval '18 years')) as is_minor
 `;
 
