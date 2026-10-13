@@ -583,6 +583,79 @@ export default function DatenschutzPage(): ReactNode {
       </section>
 
       <section>
+        <h2>Präsenz auf Instagram</h2>
+        <p>
+          Der Verein betreibt ein Profil auf Instagram
+          (instagram.com/jiu.jitsu.kaisen_). Anbieter ist die Meta Platforms
+          Ireland Limited, Merrion Road, Dublin 4, D04 X2K5, Irland
+          (&bdquo;Meta&ldquo;). Wenn Sie das Profil besuchen, ihm folgen oder
+          mit Beiträgen interagieren, verarbeitet Meta Ihre Daten nach eigenen
+          Regeln, etwa um Nutzungsstatistiken zu erstellen oder Werbung
+          anzuzeigen. Das geschieht auch dann, wenn Sie kein Instagram-Konto
+          haben oder nicht eingeloggt sind.
+        </p>
+        <p>
+          Für die Statistiken, die Meta dem Verein über das Profil bereitstellt
+          (&bdquo;Insights&ldquo;), sind der Verein und Meta gemeinsam
+          verantwortlich (Art. 26 DSGVO). Meta hat dazu eine Vereinbarung
+          vorgegeben und übernimmt darin die Hauptverantwortung, auch für die
+          Erfüllung Ihrer Rechte. Der Verein sieht nur zusammengefasste Zahlen,
+          keine Daten einzelner Personen. Rechtsgrundlage ist unser berechtigtes
+          Interesse an einer Darstellung des Vereins dort, wo viele
+          Interessierte unterwegs sind (Art. 6 Abs. 1 lit. f DSGVO).
+        </p>
+        <p>
+          Meta kann Daten auch in die USA übermitteln. Die Meta Platforms, Inc.
+          ist nach dem EU-US Data Privacy Framework zertifiziert; für die USA
+          besteht damit ein Angemessenheitsbeschluss der EU-Kommission
+          (Art. 45 DSGVO). Näheres in der Datenschutzrichtlinie von Instagram:{" "}
+          <a href="https://privacycenter.instagram.com/policy" target="_blank" rel="noopener noreferrer">
+            privacycenter.instagram.com/policy
+          </a>
+          . Ihre Rechte können Sie sowohl gegenüber Meta als auch gegenüber dem
+          Verein geltend machen; Anfragen, die nur Meta erfüllen kann, leiten
+          wir weiter.
+        </p>
+        <p>
+          Schreiben Sie uns auf Instagram eine Nachricht, verwenden wir Ihren
+          Profilnamen und die Nachricht nur, um zu antworten.
+        </p>
+      </section>
+
+      <section>
+        <h2>WhatsApp-Gruppen des Vereins</h2>
+        <p>
+          Für Absprachen zum Training gibt es vereinsinterne WhatsApp-Gruppen.
+          Aufgenommen wird nur, wer in der Beitrittserklärung eingewilligt hat
+          (Art. 6 Abs. 1 lit. a DSGVO). Die Teilnahme ist freiwillig und keine
+          Voraussetzung für die Mitgliedschaft.
+        </p>
+        <p>
+          In der Gruppe sehen die anderen Mitglieder Ihre Telefonnummer, Ihren
+          WhatsApp-Namen und Ihr Profilbild, je nach Ihren Einstellungen.
+          Anbieter ist die WhatsApp Ireland Limited, Merrion Road, Dublin 4,
+          D04 X2K5, Irland, ein Unternehmen der Meta-Gruppe. WhatsApp
+          verschlüsselt Nachrichten Ende-zu-Ende, verarbeitet aber
+          Verbindungs- und Nutzungsdaten (etwa wer wann mit wem kommuniziert)
+          und kann diese in die USA übermitteln. Die Meta Platforms, Inc. ist
+          nach dem EU-US Data Privacy Framework zertifiziert (Art. 45 DSGVO).
+          Für die Verarbeitung durch WhatsApp selbst gilt dessen
+          Datenschutzrichtlinie:{" "}
+          <a href="https://www.whatsapp.com/legal/privacy-policy-eea" target="_blank" rel="noopener noreferrer">
+            whatsapp.com/legal/privacy-policy-eea
+          </a>
+          .
+        </p>
+        <p>
+          Sie können die Einwilligung jederzeit widerrufen: Verlassen Sie die
+          Gruppe oder sagen Sie dem Vorstand Bescheid, dann nehmen wir Sie heraus
+          und vermerken den Widerruf. Was bis dahin in der Gruppe geschrieben
+          wurde, bleibt auf den Geräten der anderen Mitglieder; darauf hat der
+          Verein keinen Zugriff.
+        </p>
+      </section>
+
+      <section>
         <h2>Ihre Rechte</h2>
         <p>Nach der DSGVO stehen Ihnen gegenüber dem Verein folgende Rechte zu:</p>
         <ul>
@@ -687,7 +760,7 @@ export default function DatenschutzPage(): ReactNode {
         </p>
       </section>
 
-      <p className="jjk-legal-stand">Stand: 8. Oktober 2026</p>
+      <p className="jjk-legal-stand">Stand: 13. Oktober 2026</p>
     </LegalPage>
   );
 }
