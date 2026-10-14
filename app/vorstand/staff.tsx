@@ -38,7 +38,7 @@ export function CreateStaff(): ReactNode {
     <div className="rounded-xl border border-border bg-card-plate p-4">
       <p className="text-sm font-medium text-foreground">Konto für Trainer oder Vorstand anlegen</p>
       <p className="mt-1 text-sm text-foreground-dim">
-        Beitragsfrei und sofort aktiv. Den Vorstandsbereich sieht nur, wer in BOARD_EMAILS steht.
+        Beitragsfrei und sofort aktiv.
       </p>
       <form action={action} className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_1.4fr_auto]">
         <input name="first_name" placeholder="Vorname" required className={inputClass} />
