@@ -196,7 +196,7 @@ export const programs = [
 export const coaches = [
   {
     name: "Liri",
-    belt: "Lilagurt",
+    belt: "BJJ",
     beltHex: "#7e22ce",
     image: "/img/coaches/liri.jpg",
     bio: "",
@@ -204,7 +204,7 @@ export const coaches = [
   },
   {
     name: "Ervin",
-    belt: "Lilagurt",
+    belt: "BJJ",
     beltHex: "#7e22ce",
     image: "/img/coaches/ervin.jpg",
     bio: "",
@@ -212,7 +212,7 @@ export const coaches = [
   },
   {
     name: "Wolfi",
-    belt: "Schwarzgurt",
+    belt: "BJJ",
     beltHex: "#16161c",
     image: "/img/coaches/wolfi.jpg",
     bio: "",
@@ -220,7 +220,7 @@ export const coaches = [
   },
   {
     name: "Matthias",
-    belt: "Schwarzgurt",
+    belt: "BJJ",
     beltHex: "#16161c",
     image: "/img/coaches/matthias.jpg",
     bio: "",
