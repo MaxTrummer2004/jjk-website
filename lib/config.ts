@@ -466,7 +466,7 @@ export const faqs = [
   {
     question: "Was brauche ich für die erste Einheit?",
     answer:
-      "Kurze Hose, T-Shirt, Wasser — mehr brauchst du nicht. Für die Stunden im Gi brauchst du einen eigenen; zum Anfangen reichen die No-Gi-Einheiten völlig, davon gibt es jede Woche mehrere. Komm 15 Minuten früher, dann zeigen wir dir alles.",
+      "Kurze Hose, T-Shirt, Wasser, mehr brauchst du nicht. Für die Stunden im Gi brauchst du einen eigenen; zum Anfangen reichen die No-Gi-Einheiten völlig, davon gibt es jede Woche mehrere. Komm 15 Minuten früher, dann zeigen wir dir alles.",
   },
   {
     question: "Muss ich fit oder beweglich sein, um anzufangen?",

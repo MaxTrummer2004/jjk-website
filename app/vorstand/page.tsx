@@ -110,13 +110,13 @@ function Details({ m }: { m: Row }): ReactNode {
       <summary className="cursor-pointer text-foreground-dim hover:text-foreground">Daten anzeigen</summary>
       <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-foreground-dim">
         <dt>E-Mail</dt>
-        <dd className="text-foreground">{m.email ?? "—"}</dd>
+        <dd className="text-foreground">{m.email ?? "–"}</dd>
         <dt>Telefon</dt>
-        <dd className="text-foreground">{m.phone ?? "—"}</dd>
+        <dd className="text-foreground">{m.phone ?? "–"}</dd>
         <dt>Adresse</dt>
-        <dd className="text-foreground">{m.address ?? "—"}</dd>
+        <dd className="text-foreground">{m.address ?? "–"}</dd>
         <dt>Geburtsdatum</dt>
-        <dd className="text-foreground">{m.birth_date ?? "—"}</dd>
+        <dd className="text-foreground">{m.birth_date ?? "–"}</dd>
         {m.is_minor ? (
           <>
             <dt>Erziehungsber.</dt>
@@ -262,7 +262,7 @@ export default async function BoardPage(): Promise<ReactNode> {
                         ) : null}
                       </p>
                       <p className="text-sm text-foreground-dim">
-                        {isPlan(m.plan) ? PLAN_INFO[m.plan].label : "—"}
+                        {isPlan(m.plan) ? PLAN_INFO[m.plan].label : "–"}
                         {m.reduced_requested ? " · ermäßigt beantragt" : ""}
                       </p>
                     </div>

@@ -51,7 +51,7 @@ function BankDetails({ purpose }: { purpose: string }): ReactNode {
   if (!iban) {
     return (
       <p className="mt-3 text-sm text-white/85">
-        Die Bankverbindung bekommst du im Training. Bar oder per Überweisung &mdash; frag einfach
+        Die Bankverbindung bekommst du im Training. Bar oder per Überweisung, frag einfach
         den Vorstand.
       </p>
     );
@@ -114,7 +114,7 @@ export function StatusPanel(props: StatusPanelProps): ReactNode {
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-foreground-dim">
             Über die Aufnahme entscheidet der Vorstand, meistens beim nächsten Training. Danach
-            siehst du hier alles &mdash; Anwesenheit, Rangliste und mehr.
+            siehst du hier alles: Anwesenheit, Rangliste und mehr.
           </p>
           {props.plan ? (
             <p className="mt-3 text-sm text-foreground">
@@ -142,7 +142,7 @@ export function StatusPanel(props: StatusPanelProps): ReactNode {
           <p className="font-mono text-[0.68rem] font-medium uppercase tracking-[0.24em] text-accent">
             Trainer &amp; Vorstand
           </p>
-          <p className="mt-2 text-sm text-foreground-dim">Beitragsfrei &mdash; hier ist nichts zu zahlen.</p>
+          <p className="mt-2 text-sm text-foreground-dim">Beitragsfrei, hier ist nichts zu zahlen.</p>
         </section>
       ) : null}
 
@@ -226,7 +226,7 @@ function PaymentBlock({
 
       {justReturned ? (
         <p className="mt-4 rounded-lg bg-black/20 px-3 py-2 text-sm">
-          Zahlung wird bestätigt &mdash; das dauert meist nur Sekunden. Seite neu laden.
+          Zahlung wird bestätigt, das dauert meist nur Sekunden. Seite neu laden.
         </p>
       ) : null}
 

@@ -105,7 +105,7 @@ export function JoinForm(): ReactNode {
           <p className="rounded-lg border border-accent/40 bg-accent/10 px-4 py-3 text-sm leading-relaxed text-foreground">
             Laut unseren Statuten braucht die Aufnahme Minderjähriger die{" "}
             <strong>schriftliche</strong> Zustimmung eines Erziehungsberechtigten. Den Antrag kannst
-            du jetzt stellen &mdash; unterschrieben wird beim ersten Training vor Ort.
+            du jetzt stellen, unterschrieben wird beim ersten Training vor Ort.
           </p>
         </Section>
       ) : null}
@@ -169,7 +169,7 @@ export function JoinForm(): ReactNode {
         </label>
         <p className="border-l-2 border-accent pl-4 text-sm leading-relaxed text-foreground-dim">
           <strong className="text-foreground">Einmalige Einschreibgebühr: {euro(ENROLLMENT_FEE_CENTS)}.</strong>{" "}
-          Fällt nur bei der allerersten Anmeldung an &mdash; für alle Angebote und alle Mitglieder
+          Fällt nur bei der allerersten Anmeldung an, für alle Angebote und alle Mitglieder
           gleich. Sie wiederholt sich nicht jährlich.
         </p>
       </Section>
@@ -183,7 +183,7 @@ export function JoinForm(): ReactNode {
 
       <Section title="Bedingungen & Datenschutz">
         <MembershipTerms />
-        <p className="text-sm text-foreground-dim">Freiwillig &mdash; jederzeit schriftlich widerrufbar:</p>
+        <p className="text-sm text-foreground-dim">Freiwillig, jederzeit schriftlich widerrufbar:</p>
         <label className="flex items-start gap-3 text-sm leading-relaxed text-foreground">
           <input type="checkbox" name="consent_photos" defaultChecked={v.consent_photos === "on"} className="mt-1 size-4 shrink-0 accent-[var(--accent)]" />
           <span>

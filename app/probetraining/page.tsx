@@ -35,7 +35,7 @@ export default function ProbetrainingPage(): ReactNode {
           <h1 className="jjk-section-title mt-4">Probetraining</h1>
           <p className="mt-5 text-base leading-relaxed text-foreground-dim">
             Das Probetraining ist gratis, Vorkenntnisse brauchst du keine. Kurze Hose, T-Shirt,
-            Wasser &mdash; mehr nicht. Schreib uns kurz, wann du kommen willst, wir melden uns.
+            Wasser, mehr nicht. Schreib uns kurz, wann du kommen willst, wir melden uns.
           </p>
         </header>
 

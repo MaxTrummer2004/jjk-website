@@ -112,8 +112,8 @@ export default function DatenschutzPage(): ReactNode {
           <li>
             <strong>Der öffentliche Teil</strong> (Startseite, Impressum,
             Datenschutz) verarbeitet keine personenbezogenen Daten über die
-            technisch unvermeidbaren Server-Protokolldaten hinaus &mdash;
-            außer Sie schicken uns über über &bdquo;Probetraining ausmachen&ldquo;bdquo;Probetrainingüber &bdquo;Probetraining ausmachen&ldquo;ldquo;
+            technisch unvermeidbaren Server-Protokolldaten hinaus,
+            außer Sie schicken uns über &bdquo;Probetraining&ldquo;
             von sich aus eine Anfrage. Es gibt keine
             Analyse-Werkzeuge, kein Tracking, keine Werbenetzwerke, keine
             Social-Media-Einbettungen und keine Inhalte von fremden Servern.
@@ -270,7 +270,7 @@ export default function DatenschutzPage(): ReactNode {
           <li>
             <strong>Andere aufgenommene Mitglieder</strong> sehen in der
             Rangliste Ihren <strong>Namen und Ihre Anwesenheitsquote</strong>{" "}
-            &mdash; sonst nichts, insbesondere nicht Ihren Zahlungsstand und
+            und sonst nichts, insbesondere nicht Ihren Zahlungsstand und
             keine Kontaktdaten. Solange ein Antrag offen ist, erscheint er in
             keiner Liste, und man sieht auch selbst noch keine anderen
             Mitglieder.
@@ -351,7 +351,7 @@ export default function DatenschutzPage(): ReactNode {
           </dt>
           <dd>
             Ein signiertes Token (JWT, Verfahren HS256), das ausschließlich die
-            interne Mitglieds-Nummer und die Gültigkeitsdauer enthält &mdash;
+            interne Mitglieds-Nummer und die Gültigkeitsdauer enthält,
             weder Ihr Passwort noch Ihren Namen. Es hält Sie angemeldet.
             Eigenschaften: <code>httpOnly</code> (für JavaScript im Browser
             nicht lesbar), <code>sameSite=lax</code> (wird nicht an fremde
@@ -366,7 +366,7 @@ export default function DatenschutzPage(): ReactNode {
           </dt>
           <dd>
             Enthält nur den Wert <code>1</code> und damit die einzige Auskunft,
-            dass in diesem Browser jemand angemeldet ist &mdash; keine Nummer,
+            dass in diesem Browser jemand angemeldet ist: keine Nummer,
             keinen Namen, kein Token. Es wird gesetzt, weil die Startseite als
             fertige Datei ausgeliefert wird und erst im Browser entscheidet, ob
             die Schaltfläche &bdquo;Mitglied werden&ldquo; oder &bdquo;Mein
@@ -388,8 +388,8 @@ export default function DatenschutzPage(): ReactNode {
           <dt>Rechtsgrundlage für alle drei</dt>
           <dd>
             § 165 Abs. 3 TKG 2021 in Verbindung mit Art. 6 Abs. 1 lit. b DSGVO.
-            Alle drei sind für ausdrücklich gewünschte Funktionen &mdash;
-            Anmelden und Bedienen des Mitgliederbereichs &mdash; unbedingt
+            Alle drei sind für ausdrücklich gewünschte Funktionen
+            (Anmelden und Bedienen des Mitgliederbereichs) unbedingt
             erforderlich und bedürfen daher keiner Einwilligung. Aus demselben
             Grund gibt es auf dieser Website kein Cookie-Banner.
           </dd>
@@ -452,8 +452,8 @@ export default function DatenschutzPage(): ReactNode {
           <dd>
             Für das Hosting genau einer: OUTSCALE, 1 rue Royale, 92210
             Saint-Cloud, Frankreich, für den Betrieb der Rechenzentren. Der
-            Vertrag vermerkt dazu ausdrücklich &bdquo;N/A (no transfer)&ldquo;
-            — es findet keine Übermittlung außerhalb der EU statt. Eine
+            Vertrag vermerkt dazu ausdrücklich &bdquo;N/A (no transfer)&ldquo;:
+            Es findet keine Übermittlung außerhalb der EU statt. Eine
             geplante Änderung muss Scalingo ankündigen; der Verein kann ihr
             binnen acht Kalendertagen widersprechen.
           </dd>

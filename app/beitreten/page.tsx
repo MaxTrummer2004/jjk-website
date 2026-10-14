@@ -36,7 +36,7 @@ export default function JoinPage(): ReactNode {
           <p className="mt-5 text-base leading-relaxed text-foreground-dim">
             Füll das Formular aus und leg dein Passwort fest. Danach bist du direkt im
             Mitgliederbereich eingeloggt und siehst dort, wie es weitergeht. Über die Aufnahme
-            entscheidet der Vorstand &mdash; meistens beim nächsten Training.
+            entscheidet der Vorstand, meistens beim nächsten Training.
           </p>
         </header>
 

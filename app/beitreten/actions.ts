@@ -146,7 +146,7 @@ export async function joinAction(prev: JoinState, formData: FormData): Promise<J
       text: [
         `Hallo ${v.first_name},`,
         "",
-        "danke für deinen Antrag bei der Jiu Jitsu Kaisen Akademie — er ist bei uns angekommen.",
+        "danke für deinen Antrag bei der Jiu Jitsu Kaisen Akademie. Er ist bei uns angekommen.",
         "",
         `Gewählt: ${planLabel}${v.reduced === "on" ? " (Schüler/Studenten)" : ""}`,
         "",

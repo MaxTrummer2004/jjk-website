@@ -104,7 +104,7 @@ export default function BedingungenPage(): ReactNode {
           Einschreibgebühr einmalig im Voraus. Online wird über den Zahlungsdienstleister Mollie
           B.V. (Amsterdam) bezahlt. Bei den Mitgliedschaften „Alle Kurse“ erteilen Sie mit der ersten
           Zahlung per EPS ein SEPA-Lastschriftmandat; die folgenden Monatsbeiträge werden damit
-          jeweils zum Monatsersten abgebucht &mdash; bei Bindung bis zu deren Ende, bei Flex,
+          jeweils zum Monatsersten abgebucht: bei Bindung bis zu deren Ende, bei Flex,
           bis Sie Flex im Mitgliederbereich beenden.
         </p>
       </section>

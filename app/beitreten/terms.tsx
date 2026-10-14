@@ -34,7 +34,7 @@ export const TERMS_SECTIONS: { title: string; items: ReactNode[] }[] = [
       </>,
       <>
         <strong>Alle Kurse – Flex:</strong> Du kannst trainieren, solange dein Beitrag bezahlt ist. Wird
-        ein Monat nicht bezahlt, ruht in diesem Monat das Trainingsrecht &mdash; die
+        ein Monat nicht bezahlt, ruht in diesem Monat das Trainingsrecht. Die
         Vereinsmitgliedschaft bleibt bestehen und du kannst jederzeit wieder einsteigen.
       </>,
       <>
@@ -69,12 +69,12 @@ export const TERMS_SECTIONS: { title: string; items: ReactNode[] }[] = [
         mit.
       </>,
       <>
-        Ich befolge die Anweisungen der Trainer und die Regeln auf der Matte &mdash; insbesondere
+        Ich befolge die Anweisungen der Trainer und die Regeln auf der Matte, insbesondere
         wird jedes Abklopfen (Tap) sofort respektiert.
       </>,
       <>
-        Eine Haftung des Vereins, seiner Trainer und Funktionäre ist &mdash; soweit gesetzlich
-        zulässig &mdash; ausgeschlossen. Dies gilt nicht für vorsätzlich oder grob fahrlässig
+        Eine Haftung des Vereins, seiner Trainer und Funktionäre ist, soweit gesetzlich
+        zulässig, ausgeschlossen. Dies gilt nicht für vorsätzlich oder grob fahrlässig
         verursachte Schäden sowie für Personenschäden.
       </>,
       <>

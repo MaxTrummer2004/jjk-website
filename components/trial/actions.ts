@@ -47,7 +47,7 @@ export async function requestTrialAction(_prev: TrialState, formData: FormData):
       ? sendMail({
           to: contact,
           subject: "Deine Anfrage fürs Probetraining ist angekommen",
-          text: `Hallo ${name},\n\ndanke für deine Anfrage — sie ist bei uns angekommen, wir melden uns bei dir.\n\nJiu Jitsu Kaisen Akademie\nhttps://jjk.academy`,
+          text: `Hallo ${name},\n\ndanke für deine Anfrage, sie ist bei uns angekommen, wir melden uns bei dir.\n\nJiu Jitsu Kaisen Akademie\nhttps://jjk.academy`,
         })
       : Promise.resolve(),
     sendMail({

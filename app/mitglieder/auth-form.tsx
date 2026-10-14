@@ -79,7 +79,7 @@ export function AuthForm(): ReactNode {
       </form>
 
       <p className="text-xs sm:text-sm text-center text-foreground-dim">
-        Passwort vergessen? Sag im Training Bescheid &mdash; der Vorstand setzt es zurück.
+        Passwort vergessen? Sag im Training Bescheid, der Vorstand setzt es zurück.
       </p>
     </motion.div>
   );
