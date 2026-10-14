@@ -62,6 +62,8 @@ interface Props {
   status: ReactNode;
   /** Nur fuer den Vorstand: Link auf /vorstand. */
   boardLink: boolean;
+  /** Klein unter dem Abmelden-Knopf, z. B. "Passwort ändern". */
+  footer?: ReactNode;
   stats: MemberStats;
   ranked: RankedMember[];
   trainingDateLabel: string;
@@ -76,6 +78,7 @@ export function MemberProfile({
   subtitle,
   status,
   boardLink,
+  footer,
   stats,
   ranked,
   trainingDateLabel,
@@ -336,6 +339,7 @@ export function MemberProfile({
                 </motion.button>
               </form>
             </motion.div>
+            {footer ? <div className="mt-4">{footer}</div> : null}
           </div>
         </motion.div>
       </div>

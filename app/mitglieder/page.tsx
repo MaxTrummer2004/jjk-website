@@ -160,7 +160,8 @@ export default async function MitgliederPage({
         memberId={memberId}
         name={me?.name ?? member.name}
         subtitle={member.feeExempt ? "Trainer & Vorstand" : member.plan ? PLAN_LABEL_SHORT[member.plan] : "Mitglied"}
-        status={<>{statusPanel}<ChangePassword /></>}
+        status={statusPanel}
+        footer={<ChangePassword />}
         boardLink={isBoard(member)}
         stats={me?.stats ?? { presentDays: 0, attendancePct: 0, reliabilityPct: 0 }}
         ranked={ranked}

@@ -290,7 +290,9 @@ export function Location(): ReactNode {
               Zurueckhaltung, das ist unlesbar, und unlesbare Schrift auf einem
               Bild sieht aus wie ein vergessener Rest. Klein darf sie sein,
               lesbar muss sie sein. */}
-            <span className="pointer-events-none absolute right-3 bottom-3 rounded-md bg-[#07070a]/70 px-2 py-1 font-mono text-[0.6rem] tracking-wide text-foreground/50">
+            {/* Am Handy oben links: unten rechts lag sie auf der Adresse.
+                Weglassen geht nicht, die ODbL verlangt die Nennung. */}
+            <span className={`pointer-events-none absolute ${isMobile ? "top-3 left-3" : "right-3 bottom-3"} rounded-md bg-[#07070a]/70 px-2 py-1 font-mono text-[0.6rem] tracking-wide text-foreground/50`}>
               © OpenStreetMap contributors
             </span>
           </a>

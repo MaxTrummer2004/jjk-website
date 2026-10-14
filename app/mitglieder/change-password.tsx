@@ -12,9 +12,11 @@ const inputClass =
 export function ChangePassword(): ReactNode {
   const [state, action, pending] = useActionState(changePasswordAction, initial);
   return (
-    <details className="mt-4 rounded-2xl border border-border bg-card-plate px-5 py-4 text-sm">
-      <summary className="cursor-pointer text-foreground-dim hover:text-foreground">Passwort ändern</summary>
-      <form action={action} className="mt-4 flex flex-col gap-2.5">
+    <details className="text-xs">
+      <summary className="mx-auto w-fit cursor-pointer list-none text-foreground-dim underline-offset-4 hover:text-foreground hover:underline">
+        Passwort ändern
+      </summary>
+      <form action={action} className="mt-3 flex flex-col gap-2 text-sm">
         <input name="current" type="password" placeholder="Aktuelles Passwort" autoComplete="current-password" required className={inputClass} />
         <input name="password" type="password" placeholder="Neues Passwort (mind. 8 Zeichen)" autoComplete="new-password" minLength={8} required className={inputClass} />
         <input name="password2" type="password" placeholder="Neues Passwort wiederholen" autoComplete="new-password" minLength={8} required className={inputClass} />
