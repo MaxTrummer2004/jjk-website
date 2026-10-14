@@ -34,6 +34,11 @@ import type { ReactNode } from "react";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
+/** "pro Monat" wird neben der Zahl zu "/ Monat". */
+function unit(per: string): string {
+  return per.startsWith("pro ") ? `/ ${per.slice(4)}` : per;
+}
+
 interface Plan {
   readonly name: string;
   readonly price: string;
@@ -74,12 +79,18 @@ function PlanRows({
             {plan.reduced ? (
               <span className="jjk-plan-price jjk-plan-price-duo">
                 <span className="jjk-plan-amt">
-                  <span>{plan.price} €</span>
-                  <span className="jjk-plan-per">{plan.per || "regulär"}</span>
+                  <span className="jjk-plan-amt-label">Regulär</span>
+                  <span className="jjk-plan-amt-value">
+                    {plan.price} €
+                    {plan.per ? <span className="jjk-plan-amt-unit">{unit(plan.per)}</span> : null}
+                  </span>
                 </span>
                 <span className="jjk-plan-amt">
-                  <span>{plan.reduced} €</span>
-                  <span className="jjk-plan-per">Schüler &amp; Studenten</span>
+                  <span className="jjk-plan-amt-label">Schüler &amp; Studenten</span>
+                  <span className="jjk-plan-amt-value">
+                    {plan.reduced} €
+                    {plan.per ? <span className="jjk-plan-amt-unit">{unit(plan.per)}</span> : null}
+                  </span>
                 </span>
               </span>
             ) : (

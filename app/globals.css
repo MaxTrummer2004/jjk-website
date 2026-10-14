@@ -4398,57 +4398,68 @@ p,
 
 /* Zwei Preise gleich gross nebeneinander: regulaer und Schueler/Studenten
    (Vorstand, 12.10.2026). Die Beschriftung steht klein unter jeder Zahl. */
-/* Handy (Rueckmeldung 15.10.2026: "sehr cramped"): die beiden Preise als
-   zwei gleich breite Spalten ueber die volle Zeile, linksbuendig, die zweite
-   mit einer Haarlinie abgesetzt; die Beschriftung kleiner und enger gesperrt.
-   Ab 640 px wieder rechtsbuendig nebeneinander. */
+/* Zwei Preise, regulaer und Schueler/Studenten (Vorstand, 12.10.2026).
+   Gebaut wie ein kleiner Tabellenkopf: oben die Beschriftung in lesbarer
+   Grossbuchstaben-Sans, darunter der Preis, die beiden Spalten durch eine
+   Haarlinie getrennt. Vorher hing eine winzige, weit gesperrte Mono-Zeile
+   rechtsbuendig unter jeder Zahl und wirkte billig (Rueckmeldung 15.10.2026).
+   Handy: volle Zeile unter dem Namen, oben eine Linie. Ab 640 px: zwei feste
+   Spalten rechts, jede mit Linie links. */
 .jjk-plan-price-duo {
   flex: 1 0 100%;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
   gap: 0;
-  margin-top: 0.35rem;
+  margin-top: 0.6rem;
+  border-top: 1px solid var(--border);
 }
 .jjk-plan-amt {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.5rem;
+  gap: 0.45rem;
+  padding: 0.85rem 0 0.15rem;
 }
 .jjk-plan-amt + .jjk-plan-amt {
   border-left: 1px solid var(--border);
-  padding-left: 1rem;
+  padding-left: 1.1rem;
 }
-.jjk-plan-amt .jjk-plan-per {
-  font-family: var(--font-mono);
-  font-weight: 400;
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
-  white-space: normal;
+.jjk-plan-amt-label {
+  font-family: var(--font-sans);
+  font-size: 0.66rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.jjk-plan-amt-value {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+.jjk-plan-amt-unit {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--foreground-dim);
 }
 @media (min-width: 640px) {
   .jjk-plan-price-duo {
     flex: 0 0 auto;
-    display: flex;
-    gap: 1.4rem;
+    grid-template-columns: repeat(2, 11.5rem);
     margin-top: 0;
+    border-top: 0;
   }
-  .jjk-plan-amt {
-    align-items: flex-end;
-  }
+  .jjk-plan-amt,
   .jjk-plan-amt + .jjk-plan-amt {
-    border-left: 0;
-    padding-left: 0;
+    padding: 0.15rem 0 0.15rem 1.5rem;
+    border-left: 1px solid var(--border);
   }
-  .jjk-plan-amt .jjk-plan-per {
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    white-space: nowrap;
-  }
-}
-.jjk-plan[data-featured] .jjk-plan-amt + .jjk-plan-amt {
-  color: var(--accent-bright);
 }
 
 .jjk-benefits {

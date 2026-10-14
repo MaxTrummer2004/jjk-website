@@ -454,7 +454,7 @@ export const pricing = {
    * Jahresmodell haben soll.
    */
   hint:
-    "Mitglied wirst du im Training: sag vorher kurz Bescheid, dann ist alles in fünf Minuten erledigt. Online abschließen und zahlen kommt bald.",
+    "Mitglied wirst du online über „Mitglied werden“ oder direkt im Training.",
 } as const;
 
 export const faqs = [
