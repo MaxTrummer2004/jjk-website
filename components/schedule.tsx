@@ -281,9 +281,9 @@ function Arrow({ direction, onClick, label }: ArrowProps): ReactNode {
       // 44 px im Quadrat: das kleinste Fingerziel, das zuverlaessig getroffen
       // wird (WCAG 2.5.5). Rand statt Flaeche, weil eine gefuellte Schaltflaeche
       // hier mit den Karten um dieselbe Helligkeit konkurrieren wuerde.
-      className="flex h-11 w-11 shrink-0 items-center justify-center border border-border text-foreground-dim transition-colors hover:border-border-hot hover:bg-card-plate-hot hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+      className="flex h-9 w-9 shrink-0 items-center justify-center border border-border text-foreground-dim transition-colors hover:border-border-hot hover:bg-card-plate-hot hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
     >
-      <span aria-hidden="true" className="text-lg leading-none">
+      <span aria-hidden="true" className="text-base leading-none">
         {direction === "prev" ? "‹" : "›"}
       </span>
     </button>
@@ -337,50 +337,18 @@ function ScheduleStack({
         />
       </div>
 
-      {/* Die Leiste, zweizeilig.
-          Einzeilig ginge sie nicht auf: sechs Tagesziele zu 44 px plus zwei
-          Pfeile zu 44 px sind 352 px, und ein 320-px-Geraet hat nach dem
-          Seitenpolster 288 px. Also oben die sechs Tage (direkter Zugriff,
-          volle Breite), darunter die beiden Pfeile mit der Positionszeile
-          dazwischen (sequentiell). 6 x 44 + 5 x 2 = 274 px — das passt. */}
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-0.5 sm:gap-1.5">
-        {schedule.map((col, i) => {
-          const active = i === index;
-          return (
-            <button
-              key={col.day}
-              type="button"
-              onClick={() => controller.current?.goTo(i)}
-              aria-current={active ? "true": undefined}
-              aria-label={DAY_FULL[col.day] ?? col.day}
-              className={[
-                "relative flex h-11 min-w-11 items-center justify-center px-1.5 font-mono text-[0.78rem] font-medium tracking-[0.08em] uppercase transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:px-3",
-                active ? "text-accent" : "text-muted-foreground hover:text-foreground",
-              ].join(" ")}
-            >
-              {col.day}
-              {/* Die Marke unter dem laufenden Tag. Ein Strich, kein Punkt
-                  und kein Kasten — dieselbe Haarlinie, aus der die ganze
-                  untere Seitenhaelfte gebaut ist. */}
-              <span
-                aria-hidden="true"
-                className="absolute bottom-1.5 left-1/2 h-px w-5 -translate-x-1/2 transition-opacity"
-                style={{ background: "var(--accent)", opacity: active ? 1: 0 }}
-              />
-            </button>
-          );
-        })}
-      </div>
-
+      {/* Die Tagesleiste (Mo bis Sa als eigene Knoepfe) ist seit 15.10.2026
+          weg: blaettern soll man vor allem per Klick auf die Karten. Uebrig
+          bleibt eine kleine Zeile mit zwei Pfeilen, naeher am Stapel. */}
       {/* Position in Worten, zwischen den beiden Pfeilen. `aria-live`, damit
           ein Screenreader den Wechsel mitbekommt — die Karten selbst tauschen
           nur ihre Z-Reihenfolge, und davon erfaehrt er nichts. */}
-      <div className="mt-3 flex items-center justify-center gap-3">
+      <div className="-mt-5 flex items-center justify-center gap-2">
         <Arrow direction="prev" onClick={prev} label="Vorheriger Tag" />
         <p
           id={liveId}
           aria-live="polite"
-          className="min-w-[10.5rem] text-center text-sm text-foreground-dim"
+          className="min-w-[9rem] text-center text-xs text-foreground-dim"
         >
           <span className="text-foreground">{dayLong}</span>
           <span className="text-muted-foreground"> · {index + 1} von {schedule.length}</span>
