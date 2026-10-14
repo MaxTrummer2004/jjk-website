@@ -42,6 +42,9 @@ const OVERSCAN = 0;
 // Frueher gelockt als beim Video (dort 0,55): die Box soll schnell stehen,
 // denn erst DANN faengt der Zoom an, und der ist der eigentliche Inhalt.
 const GROWTH_END = 0.34;
+// Die Adressplatte blendet auf diesem Stueck der Strecke ein.
+const PLATE_IN = 0.9;
+const PLATE_SET = 0.99;
 
 /** Deckt sich mit dem Seitenpolster der Sektionen darunter: px-5 / sm:px-8 / lg:px-10 */
 function sectionPadding(viewportWidth: number): number {
@@ -169,8 +172,31 @@ export function Location(): ReactNode {
   const captionY = useTransform(y, (value) => NAV_OFFSET + value - 44);
 
   // Die Adresse kommt erst, wenn ganz hineingezoomt ist.
-  const plateOpacity = useTransform(scrollProgress, [0.9, 0.99], [0, 1]);
-  const plateY = useTransform(scrollProgress, [0.9, 0.99], [18, 0]);
+  const plateOpacity = useTransform(scrollProgress, [PLATE_IN, PLATE_SET], [0, 1]);
+  const plateY = useTransform(scrollProgress, [PLATE_IN, PLATE_SET], [18, 0]);
+  // Die Wahrzeichen-Marken bleiben bis zum Schluss im Bild (siehe
+  // street-map.tsx) und muessen der Platte Platz machen, wenn die kommt. Die
+  // Hoehe liegt in einem Ref, nicht im State: useTransform haengt seine
+  // Rechenvorschrift beim ersten Rendern an den Scrollwert, ein State-Wert
+  // darin waere danach veraltet. Der Beobachter unten haelt das Ref aktuell.
+  const plateHeightRef = useRef(0);
+  const plateRef = useRef<HTMLDivElement>(null);
+  const reserveBottom = useTransform(scrollProgress, (v) => {
+    const t = Math.min(Math.max((v - PLATE_IN) / (PLATE_SET - PLATE_IN), 0), 1);
+    return t * plateHeightRef.current;
+  });
+  useEffect(() => {
+    const el = plateRef.current;
+    if (!el) return;
+    const measure = (): void => {
+      // Plus der Abstand der Platte zum unteren Rand (bottom-6 / bottom-9).
+      plateHeightRef.current = el.offsetHeight + (isMobile ? 24 : 36);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isMobile, prefersReducedMotion]);
   // Der Maps-Hinweis kommt frueher als die Adresse: sobald die Karte fertig
   // aufgezogen ist. Er hing bis 10.10.2026 an plateOpacity, erschien also erst
   // ganz am Ende der Strecke, war klein und blass — der Vorstand hat ihn nicht
@@ -262,7 +288,7 @@ export function Location(): ReactNode {
             aria-label={`${siteConfig.address.street}, ${siteConfig.address.city} in Google Maps öffnen`}
             className="group relative block h-full w-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-inset"
           >
-            <StreetMap progress={scrollProgress} from={GROWTH_END} />
+            <StreetMap progress={scrollProgress} from={GROWTH_END} reserveBottom={reserveBottom} />
 
             {/* Der Hinweis erscheint mit der Adresse, nicht schon waehrend des
                 Zooms: solange die Karte noch faehrt, ist sie kein Ziel. */}
@@ -278,6 +304,7 @@ export function Location(): ReactNode {
                 lesbar fuer Suchmaschinen und Screenreader, kopierbar, und sie
                 steht auch dann da, wenn die Kartendatei nicht laedt. */}
             <motion.div
+              ref={plateRef}
               style={{ opacity: plateOpacity, y: plateY }}
               className={`absolute ${
                 isMobile ? "inset-x-5 bottom-6" : "bottom-9 left-9"

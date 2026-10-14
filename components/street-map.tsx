@@ -45,6 +45,21 @@
  * Gebaeudegrundrisse im Umkreis von 480 m darin, und das eigene Haus ist
  * hervorgehoben. Der letzte Blick ist damit der dichteste.
  *
+ * ── Wahrzeichen bleiben im Bild ─────────────────────────────────────────────
+ * Bis 15.10.2026 verschwand ein Wahrzeichen, sobald `view` unter seine
+ * Entfernung fiel — also genau dann, wenn man anfing, die Gegend zu verstehen.
+ * Das Einkaufszentrum (2,4 km) war nur ein paar Prozent der Strecke zu sehen,
+ * am Handy im Hochformat lag es von Anfang an ausserhalb des Rahmens. Der
+ * Vorstand: "man bekommt die drei Punkte nicht wirklich mit".
+ *
+ * Jetzt bleiben alle Marken bis zum Schluss: wandert ein Wahrzeichen aus dem
+ * Rahmen, haelt seine Marke am Rand in der Richtung an, in der es liegt, mit
+ * einem Pfeil nach draussen — so, wie Karten-Apps Ziele ausserhalb des
+ * Ausschnitts zeigen. Eine gestrichelte Linie vom Gym zur Marke macht die
+ * Entfernung, die daneben steht, als Richtung lesbar. Der Rahmen, in dem die
+ * Marken bleiben, laesst oben den Maps-Hinweis frei und unten die Adressplatte,
+ * sobald die erscheint (`reserveBottom`).
+ *
  * ── Detailstufen ────────────────────────────────────────────────────────────
  * Fusswege waren weit draussen ein grauer Schmierfleck und nah dran sinnvoll,
  * die Fernstrassen umgekehrt. Beide werden jetzt ueber `view` ein- und
@@ -53,6 +68,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { MotionValue } from "motion/react";
+import { Clapperboard, Goal, ShoppingBag, TrainFront, type LucideIcon } from "lucide-react";
 
 interface Mark {
   n: string;
@@ -78,6 +94,24 @@ interface Line {
   hi: number;
 }
 
+/** Ein belegtes Rechteck in Rahmen-Koordinaten (Ursprung = Gym), fuer die Kollisionspruefung der Beschriftungen. */
+interface Box {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** Eine Marke nach der Lagebestimmung; wird erst NACH der Randblende gezeichnet. */
+interface Pin {
+  x: number;
+  y: number;
+  dx: number;
+  dy: number;
+  e: number;
+  dockE: number;
+}
+
 const NEAR = 320;
 
 /**
@@ -96,9 +130,9 @@ const NEAR = 320;
  * uebereinstimmen.
  *
  * Kino und Bahnhof sind der Sonderfall: sie liegen keine 90 m auseinander.
- * Ihre Beschriftungen zeigen deshalb voneinander weg (`s` in der Datendatei).
- * Wer hier eine davon gegen etwas anderes tauscht, sollte die Seiten wieder
- * pruefen.
+ * Ihre Beschriftungen zeigen deshalb voneinander weg (`s` in der Datendatei),
+ * solange beide noch im Rahmen liegen. Wer hier eine davon gegen etwas anderes
+ * tauscht, sollte die Seiten wieder pruefen.
  */
 const SHOWN = [
   "Cineplexx",
@@ -107,6 +141,21 @@ const SHOWN = [
   "Stadion Liebenau",
 ];
 const PAPER = "232, 222, 210";
+
+/**
+ * Ein Zeichen je Art, damit man die Marken beim Ueberfliegen unterscheidet,
+ * ohne zu lesen. Der Schluessel ist `sub` aus der Datendatei.
+ */
+const ICONS: Record<string, LucideIcon> = {
+  Bahnhof: TrainFront,
+  Kino: Clapperboard,
+  Einkaufszentrum: ShoppingBag,
+  Stadion: Goal,
+};
+
+function clamp01(v: number): number {
+  return Math.min(Math.max(v, 0), 1);
+}
 
 /** 1, sobald `view` unter `b` liegt; 0 oberhalb von `a`. */
 function lod(view: number, a: number, b: number): number {
@@ -137,14 +186,18 @@ function km(m: number): string {
 export function StreetMap({
   progress,
   from = 0.55,
+  reserveBottom,
   className = "",
 }: {
   progress: MotionValue<number>;
   from?: number;
+  /** Hoehe in px, die die Marken am unteren Rand freilassen (die Adressplatte, sobald sie da ist). */
+  reserveBottom?: MotionValue<number>;
   className?: string;
 }): ReactNode {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const homeRef = useRef<HTMLDivElement>(null);
   const markRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [marks, setMarks] = useState<Mark[]>([]);
 
@@ -334,51 +387,124 @@ export function StreetMap({
         ctx.stroke();
       }
 
-      // ── Wahrzeichen ──────────────────────────────────────────────────────
-      const placed: { x: number; y: number }[] = [];
+      // ── Wahrzeichen: Lage, Linie, Beschriftung ───────────────────────────
+      // Erst alle Masse LESEN, dann schreiben: ein offsetWidth nach einem
+      // style.left im selben Bild erzwingt ein synchrones Layout.
+      const wrapRect = wrap.getBoundingClientRect();
+      const homeEl = homeRef.current;
+      const boxes: Box[] = [];
+      if (homeEl) {
+        const hr = homeEl.getBoundingClientRect();
+        boxes.push({ x: hr.left - wrapRect.left - w / 2, y: hr.top - wrapRect.top - h / 2, w: hr.width, h: hr.height });
+      }
+      const sizes = data.marks.map((_, i) => {
+        const el = markRefs.current[i];
+        return el ? { w: el.offsetWidth, h: el.offsetHeight } : { w: 0, h: 0 };
+      });
+
+      // Der Rahmen, in dem die Marken bleiben: oben unter dem Maps-Hinweis
+      // und dem OSM-Vermerk, unten ueber der Adressplatte, sobald die kommt.
+      // Seitlich so viel, dass Ring und Pfeil noch Platz haben.
+      const reserve = reserveBottom?.get() ?? 0;
+      const dock = {
+        l: -w / 2 + 22 * k,
+        r: w / 2 - 22 * k,
+        t: -h / 2 + 60,
+        b: h / 2 - 26 - reserve,
+      };
+      const pins: Pin[] = [];
+
+      ctx.setLineDash([2 * k, 6 * k]);
       for (let i = 0; i < data.marks.length; i++) {
         const m = data.marks[i]!;
-        const inT = Math.min(Math.max((eased - i * 0.03) / 0.09, 0), 1);
-        const outT = Math.min(Math.max((view - m.d) / 420, 0), 1);
-        const dropE = 1 - Math.pow(1 - inT, 3);
-        const e = dropE * outT;
         const el = markRefs.current[i];
-        const mx = m.x * s;
-        const my = m.y * s + (1 - dropE) * -30;
+        // Gestaffelt kurz nach dem Aufziehen, der naechste zuerst — und dann
+        // bleiben sie. Das Ausblenden nach `view` ist weg, siehe Kopf.
+        const inT = clamp01((eased - i * 0.05) / 0.1);
+        const e = 1 - Math.pow(1 - inT, 3);
 
         if (e < 0.01) {
           if (el) el.style.visibility = "hidden";
           continue;
         }
 
-        // Ein Ring, mehr nicht. Die Auskunft steckt in der Entfernung
-        // daneben, nicht in der Form des Punktes.
-        ctx.beginPath();
-        // Vorher 1,3 px auf 0,7 Deckung: auf einem Schirm mit Glut darunter
-        // war das eine Andeutung, kein Zeichen. Ein Symbol muss ueberleben,
-        // wenn es klein ist.
-        ctx.arc(mx, my, 5.5 * k, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(255, 214, 158, ${0.95 * e})`;
-        ctx.lineWidth = 2.2 * k;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(mx, my, 2.2 * k, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 236, 206, ${e})`;
-        ctx.fill();
+        const rx = m.x * s;
+        const ry = m.y * s + (1 - e) * -30;
+        const r = Math.max(1, Math.hypot(rx, ry));
+        const dx = rx / r;
+        const dy = ry / r;
+
+        // Der Strahl vom Gym zum Wahrzeichen, geschnitten mit dem Rahmen:
+        // davor liegt die Marke auf dem Ort selbst, dahinter haelt sie am Rand.
+        let tEdge = Infinity;
+        let side = 0; // 0 links, 1 rechts, 2 oben, 3 unten
+        if (dx < 0 && dock.l / dx < tEdge) { tEdge = dock.l / dx; side = 0; }
+        if (dx > 0 && dock.r / dx < tEdge) { tEdge = dock.r / dx; side = 1; }
+        if (dy < 0 && dock.t / dy < tEdge) { tEdge = dock.t / dy; side = 2; }
+        if (dy > 0 && dock.b / dy < tEdge) { tEdge = dock.b / dy; side = 3; }
+        const mx = dx * Math.min(r, tEdge);
+        const my = dy * Math.min(r, tEdge);
+        // Weich statt schlagartig: auf den letzten 70 px vor dem Rand wandert
+        // die Beschriftung von "neben dem Ring" nach "innen vom Ring".
+        const dockT = clamp01((r - (tEdge - 70)) / 70);
+        const dockE = dockT * dockT * (3 - 2 * dockT);
+        pins.push({ x: mx, y: my, dx, dy, e, dockE });
+
+        // Die Linie vom Gym zur Marke. Fruehere Fassung hatte eine
+        // Fuehrungslinie zwischen Ring und Beschriftung, die nebeneinander
+        // lagen — zwei Striche fuer null Auskunft, und sie flog raus. Diese
+        // hier verbindet zwei Dinge, die NICHT nebeneinander liegen: das Gym
+        // und einen Punkt am Rand. Sie ist die Entfernung als Richtung.
+        const gap = 26 * k;
+        if (Math.hypot(mx, my) > gap + 12 * k) {
+          ctx.beginPath();
+          ctx.moveTo(dx * gap, dy * gap);
+          ctx.lineTo(mx - dx * 9 * k, my - dy * 9 * k);
+          ctx.strokeStyle = `rgba(255, 170, 90, ${0.1 * e})`;
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          ctx.strokeStyle = `rgba(255, 190, 132, ${0.5 * e})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
 
         if (!el) continue;
-        // Die Fuehrungslinie ist weg. Sie war 0,9 px auf 0,3 Deckung, also
-        // gerade noch sichtbar, und sie musste etwas verbinden, was ohnehin
-        // nebeneinander liegt: zwei Striche fuer null Auskunft. Stattdessen
-        // sitzt die Beschriftung direkt neben dem Ring, auf einer eigenen
-        // Platte — damit hat sie eine Kante und liegt nicht auf den Strassen.
-        const dir = m.s === "left" ? -1 : 1;
-        const lx = mx + dir * 13 * k;
-        let ly = my;
-        for (const q of placed) {
-          if (Math.abs(q.x - lx) < 170 && Math.abs(q.y - ly) < 30) ly = q.y + 34;
+        const { w: lw, h: lh } = sizes[i]!;
+
+        // Platz A: neben dem Ring, Seite aus der Datendatei.
+        const sideDir = m.s === "left" ? -1 : 1;
+        const ax = sideDir < 0 ? mx - 13 * k - lw : mx + 13 * k;
+        const ay = my - lh / 2;
+        // Platz B: nach innen, von der Kante weg, an der die Marke haelt.
+        let bx: number;
+        let by: number;
+        if (side === 0) { bx = mx + 12 * k; by = my - lh / 2; }
+        else if (side === 1) { bx = mx - 12 * k - lw; by = my - lh / 2; }
+        else if (side === 2) { bx = mx - lw / 2; by = my + 11 * k; }
+        else { bx = mx - lw / 2; by = my - 11 * k - lh; }
+
+        let lx = ax + (bx - ax) * dockE;
+        let ly = ay + (by - ay) * dockE;
+        lx = Math.min(Math.max(lx, -w / 2 + 8), w / 2 - 8 - lw);
+        ly = Math.min(Math.max(ly, dock.t + 2), dock.b - lh);
+
+        // Nichts liegt auf etwas anderem: Beschriftungen weichen einander
+        // und der Gym-Marke aus. Wer oben oder unten am Rand haengt, rueckt
+        // zur Seite (bleibt also auf Hoehe seiner Marke), alle anderen nach
+        // unten. Ein paar Durchgaenge reichen fuer vier Marken.
+        const alongEdge = dockE > 0.5 && side >= 2;
+        for (let pass = 0; pass < 4; pass++) {
+          let moved = false;
+          for (const q of boxes) {
+            if (lx < q.x + q.w + 6 && lx + lw + 6 > q.x && ly < q.y + q.h + 6 && ly + lh + 6 > q.y) {
+              if (alongEdge) lx = lx + lw / 2 >= q.x + q.w / 2 ? q.x + q.w + 6 : q.x - 6 - lw;
+              else ly = q.y + q.h + 6;
+              moved = true;
+            }
+          }
+          if (!moved) break;
         }
-        placed.push({ x: lx, y: ly });
+        boxes.push({ x: lx, y: ly, w: lw, h: lh });
 
         el.style.visibility = "visible";
         el.style.opacity = `${e}`;
@@ -386,8 +512,8 @@ export function StreetMap({
         // genau das liest sich als unfertig.
         el.style.left = `${Math.round(w / 2 + lx)}px`;
         el.style.top = `${Math.round(h / 2 + ly)}px`;
-        el.style.transform = `translateY(-50%) ${m.s === "left" ? "translateX(-100%)" : ""}`;
       }
+      ctx.setLineDash([]);
 
       // ── Das Gym ──────────────────────────────────────────────────────────
       // Hier lagen vier Dinge uebereinander: ein Schein, ein pulsender Ring,
@@ -432,6 +558,41 @@ export function StreetMap({
       edge.addColorStop(1, "rgba(7, 7, 10, 1)");
       ctx.fillStyle = edge;
       ctx.fillRect(0, 0, w, h);
+
+      // ── Die Marken, ueber der Blende ─────────────────────────────────────
+      // Am Rand angedockt laegen sie mitten in der Blende und wuerden halb
+      // geschluckt; die Linie darf dort verblassen, das Zeichen nicht.
+      ctx.translate(w / 2, h / 2);
+      for (const p of pins) {
+        // Ein Ring, mehr nicht. Die Auskunft steckt in der Entfernung
+        // daneben, nicht in der Form des Punktes. Vorher 1,3 px auf 0,7
+        // Deckung: auf einem Schirm mit Glut darunter war das eine Andeutung,
+        // kein Zeichen. Ein Symbol muss ueberleben, wenn es klein ist.
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 5.5 * k, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255, 214, 158, ${0.95 * p.e})`;
+        ctx.lineWidth = 2.2 * k;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.2 * k, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 236, 206, ${p.e})`;
+        ctx.fill();
+
+        // Der Pfeil nach draussen: nur, wenn die Marke am Rand haelt.
+        if (p.dockE > 0.01) {
+          const tx = p.x + p.dx * 12 * k;
+          const ty = p.y + p.dy * 12 * k;
+          const px = -p.dy;
+          const py = p.dx;
+          ctx.beginPath();
+          ctx.moveTo(tx - p.dx * 4 * k + px * 4 * k, ty - p.dy * 4 * k + py * 4 * k);
+          ctx.lineTo(tx, ty);
+          ctx.lineTo(tx - p.dx * 4 * k - px * 4 * k, ty - p.dy * 4 * k - py * 4 * k);
+          ctx.strokeStyle = `rgba(255, 214, 158, ${0.9 * p.e * p.dockE})`;
+          ctx.lineWidth = 1.8 * k;
+          ctx.stroke();
+        }
+      }
     };
 
     const layout = (): void => {
@@ -503,7 +664,7 @@ export function StreetMap({
       cancelAnimationFrame(raf);
       ro.disconnect();
     };
-  }, [progress, from]);
+  }, [progress, from, reserveBottom]);
 
   return (
     <div ref={wrapRef} className={`relative h-full w-full ${className}`}>
@@ -512,27 +673,34 @@ export function StreetMap({
       {/* Die eigene Marke traegt als einzige eine gefuellte Platte: sie ist
           der Punkt, um den es geht, und muss sich von den vier Wahrzeichen
           unterscheiden, ohne groesser zu sein. */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[24px] sm:translate-y-[34px]">
+      <div ref={homeRef} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[24px] sm:translate-y-[34px]">
         <span className="block rounded-md bg-[#ff6a1f] px-2 py-0.5 font-mono text-[0.55rem] font-semibold uppercase tracking-[0.14em] whitespace-nowrap text-[#120703] sm:px-2.5 sm:py-1 sm:text-[0.62rem] sm:tracking-[0.18em]">
           JJK Academy
         </span>
       </div>
 
-      {marks.map((m, i) => (
-        <div
-          key={m.n}
-          ref={(el) => { markRefs.current[i] = el; }}
-          className="pointer-events-none absolute flex flex-col gap-0.5 rounded-md border border-white/12 bg-[#0b0b10]/88 px-2 py-1 leading-tight backdrop-blur-[2px] sm:px-2.5 sm:py-1.5"
-          style={{ opacity: 0, visibility: "hidden" }}
-        >
-          <span className="text-[0.7rem] font-semibold whitespace-nowrap text-foreground sm:text-[0.8rem]">
-            {m.n}
-          </span>
-          <span className="font-mono text-[0.55rem] tracking-wide whitespace-nowrap text-[#ffbe84] sm:text-[0.6rem]">
-            {km(m.d)}
-          </span>
-        </div>
-      ))}
+      {/* Die Lage (left/top) setzt der Zeichenschritt oben, aus demselben
+          Massstab wie die Ringe im Canvas. Warme Kante statt Weiss: die Platte
+          gehoert zur Glut, nicht zur Benutzeroberflaeche. */}
+      {marks.map((m, i) => {
+        const Icon = ICONS[m.sub];
+        return (
+          <div
+            key={m.n}
+            ref={(el) => { markRefs.current[i] = el; }}
+            className="pointer-events-none absolute flex flex-col gap-0.5 rounded-md border border-[#ffbe84]/25 bg-[#0b0b10]/90 px-2 py-1 leading-tight shadow-[0_8px_20px_-10px_rgba(0,0,0,0.9)] backdrop-blur-[2px] sm:px-2.5 sm:py-1.5"
+            style={{ opacity: 0, visibility: "hidden" }}
+          >
+            <span className="flex items-center gap-1.5 text-[0.72rem] font-semibold whitespace-nowrap text-foreground sm:text-[0.82rem]">
+              {Icon ? <Icon className="size-3 shrink-0 text-[#ffbe84]" strokeWidth={2} aria-hidden="true" /> : null}
+              {m.n}
+            </span>
+            <span className="font-mono text-[0.58rem] tracking-wide whitespace-nowrap text-[#ffbe84] sm:text-[0.64rem]">
+              {km(m.d)}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
