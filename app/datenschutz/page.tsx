@@ -323,7 +323,8 @@ export default function DatenschutzPage(): ReactNode {
         <p>
           Ausgenommen sind die Aufzeichnungen über Zahlungen: Sie bewahrt der
           Verein so lange auf, wie gesetzliche Aufbewahrungspflichten es
-          verlangen, in der Regel sieben Jahre (§ 132 BAO).
+          verlangen, in der Regel sieben Jahre (§ 132 BAO), gerechnet ab dem
+          Ende des Kalenderjahres, in dem die letzte Zahlung verbucht wurde.
         </p>
         <p>
           Abgelehnte Anträge löscht der Vorstand, auf Wunsch sofort.
@@ -583,6 +584,25 @@ export default function DatenschutzPage(): ReactNode {
       </section>
 
       <section>
+        <h2>Übermittlung in Länder außerhalb der EU</h2>
+        <p>
+          Website, Datenbank, E-Mail-Versand und Online-Zahlung laufen
+          ausschließlich bei Anbietern mit Sitz und Servern in der EU (siehe
+          oben). Dabei verlassen Ihre Daten die EU nicht.
+        </p>
+        <p>
+          Anders ist es bei den Diensten der Meta-Gruppe, die der Verein für
+          seinen Auftritt und die Kommunikation nutzt: Instagram und WhatsApp
+          (siehe die beiden folgenden Abschnitte). Meta kann Daten in die USA
+          übermitteln. Grundlage ist der Angemessenheitsbeschluss der
+          EU-Kommission zum EU-US Data Privacy Framework vom 10. Juli 2023
+          (Art. 45 DSGVO); die Meta Platforms, Inc. ist danach zertifiziert. Die
+          Liste der zertifizierten Unternehmen führt das US-Handelsministerium
+          unter dataprivacyframework.gov.
+        </p>
+      </section>
+
+      <section>
         <h2>Präsenz auf Instagram</h2>
         <p>
           Der Verein betreibt ein Profil auf Instagram
@@ -689,6 +709,12 @@ export default function DatenschutzPage(): ReactNode {
           antworten innerhalb eines Monats.
         </p>
 
+        <p>
+          Neben der DSGVO gilt in Österreich das Datenschutzgesetz (DSG). Es
+          ergänzt die DSGVO unter anderem beim Auskunfts-, Berichtigungs- und
+          Löschungsrecht.
+        </p>
+
         <h3>Beschwerderecht</h3>
         <p>
           Wenn Sie der Ansicht sind, dass die Verarbeitung Ihrer Daten gegen die
@@ -739,6 +765,13 @@ export default function DatenschutzPage(): ReactNode {
             Wiederherstellbarkeit getestet.
           </li>
         </ul>
+        <p>
+          Für Ihr Konto sind Sie mitverantwortlich: Wählen Sie ein eigenes,
+          nicht anderswo verwendetes Passwort, geben Sie es nicht weiter und
+          melden Sie sich an fremden Geräten wieder ab. Wenn Sie vermuten, dass
+          jemand Ihr Passwort kennt, ändern Sie es im Mitgliederbereich oder
+          sagen Sie dem Vorstand Bescheid.
+        </p>
       </section>
 
       <section>
@@ -760,7 +793,7 @@ export default function DatenschutzPage(): ReactNode {
         </p>
       </section>
 
-      <p className="jjk-legal-stand">Stand: 13. Oktober 2026</p>
+      <p className="jjk-legal-stand">Stand: 14. Oktober 2026</p>
     </LegalPage>
   );
 }
