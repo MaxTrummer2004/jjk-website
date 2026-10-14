@@ -22,6 +22,7 @@ import {
   togglePaymentAction,
 } from "./actions";
 import { ResetPassword } from "./reset-password";
+import { CreateStaff, NewSetupLink } from "./staff";
 
 export const dynamic = "force-dynamic";
 
@@ -352,21 +353,26 @@ export default async function BoardPage(): Promise<ReactNode> {
         </section>
 
         {/* ── Trainer & Vorstand (beitragsfrei) ───────────────────── */}
-        {staff.length > 0 ? (
-          <section className="mt-16">
-            <h2 className="font-mono text-[0.72rem] font-medium uppercase tracking-[0.24em] text-accent">
-              Trainer &amp; Vorstand · beitragsfrei ({staff.length})
-            </h2>
-            <ul className="mt-4 flex flex-col gap-3">
-              {staff.map((m) => (
-                <li key={m.id} className="rounded-xl border border-border bg-card-plate p-4">
-                  <span className="font-medium text-foreground">{m.name}</span>
-                  <Details m={m} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
+        <section className="mt-16">
+          <h2 className="font-mono text-[0.72rem] font-medium uppercase tracking-[0.24em] text-accent">
+            Trainer &amp; Vorstand · beitragsfrei ({staff.length})
+          </h2>
+          <div className="mt-4">
+            <CreateStaff />
+          </div>
+          <ul className="mt-3 flex flex-col gap-3">
+            {staff.map((m) => (
+              <li key={m.id} className="rounded-xl border border-border bg-card-plate p-4">
+                <span className="font-medium text-foreground">{m.name}</span>
+                <span className="ml-2 text-sm text-foreground-dim">{m.email}</span>
+                <div className="mt-3">
+                  <NewSetupLink memberId={m.id} />
+                </div>
+                <Details m={m} />
+              </li>
+            ))}
+          </ul>
+        </section>
 
         {/* ── Abgelehnt ────────────────────────────────────────────── */}
         {rejected.length > 0 ? (

@@ -1,6 +1,8 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { siteConfig } from "@/lib/config";
 import { sql } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 import { getCurrentMember, getMember, isBoard, type MemberRecord } from "@/lib/members";
@@ -165,4 +167,57 @@ export async function deleteTrialRequestAction(formData: FormData): Promise<void
   if (!Number.isInteger(id) || id <= 0) return;
   await sql`delete from trial_requests where id = ${id}`;
   revalidatePath("/vorstand");
+}
+
+
+export interface StaffState {
+  link?: string;
+  name?: string;
+  error?: string;
+}
+
+function setupLink(token: string): string {
+  const base = (process.env.SITE_URL ?? siteConfig.url).replace(/\/$/, "");
+  return `${base}/konto-einrichten?token=${token}`;
+}
+
+/**
+ * Konto fuer Trainer oder Vorstand anlegen: beitragsfrei, sofort aufgenommen,
+ * ohne Passwort. Zurueck kommt ein Einrichtungslink, den der Vorstand
+ * weiterschickt; damit legt die Person ihr Passwort selbst fest.
+ * Den Vorstandsbereich sieht trotzdem nur, wer in BOARD_EMAILS steht.
+ */
+export async function createStaffAction(_prev: StaffState, formData: FormData): Promise<StaffState> {
+  const me = await requireBoard();
+  const first = String(formData.get("first_name") ?? "").trim();
+  const last = String(formData.get("last_name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!first || !last) return { error: "Vor- und Nachname fehlen." };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Die E-Mail-Adresse sieht nicht gültig aus." };
+
+  const existing = await sql<{ id: number }>`select id from members where email = ${email}`;
+  if (existing[0]) return { error: "Mit dieser E-Mail gibt es schon ein Konto." };
+
+  const token = randomBytes(24).toString("hex");
+  const name = `${first} ${last}`;
+  await sql`
+    insert into members (name, first_name, last_name, email, password_hash, status, fee_exempt,
+      applied_at, decided_at, decided_by, setup_token)
+    values (${name}, ${first}, ${last}, ${email}, '!', 'active', true,
+      now(), now(), ${me.id}, ${token})
+  `;
+  done();
+  return { link: setupLink(token), name };
+}
+
+/** Neuen Einrichtungslink fuer ein bestehendes Konto (z. B. Passwort vergessen). */
+export async function newSetupLinkAction(_prev: StaffState, formData: FormData): Promise<StaffState> {
+  await requireBoard();
+  const id = idFrom(formData);
+  const token = randomBytes(24).toString("hex");
+  const rows = await sql<{ name: string }>`
+    update members set setup_token = ${token} where id = ${id} returning name
+  `;
+  if (!rows[0]) return { error: "Konto nicht gefunden." };
+  return { link: setupLink(token), name: rows[0].name };
 }
