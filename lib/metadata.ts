@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 // Auf true setzen, wenn die Seite öffentlich gehen soll.
 // false → noindex/nofollow auf allen Seiten; robots.txt und sitemap passen sich an.
-export const SITE_INDEXABLE = false;
+export const SITE_INDEXABLE = true;
 
 export const siteConfig = {
   name: "JJK · Jiu-Jitsu Kaisen Academy",

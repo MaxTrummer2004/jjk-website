@@ -15,6 +15,8 @@ export default function robots(): MetadataRoute.Robots {
           "/private/",
           // /mitglieder dauerhaft draußen — unabhängig von SITE_INDEXABLE
           "/mitglieder",
+          "/vorstand",
+          "/konto-einrichten",
         ],
       },
     ],
