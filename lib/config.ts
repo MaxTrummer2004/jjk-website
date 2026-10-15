@@ -236,7 +236,7 @@ export const coaches = [
   },
   {
     name: "Ricardo",
-    belt: "Fitnessboxen",
+    belt: "Boxen",
     beltHex: "#1d4ed8",
     image: "/img/coaches/ricardo.jpg?v=2",
     bio: "",
