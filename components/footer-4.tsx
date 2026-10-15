@@ -54,7 +54,7 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
       { text: siteConfig.address.street, href: siteConfig.address.maps },
       { text: siteConfig.address.city, href: siteConfig.address.maps },
       { text: "Mo bis Fr, 17:00 bis 20:30 Uhr" },
-      { text: "Sa, 11:00 bis 12:30 Uhr" },
+      { text: "Sa, 12:15 bis 13:45 Uhr" },
     ],
   },
   {

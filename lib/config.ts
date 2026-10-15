@@ -366,7 +366,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   {
     day: "Sa",
     classes: [
-      { time: "11:00–12:30", name: "Open Mat", note: "Gi & No-Gi · freies Rollen für alle", program: "Open Mat", kind: "openmat", level: "jedes", attire: "both" },
+      { time: "12:15–13:45", name: "Open Mat", note: "Gi & No-Gi · freies Rollen für alle", program: "Open Mat", kind: "openmat", level: "jedes", attire: "both" },
     ],
   },
 ];
