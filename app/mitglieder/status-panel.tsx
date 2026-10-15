@@ -184,9 +184,7 @@ function PaymentBlock({
       <section className="rounded-2xl p-6 text-white shadow-lg" style={{ background: GREEN }} aria-label="Zahlungsstatus">
         <p className="text-sm font-medium uppercase tracking-wider text-white/80">{payment.monthLabel}</p>
         <p className="mt-1 text-2xl font-semibold">✓ Alles bezahlt</p>
-        {hasSubscription ? (
-          <p className="mt-2 text-sm text-white/85">Der Beitrag wird monatlich automatisch per SEPA-Lastschrift abgebucht.</p>
-        ) : null}
+
         {hasSubscription && plan === "flex" ? <CancelFlex /> : null}
       </section>
     );
@@ -206,7 +204,12 @@ function PaymentBlock({
     );
   }
 
-  const firstPayment = payEnabled && plan !== null && PLAN_INFO[plan].monthly && !hasSubscription;
+  // Seit 15.10.2026 (Vorstand): Monatsbeitraege per Dauerauftrag aufs
+  // Vereinskonto, online ueber Mollie nur noch Einmaliges (Einschreibgebuehr,
+  // 10er-Block). Lastschriften kosten pro Buchung Gebuehren.
+  const monthOpen = payable.find((i) => i.key === "month");
+  const oneOff = payable.filter((i) => i.key !== "month");
+  const oneOffCents = oneOff.reduce((s, i) => s + i.cents, 0);
 
   return (
     <section className="rounded-2xl p-6 text-white shadow-lg" style={{ background: RED }} aria-label="Zahlungsstatus">
@@ -230,30 +233,35 @@ function PaymentBlock({
         </p>
       ) : null}
 
-      {payEnabled ? (
+      {payEnabled && oneOff.length > 0 ? (
         <form action={startPaymentAction} className="mt-5">
           {/* "zahlungspflichtig" steht im Knopf, weil § 8 Abs. 2 FAGG das fuer
               Online-Bestellungen verlangt (Button-Loesung). */}
           <button
             type="submit"
-            className="inline-flex h-12 w-full items-center justify-center rounded-full bg-white text-sm font-semibold transition-opacity hover:opacity-90"
+            className="inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-center text-sm font-semibold transition-opacity hover:opacity-90"
             style={{ color: RED }}
           >
-            Jetzt zahlungspflichtig bezahlen · {euro(payableCents)}
+            {oneOff.map((i) => i.label).join(" + ")} jetzt zahlungspflichtig bezahlen · {euro(oneOffCents)}
           </button>
-          {firstPayment ? (
-            <p className="mt-3 text-xs leading-relaxed text-white/85">
-              Du bezahlst per EPS-Überweisung über Mollie. Dabei erteilst du ein
-              SEPA-Lastschriftmandat: ab nächstem Monat wird der Beitrag automatisch von deinem Konto
-              abgebucht{plan === "flex" ? ", bis du Flex hier beendest" : ", bis die Bindung endet"}.
-            </p>
-          ) : (
-            <p className="mt-3 text-xs leading-relaxed text-white/85">Bezahlt wird über Mollie.</p>
-          )}
+          <p className="mt-3 text-xs leading-relaxed text-white/85">
+            Einmalige Zahlung per EPS-Überweisung über Mollie.
+          </p>
         </form>
-      ) : (
-        <BankDetails purpose={`${fullName}, ${payment.monthLabel}`} />
-      )}
+      ) : null}
+
+      {monthOpen ? (
+        <div className="mt-5 rounded-xl bg-black/20 p-4">
+          <p className="text-sm font-semibold">Monatsbeitrag per Dauerauftrag</p>
+          <p className="mt-1 text-sm text-white/85">
+            Richte bei deiner Bank einmal einen Dauerauftrag über {euro(monthOpen.cents)} zum
+            Monatsersten ein. Sobald der Beitrag da ist, hakt ihn der Vorstand ab.
+          </p>
+          <BankDetails purpose={`${fullName}, Mitgliedsbeitrag`} />
+        </div>
+      ) : !payEnabled ? (
+        <BankDetails purpose={`${fullName}, ${payable.map((i) => i.label).join(" + ")}`} />
+      ) : null}
     </section>
   );
 }

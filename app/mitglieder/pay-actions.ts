@@ -5,9 +5,7 @@ import { revalidatePath } from "next/cache";
 import { sql } from "@/lib/db";
 import { getCurrentMember } from "@/lib/members";
 import { getPaymentStatus } from "@/lib/payments";
-import { PLAN_INFO } from "@/lib/membership";
 import {
-  FIRST_PAYMENT_METHODS,
   isMollieConfigured,
   mollie,
   siteUrl,
@@ -31,9 +29,9 @@ export async function startPaymentAction(): Promise<void> {
   if (!status) return;
   // Mit laufendem Abo wird der Monat abgebucht, nicht hier bezahlt — sonst
   // zahlte man doppelt. Hier bleibt dann nur, was das Abo nicht abdeckt.
-  const open = status.items.filter(
-    (i) => !i.paid && !(i.key === "month" && member.mollieSubscriptionId)
-  );
+  // Monatsbeitraege laufen seit 15.10.2026 per Dauerauftrag, online wird
+  // nur noch Einmaliges bezahlt (Einschreibgebuehr, 10er-Block).
+  const open = status.items.filter((i) => !i.paid && i.key !== "month");
   if (open.length === 0) return;
   const total = open.reduce((s, i) => s + i.cents, 0);
 
@@ -48,10 +46,7 @@ export async function startPaymentAction(): Promise<void> {
     await sql`update members set mollie_customer_id = ${customerId} where id = ${member.id}`;
   }
 
-  // Monatsbeitrag ohne Abo: "first" — EPS legt dabei das SEPA-Mandat an, aus
-  // dem der Webhook das Abo macht. Alles andere (Block, Einschreibgebuehr
-  // allein, Nachzahlung bei laufendem Abo): eine einfache Zahlung.
-  const first = PLAN_INFO[member.plan].monthly && !member.mollieSubscriptionId;
+  // Nur noch einfache Einmalzahlungen; kein SEPA-Mandat, kein Abo.
 
   const payment = await mollie<MolliePayment>("POST", "/payments", {
     amount: { currency: "EUR", value: toValue(total) },
@@ -59,13 +54,12 @@ export async function startPaymentAction(): Promise<void> {
     redirectUrl: `${siteUrl()}/mitglieder?zahlung=1`,
     webhookUrl: webhookUrl(),
     customerId,
-    sequenceType: first ? "first" : "oneoff",
-    ...(first ? { method: FIRST_PAYMENT_METHODS } : {}),
+    sequenceType: "oneoff",
     locale: "de_AT",
     metadata: {
       memberId: member.id,
       items: open.map((i) => ({ kind: i.key, cents: i.cents, period: status.month })),
-      startSubscription: first,
+      startSubscription: false,
     },
   });
 

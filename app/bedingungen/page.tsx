@@ -101,11 +101,12 @@ export default function BedingungenPage(): ReactNode {
         <h2>Zahlung</h2>
         <p>
           Mitgliedsbeiträge sind monatlich im Voraus fällig, der 10er-Block und die
-          Einschreibgebühr einmalig im Voraus. Online wird über den Zahlungsdienstleister Mollie
-          B.V. (Amsterdam) bezahlt. Bei den Mitgliedschaften „Alle Kurse“ erteilen Sie mit der ersten
-          Zahlung per EPS ein SEPA-Lastschriftmandat; die folgenden Monatsbeiträge werden damit
-          jeweils zum Monatsersten abgebucht: bei Bindung bis zu deren Ende, bei Flex,
-          bis Sie Flex im Mitgliederbereich beenden.
+          Einschreibgebühr einmalig im Voraus. Monatsbeiträge werden per Dauerauftrag zum
+          Monatsersten auf das Vereinskonto überwiesen (Jiu Jitsu Kaisen Akademie, IBAN AT56 2081
+          5000 4769 9848, BIC STSPAT2GXXX), Verwendungszweck: Ihr Name und
+          &bdquo;Mitgliedsbeitrag&ldquo;. Einschreibgebühr und 10er-Block können Sie im
+          Mitgliederbereich online per EPS-Überweisung über den Zahlungsdienstleister Mollie B.V.
+          (Amsterdam) bezahlen, per Überweisung oder bar im Training.
         </p>
       </section>
 

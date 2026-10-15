@@ -21,9 +21,9 @@ export const siteConfig = {
    * Zahlungsaufforderung ist schlimmer als keine.
    */
   bank: {
-    holder: "Jiu Jitsu Kaisen Academy",
-    iban: "",
-    bic: "",
+    holder: "Jiu Jitsu Kaisen Akademie",
+    iban: "AT56 2081 5000 4769 9848",
+    bic: "STSPAT2GXXX",
   },
   address: {
     street: "Triester Straße 391",

@@ -496,18 +496,18 @@ export default function DatenschutzPage(): ReactNode {
             Wenn Sie im Mitgliederbereich auf &bdquo;Jetzt bezahlen&ldquo;
             tippen: Ihr Name, Ihre E-Mail-Adresse, der Betrag und wofür
             bezahlt wird. Ihre Bankdaten geben Sie direkt bei Mollie bzw. Ihrer
-            Bank ein, nicht auf dieser Website. Bei Monatsbeiträgen erteilen
-            Sie dabei ein SEPA-Lastschriftmandat, über das Mollie die folgenden
-            Beiträge abbucht.
+            Bank ein, nicht auf dieser Website. Online bezahlt werden nur
+            Einschreibgebühr und 10er-Block; Monatsbeiträge laufen per
+            Dauerauftrag direkt auf das Vereinskonto, ohne Mollie. Auf dem
+            Kontoauszug des Vereins erscheinen dabei Ihr Name und Ihre IBAN.
           </dd>
 
           <dt>Was der Verein davon sieht</dt>
           <dd>
             Auf der Website wird nur gespeichert, welche Posten bezahlt sind,
-            sowie die Kennungen, die Mollie für Sie, Ihre Zahlungen und Ihr
-            Lastschrift-Abo vergibt. Im Konto des Vereins bei Mollie sind
-            zusätzlich die Angaben zur jeweiligen Zahlung einsehbar, bei
-            Lastschriften auch Kontoinhaber und IBAN.
+            sowie die Kennungen, die Mollie für Sie und Ihre Zahlungen
+            vergibt. Im Konto des Vereins bei Mollie sind zusätzlich die
+            Angaben zur jeweiligen Zahlung einsehbar.
           </dd>
 
           <dt>Rolle und Rechtsgrundlage</dt>
@@ -793,7 +793,7 @@ export default function DatenschutzPage(): ReactNode {
         </p>
       </section>
 
-      <p className="jjk-legal-stand">Stand: 14. Oktober 2026</p>
+      <p className="jjk-legal-stand">Stand: 15. Oktober 2026</p>
     </LegalPage>
   );
 }
