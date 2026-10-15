@@ -812,6 +812,11 @@ function Intro({ headingClass }: { headingClass: string }): ReactNode {
         blur
         className={headingClass}
       />
+      {/* Feiertage (Vorstand, 15.10.2026): direkt unter der Ueberschrift,
+          damit man es vor dem Plan liest, am Handy wie am PC. */}
+      <p className="mt-4 text-sm text-foreground-dim">
+        An gesetzlichen Feiertagen bleibt das Gym geschlossen.
+      </p>
       {/* Hier stand eine Farblegende (Anfaenger & jedes Level / Ab
           Intermediate / Ab Advanced / Boxen). Raus am 11.10.2026: dieselbe
           Information steht schon im Chip jeder Einheit (Vorstand). */}

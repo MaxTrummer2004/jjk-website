@@ -435,6 +435,8 @@ export const pricing = {
       featured: false,
     },
   ],
+  /** Kleingedruckt unter den Vorteilen: es gibt auch Vertraege ohne Jahr. */
+  flexNote: "Lieber flexibel bleiben? Die Mitgliedschaft geht auch ohne Jahresbindung, gegen einen kleinen monatlichen Aufpreis.",
   /** Was in der Mitgliedschaft drin ist (Vorstand, 12.10.2026). */
   benefits: [
     "11 Kurse pro Woche: BJJ im Gi und No-Gi, Ringen, Boxen",

@@ -141,6 +141,7 @@ export default function Pricing2(): ReactNode {
                 <li key={b}>{b}</li>
               ))}
             </ul>
+            <p className="mt-6 text-sm leading-relaxed text-foreground-dim">{pricing.flexNote}</p>
           </div>
         </div>
 
