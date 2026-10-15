@@ -4462,6 +4462,40 @@ p,
   }
 }
 
+/* Kopf der Zeile: Name und Nebenzeile untereinander. Die Nebenzeile steht
+   hier immer direkt unter dem Namen, nicht mehr rechts neben dem Preis. */
+.jjk-plan-head {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.jjk-plan-head .jjk-plan-note {
+  flex: none;
+  order: 0;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+/* Ein einzelner Preis ("gratis") belegt beide Spalten, damit er mit den
+   Doppelpreisen darunter auf derselben Linie beginnt. */
+.jjk-plan-price-one .jjk-plan-amt {
+  grid-column: 1 / -1;
+}
+/* Beschriftung oben, Zahl unten: bricht "Schueler & Studenten" am Handy auf
+   zwei Zeilen um, sitzen beide Zahlen trotzdem auf gleicher Hoehe. */
+.jjk-plan-amt {
+  justify-content: space-between;
+}
+@media (min-width: 640px) {
+  .jjk-plan {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+}
+
 .jjk-benefits {
   display: grid;
   gap: 0.6rem 2rem;

@@ -333,7 +333,7 @@ export function Coaches(): ReactNode {
 
   return (
     <section id="coaches" className="w-full">
-      <div className="mx-auto w-full max-w-[1400px] px-4 pt-12 sm:px-6 sm:pt-36 lg:px-8">
+      <div className="mx-auto w-full max-w-[1400px] px-4 pt-14 sm:px-6 sm:pt-36 lg:px-8">
         <KanjiLabel kanji="師範" furigana="しはん" gloss="Trainer" />
         <StaggeredText
           text="Trainer, die fürs BJJ leben"

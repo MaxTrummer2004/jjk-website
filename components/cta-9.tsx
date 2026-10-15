@@ -108,8 +108,7 @@ export default function Cta9() {
 
         <p className="mx-auto mt-8 max-w-md text-lg leading-relaxed text-foreground-dim">
           Das Probetraining ist gratis. Kurze Hose, T-Shirt, Wasser,
-          mehr brauchst du nicht. Was eine Mitgliedschaft kostet, steht oben
-          bei den Preisen.
+          mehr brauchst du nicht.
         </p>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">

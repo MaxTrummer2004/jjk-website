@@ -72,10 +72,14 @@ function PlanRows({
             className="jjk-plan"
             {...(plan.featured ? { "data-featured": "" } : {})}
           >
-            <span className="jjk-plan-name">{plan.name}</span>
-            {/* Steht im Markup vor der Nebenzeile, damit am Handy Name und
-                Preis eine Zeile bilden und die Nebenzeile darunter umbricht.
-                Am Desktop tauscht `order` die beiden. */}
+            {/* Jede Zeile gleich gebaut (Rueckmeldung 15.10.2026: "ich weiss
+                nicht, was zu was gehoert"): links Name mit Nebenzeile darunter,
+                rechts bzw. am Handy darunter der Preisblock mit Beschriftung
+                oben und Zahl darunter. Auch "gratis" steht in so einem Block. */}
+            <span className="jjk-plan-head">
+              <span className="jjk-plan-name">{plan.name}</span>
+              {plan.note ? <span className="jjk-plan-note">{plan.note}</span> : null}
+            </span>
             {plan.reduced ? (
               <span className="jjk-plan-price jjk-plan-price-duo">
                 <span className="jjk-plan-amt">
@@ -94,12 +98,16 @@ function PlanRows({
                 </span>
               </span>
             ) : (
-              <span className="jjk-plan-price">
-                <span>{plan.price === "gratis" ? "gratis" : `${plan.price} €`}</span>
-                {plan.per ? <span className="jjk-plan-per">{plan.per}</span> : null}
+              <span className="jjk-plan-price jjk-plan-price-duo jjk-plan-price-one">
+                <span className="jjk-plan-amt">
+                  <span className="jjk-plan-amt-label">Für alle</span>
+                  <span className="jjk-plan-amt-value">
+                    {plan.price === "gratis" ? "gratis" : `${plan.price} €`}
+                    {plan.per ? <span className="jjk-plan-amt-unit">{unit(plan.per)}</span> : null}
+                  </span>
+                </span>
               </span>
             )}
-            {plan.note ? <span className="jjk-plan-note">{plan.note}</span> : null}
           </motion.div>
         ))}
       </div>
@@ -109,7 +117,7 @@ function PlanRows({
 
 export default function Pricing2(): ReactNode {
   return (
-    <section className="w-full px-4 py-28 sm:px-6 sm:py-36 lg:px-8">
+    <section className="w-full px-4 pt-20 pb-0 sm:px-6 sm:py-36 lg:px-8">
       <div className="mx-auto w-full max-w-[1400px]">
         <KanjiLabel kanji="入門" furigana="にゅうもん" gloss="Mitgliedschaft" />
         <StaggeredText
@@ -136,19 +144,9 @@ export default function Pricing2(): ReactNode {
           </div>
         </div>
 
-        {/* Der Schueler-/Studentenpreis steht jetzt als eigene Zahl in den
-            Zeilen, die Zeile "−15 € auf alle Tarife" ist damit weg. */}
-
-        {/* Hier stand "Keine Aufnahmegebuehr" — es gibt eine, 20 € einmalig.
-            Sie steht jetzt im Kleingedruckten unter den Zeilen, zusammen mit
-            der Ausweis-Bedingung fuer die ermaessigten Preise. */}
-        <p className="mt-8 max-w-2xl text-sm leading-relaxed text-foreground-dim">
-          {pricing.fineprint}
-        </p>
-
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-foreground-dim">
-          {pricing.hint}
-        </p>
+        {/* Einschreibgebuehr, Ausweis-Hinweis und "Mitglied wirst du ..." sind
+            auf Wunsch des Vorstands (15.10.2026) von der Seite. Die Gebuehr
+            steht in den Bedingungen und in der Beitrittserklaerung. */}
       </div>
     </section>
   );

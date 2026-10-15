@@ -27,7 +27,7 @@ export default function FAQ1() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section className="w-full px-4 py-28 sm:px-6 sm:py-36 lg:px-8">
+    <section className="w-full px-4 pt-20 pb-20 sm:px-6 sm:py-36 lg:px-8">
       <div className="mx-auto w-full max-w-[1400px]">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_1.7fr] lg:gap-20">
           <div className="lg:sticky lg:top-24 lg:self-start">

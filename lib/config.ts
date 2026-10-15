@@ -439,8 +439,6 @@ export const pricing = {
   benefits: [
     "11 Kurse pro Woche: BJJ im Gi und No-Gi, Ringen, Boxen",
     "Mo bis Fr ab 17:00 freies Training: mach, was du willst",
-    "Samstags Open Mat",
-    "Du willst auf Turniere? Wir bereiten dich vor und begleiten dich",
   ],
   /**
    * Das Kleingedruckte: die Einschreibgebuehr und der Ausweis. Beides gehoert
