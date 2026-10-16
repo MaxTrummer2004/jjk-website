@@ -108,6 +108,14 @@ const SHOWN = [
   "Stadion Liebenau",
 ];
 /**
+ * Am Handy steht diese eine Beschriftung UEBER ihrem Ring statt links davon.
+ * Links war auf 318–370 px Kartenbreite kein Platz: sie lief 25–40 px ueber
+ * den Rand, spaeter mehr, weil der Bahnhof beim Zoomen nach links wandert.
+ * Rechts sitzt die Kino-Beschriftung, also bleibt nur oben. Der Ring liegt
+ * dabei unter dem Zug-Zeichen am linken Ende der Platte.
+ */
+const ABOVE = "Bahnhof Puntigam";
+/**
  * Ein Zeichen je Art, damit man die Marken beim Ueberfliegen unterscheidet,
  * ohne zu lesen. Der Schluessel ist `sub` aus der Datendatei.
  */
@@ -182,6 +190,9 @@ export function StreetMap({
     let w = 0;
     let h = 0;
     let dpr = 1;
+    // Dieselbe Grenze wie Tailwinds `sm:`, damit Lage und Schriftgroesse der
+    // Beschriftung immer zusammen umschalten.
+    const wide = window.matchMedia("(min-width: 40rem)");
 
     const toLines = (arrs: number[][] | undefined): Line[] =>
       (arrs ?? []).map((flat) => {
@@ -385,20 +396,31 @@ export function StreetMap({
         // sitzt die Beschriftung direkt neben dem Ring, auf einer eigenen
         // Platte — damit hat sie eine Kante und liegt nicht auf den Strassen.
         const dir = m.s === "left" ? -1 : 1;
-        const lx = mx + dir * 13 * k;
-        let ly = my;
-        for (const q of placed) {
-          if (Math.abs(q.x - lx) < 170 && Math.abs(q.y - ly) < 30) ly = q.y + 34;
+        const above = m.n === ABOVE && !wide.matches;
+        // Oben: der Ring 15 px vom linken Rand, also unter dem Zeichen; nie
+        // naeher als 6 px an die Kartenkante — `max` statt Sprung, damit die
+        // Platte stetig mitlaeuft. 28 px Luft unter der Platte, weil die
+        // Kino-Beschriftung 18 px ueber ihren Ring reicht und der Bahnhof bis
+        // zu 5 px tiefer liegt.
+        const lx = above ? Math.max(mx - 15, 6 - w / 2) : mx + dir * 13 * k;
+        let ly = above ? my - 28 : my;
+        if (!above) {
+          for (const q of placed) {
+            if (Math.abs(q.x - lx) < 170 && Math.abs(q.y - ly) < 30) ly = q.y + 34;
+          }
+          placed.push({ x: lx, y: ly });
         }
-        placed.push({ x: lx, y: ly });
 
         el.style.visibility = "visible";
-        el.style.opacity = `${e}`;
+        // Sobald die Platte am Rand ansteht, laeuft der Ring unter ihr weg aus
+        // der Karte. Dann blendet sie auf den letzten 21 px aus, statt ueber
+        // nichts zu haengen — und ist weg, bevor sie den Knopf oben erreicht.
+        el.style.opacity = `${above ? e * Math.min(Math.max((w / 2 + mx) / 21, 0), 1) : e}`;
         // Auf ganze Pixel: auf halben Pixeln zittert Text beim Zoomen, und
         // genau das liest sich als unfertig.
         el.style.left = `${Math.round(w / 2 + lx)}px`;
         el.style.top = `${Math.round(h / 2 + ly)}px`;
-        el.style.transform = `translateY(-50%) ${m.s === "left" ? "translateX(-100%)" : ""}`;
+        el.style.transform = above ? "translateY(-100%)" : `translateY(-50%) ${m.s === "left" ? "translateX(-100%)" : ""}`;
       }
 
       // ── Das Gym ──────────────────────────────────────────────────────────
@@ -532,6 +554,8 @@ export function StreetMap({
 
       {marks.map((m, i) => {
         const Icon = ICONS[m.sub];
+        // Die Platte ueber dem Ring ist am Handy etwas kleiner gesetzt.
+        const small = m.n === ABOVE;
         return (
           <div
             key={m.n}
@@ -539,11 +563,11 @@ export function StreetMap({
             className="pointer-events-none absolute flex flex-col gap-0.5 rounded-md border border-white/12 bg-[#0b0b10]/88 px-2 py-1 leading-tight backdrop-blur-[2px] sm:px-2.5 sm:py-1.5"
             style={{ opacity: 0, visibility: "hidden" }}
           >
-            <span className="flex items-center gap-1.5 text-[0.7rem] font-semibold whitespace-nowrap text-foreground sm:text-[0.8rem]">
+            <span className={`flex items-center gap-1.5 ${small ? "text-[0.63rem]" : "text-[0.7rem]"} font-semibold whitespace-nowrap text-foreground sm:text-[0.8rem]`}>
               {Icon ? <Icon className="size-3 shrink-0 text-[#ffbe84]" strokeWidth={2} aria-hidden="true" /> : null}
               {m.n}
             </span>
-            <span className="font-mono text-[0.55rem] tracking-wide whitespace-nowrap text-[#ffbe84] sm:text-[0.6rem]">
+            <span className={`font-mono ${small ? "text-[0.5rem]" : "text-[0.55rem]"} tracking-wide whitespace-nowrap text-[#ffbe84] sm:text-[0.6rem]`}>
               {km(m.d)}
             </span>
           </div>
