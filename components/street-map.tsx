@@ -146,32 +146,6 @@ function km(m: number): string {
   return m < 950 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1).replace(".", ",")} km`;
 }
 
-interface Box {
-  l: number;
-  t: number;
-  r: number;
-  b: number;
-}
-
-/**
- * Rahmen schmal oder niedrig genug, dass der Desktop-Satz der Marken nicht passt.
- *
- * Der Massstab laeuft ueber die LANGE Seite (`max(w, h) / 2 / view`). Am Handy
- * (350 x 795) reicht der Blick seitwaerts deshalb nur 0,44 * view weit: Bahnhof
- * Puntigam (x = -522 m) lag bei view 1100 schon 40 px links ausserhalb, der
- * Stadion-Eintrag rechts, und die Beschriftungen standen halb im Rahmen. Der
- * kompakte Satz zoomt anfangs weiter heraus, setzt jede Beschriftung auf einen
- * Platz, der ganz im Rahmen liegt (Seite waehlen, ueber/unter den Ring, bei
- * Bedarf mit Strich), und blendet Ringe aus, die am Rand oder unter dem
- * Maps-Hinweis liegen. Gemessen am 390x844: vorher bis zu 192 px abgeschnitten,
- * nachher 0. Der Desktop-Pfad ist bildpunktgleich.
- */
-function isCompact(w: number, h: number): boolean {
-  return w < 640 || h < 400;
-}
-
-const clamp01 = (v: number): number => Math.min(Math.max(v, 0), 1);
-
 export function StreetMap({
   progress,
   from = 0.55,
@@ -184,7 +158,6 @@ export function StreetMap({
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const markRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const acadRef = useRef<HTMLDivElement>(null);
   const [marks, setMarks] = useState<Mark[]>([]);
 
   useEffect(() => {
@@ -209,13 +182,6 @@ export function StreetMap({
     let w = 0;
     let h = 0;
     let dpr = 1;
-    // Nur fuer den kompakten Satz (siehe isCompact): gemessene Kasten der
-    // Beschriftungen und der Flaechen, denen sie ausweichen muessen, alle in
-    // Koordinaten um die Rahmenmitte.
-    let sizes: ({ w: number; h: number } | null)[] = [];
-    let obstacles: Box[] = [];
-    let acad: Box | null = null;
-    const lastPick: number[] = [];
 
     const toLines = (arrs: number[][] | undefined): Line[] =>
       (arrs ?? []).map((flat) => {
@@ -278,47 +244,21 @@ export function StreetMap({
       // Den Rahmen FUELLEN, nicht eine Scheibe hineinlegen: vorher lief der
       // Massstab ueber die kurze Seite, also endete die Karte als ausgerissener
       // Kreis mit totem Schwarz daneben. Karten laufen an den Kanten hinaus.
-      const compact = isCompact(w, h);
-      const s0 = Math.max(w, h) / 2 / view;
-      // Am Handy ist die kurze Seite 350 px, die lange 795: der Massstab laeuft
-      // ueber die lange, also reicht der Blick seitwaerts nur view * w/h
-      // (0,44 * view) weit. Ein Wahrzeichen im Abstand d liegt dann zwar im
-      // Kreis um das Gym, aber meist links oder rechts ausserhalb des Rahmens.
-      // Deshalb faehrt der kompakte Rahmen anfangs weiter heraus (F < 1), so
-      // weit, dass die seitlichsten Wahrzeichen hineinpassen, und landet
-      // gegen Ende wieder genau auf dem alten Massstab. Auf dem Desktop ist
-      // F = 1, die Rechnung bleibt Bit fuer Bit dieselbe.
-      let F = 1;
-      if (compact) {
-        let xm = 1;
-        let ym = 1;
-        for (const m of data.marks) {
-          xm = Math.max(xm, Math.abs(m.x));
-          ym = Math.max(ym, Math.abs(m.y));
-        }
-        const sStart = Math.max(w, h) / 2 / data.radius;
-        const F0 = Math.min(
-          1,
-          Math.max(0.5, Math.min((w / 2 - 40) / (xm * sStart), (h / 2 - 80) / (ym * sStart))),
-        );
-        const t = clamp01(eased / 0.6);
-        F = F0 + (1 - F0) * t * t * (3 - 2 * t);
-      }
-      const s = s0 * F;
+      const s = Math.max(w, h) / 2 / view;
       // Symbolgroesse in Bildpunkten, also unabhaengig vom Massstab — und
       // genau deshalb am Handy zu gross: derselbe Ring, der auf 1400 px eine
       // Marke ist, ist auf 380 px ein Fleck. `k` bindet die Symbole an die
       // kleinere Kante des Rahmens, nach unten und oben begrenzt, damit sie
       // weder verschwinden noch das Bild zudecken.
       const k = Math.min(1, Math.max(0.6, Math.min(w, h) / 620));
-      const limit = (view * 1.6) / F;
+      const limit = view * 1.6;
 
       const pathA = lod(view, 900, 480);
       const bldA = lod(view, 720, 400);
       const farA = 1 - lod(view, 1600, 700);
       // Der Glut-Hof waechst nicht mit: in Metern schrumpft er mit `view`,
       // auf dem Schirm bleibt er gleich gross und wandert mit nach unten.
-      const halo = (view * 0.34) / F;
+      const halo = view * 0.34;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.fillStyle = "#07070a";
@@ -407,133 +347,13 @@ export function StreetMap({
       }
 
       // ── Wahrzeichen ──────────────────────────────────────────────────────
-      // Kompakter Rahmen: erst alle Ringe festlegen, dann jede Beschriftung auf
-      // einen Platz setzen, der ganz im Rahmen liegt und nichts beruehrt. Der
-      // Desktop-Satz weiter unten bleibt davon unberuehrt.
-      const ringR = 5.5 * k + 1.1 * k;
-      const fitA: number[] = [];
-      const spot: ({ x: number; y: number; w: number; h: number; far: boolean } | null)[] = [];
-      if (compact) {
-        const dots: { x: number; y: number; a: number }[] = [];
-        for (let i = 0; i < data.marks.length; i++) {
-          const m = data.marks[i]!;
-          const inT = Math.min(Math.max((eased - i * 0.03) / 0.09, 0), 1);
-          const outT = Math.min(Math.max((view - m.d) / 420, 0), 1);
-          const dropE = 1 - Math.pow(1 - inT, 3);
-          const x = m.x * s;
-          const y = m.y * s + (1 - dropE) * -30;
-          // Ein Ring, der am Rand oder unter dem Maps-Hinweis sitzt, blendet
-          // aus, statt halb im Bild zu stehen.
-          let clear = Math.min(w / 2 - Math.abs(x), h / 2 - Math.abs(y)) - 12;
-          for (const o of obstacles) {
-            const dx = Math.max(o.l - x, 0, x - o.r);
-            const dy = Math.max(o.t - y, 0, y - o.b);
-            clear = Math.min(clear, Math.hypot(dx, dy) - 10);
-          }
-          const a = clamp01(clear / 18);
-          fitA[i] = a;
-          dots.push({ x, y, a: dropE * outT * a });
-        }
-        const hit = (a: Box, b: Box, pad: number): boolean =>
-          a.l < b.r + pad && b.l < a.r + pad && a.t < b.b + pad && b.t < a.b + pad;
-        const gap = 13 * k;
-        // Pro Wahrzeichen alle Plaetze, die fuer sich genommen gehen: ganz im
-        // Rahmen, nicht auf Hinweis, Quellenangabe, Gym-Marke oder fremdem Ring.
-        const options: { c: number; box: Box }[][] = [];
-        for (let i = 0; i < data.marks.length; i++) {
-          const dot = dots[i]!;
-          const size = sizes[i];
-          options[i] = [];
-          spot[i] = null;
-          if (dot.a < 0.01 || !size) continue;
-          const m = data.marks[i]!;
-          const pref = m.s === "left" ? 0 : 1;
-          const shift = size.h / 2 + ringR + 4;
-          // Reihenfolge: gewuenschte Seite, andere Seite, dann unter bzw. ueber
-          // dem Ring.
-          const cands: { side: number; dy: number }[] = [
-            { side: pref, dy: 0 },
-            { side: 1 - pref, dy: 0 },
-            { side: pref, dy: shift },
-            { side: pref, dy: -shift },
-            { side: 1 - pref, dy: shift },
-            { side: 1 - pref, dy: -shift },
-            // Notfall bei zwei dicht beieinander liegenden Ringen: eine
-            // Beschriftung weiter weg, aber noch auf der Hoehe des Rings.
-            { side: pref, dy: shift + size.h + 4 },
-            { side: pref, dy: -(shift + size.h + 4) },
-            { side: 1 - pref, dy: shift + size.h + 4 },
-            { side: 1 - pref, dy: -(shift + size.h + 4) },
-          ];
-          for (let c = 0; c < cands.length; c++) {
-            const { side, dy } = cands[c]!;
-            const l = side === 0 ? dot.x - gap - size.w : dot.x + gap;
-            const box: Box = { l, r: l + size.w, t: dot.y + dy - size.h / 2, b: dot.y + dy + size.h / 2 };
-            if (box.l < -w / 2 + 8 || box.r > w / 2 - 8 || box.t < -h / 2 + 8 || box.b > h / 2 - 8) continue;
-            if (obstacles.some((o) => hit(box, o, 6))) continue;
-            if (acad && hit(box, acad, 6)) continue;
-            if (hit(box, { l: -14 * k, r: 14 * k, t: -14 * k, b: 14 * k }, 3)) continue;
-            // Der eigene Ring gehoert zur Beschriftung (bei dy = 0 sitzt sie
-            // direkt daneben); jeder fremde Ring ist ein Hindernis.
-            const ringHit = dots.some(
-              (d, j) =>
-                d.a > 0.01 &&
-                (j !== i || dy !== 0) &&
-                hit(box, { l: d.x - ringR, r: d.x + ringR, t: d.y - ringR, b: d.y + ringR }, 3),
-            );
-            if (ringHit) continue;
-            options[i]!.push({ c, box });
-          }
-        }
-        // Zwei dicht beieinander liegende Marken (Kino und Bahnhof) brauchen
-        // einen gemeinsamen Satz: die eine ueber, die andere unter den Ringen.
-        // Das findet kein Eins-nach-dem-anderen, also alle Kombinationen
-        // durchgehen (hoechstens vier Marken mit je neun Plaetzen) und die mit
-        // den kuerzesten Wegen nehmen. Die zuletzt gewaehlte Lage ist etwas
-        // billiger, damit nichts hin- und herspringt, solange es noch passt.
-        const todo = options.map((_, i) => i).filter((i) => options[i]!.length > 0);
-        const costOf = (i: number, c: number): number => c + (lastPick[i] === c ? 0 : 1.5);
-        let bestCost = Infinity;
-        let best: { i: number; o: { c: number; box: Box } }[] = [];
-        const cur: { i: number; o: { c: number; box: Box } }[] = [];
-        const solve = (n: number, cost: number): void => {
-          if (cost >= bestCost) return;
-          if (n === todo.length) {
-            bestCost = cost;
-            best = cur.slice();
-            return;
-          }
-          const i = todo[n]!;
-          for (const o of options[i]!) {
-            if (cur.some((q) => hit(o.box, q.o.box, 6))) continue;
-            cur.push({ i, o });
-            solve(n + 1, cost + costOf(i, o.c));
-            cur.pop();
-          }
-        };
-        solve(0, 0);
-        if (best.length === 0 && todo.length > 0) {
-          // Es geht nicht fuer alle: die vorderen behalten ihren Platz, wer
-          // keinen findet, bleibt ohne Beschriftung — lieber keine als eine
-          // abgeschnittene oder uebereinanderliegende.
-          for (const i of todo) {
-            const o = options[i]!.find((q) => !best.some((t) => hit(q.box, t.o.box, 6)));
-            if (o) best.push({ i, o });
-          }
-        }
-        for (const { i, o } of best) {
-          spot[i] = { x: o.box.l, y: o.box.t, w: o.box.r - o.box.l, h: o.box.b - o.box.t, far: o.c >= 6 };
-          lastPick[i] = o.c;
-        }
-      }
-
       const placed: { x: number; y: number }[] = [];
       for (let i = 0; i < data.marks.length; i++) {
         const m = data.marks[i]!;
         const inT = Math.min(Math.max((eased - i * 0.03) / 0.09, 0), 1);
         const outT = Math.min(Math.max((view - m.d) / 420, 0), 1);
         const dropE = 1 - Math.pow(1 - inT, 3);
-        const e = dropE * outT * (compact ? fitA[i]! : 1);
+        const e = dropE * outT;
         const el = markRefs.current[i];
         const mx = m.x * s;
         const my = m.y * s + (1 - dropE) * -30;
@@ -564,31 +384,6 @@ export function StreetMap({
         // nebeneinander liegt: zwei Striche fuer null Auskunft. Stattdessen
         // sitzt die Beschriftung direkt neben dem Ring, auf einer eigenen
         // Platte — damit hat sie eine Kante und liegt nicht auf den Strassen.
-        if (compact) {
-          const sp = spot[i];
-          if (!sp) {
-            el.style.visibility = "hidden";
-            continue;
-          }
-          el.style.visibility = "visible";
-          el.style.opacity = `${e}`;
-          el.style.left = `${Math.round(w / 2 + sp.x)}px`;
-          el.style.top = `${Math.round(h / 2 + sp.y)}px`;
-          el.style.transform = "none";
-          if (sp.far) {
-            // Liegt die Beschriftung nicht mehr am Ring, haelt ein Strich beide
-            // zusammen.
-            const ex = Math.min(Math.max(mx, sp.x), sp.x + sp.w);
-            const ey = Math.min(Math.max(my, sp.y), sp.y + sp.h);
-            ctx.beginPath();
-            ctx.moveTo(mx, my);
-            ctx.lineTo(ex, ey);
-            ctx.strokeStyle = `rgba(255, 214, 158, ${0.85 * e})`;
-            ctx.lineWidth = Math.max(1, 1.5 * k);
-            ctx.stroke();
-          }
-          continue;
-        }
         const dir = m.s === "left" ? -1 : 1;
         const lx = mx + dir * 13 * k;
         let ly = my;
@@ -644,44 +439,14 @@ export function StreetMap({
       // ist der Uebergang eine Entscheidung und kein Artefakt.
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const rr = Math.hypot(w, h) / 2;
-      // Kompakt und herausgezoomt endet die Kartendatei INNERHALB des Rahmens
-      // (data.radius * s < rr): die Blende muss dann am Datenrand schwarz sein,
-      // sonst steht dort eine harte Kreiskante.
-      const rEdge = compact ? Math.min(rr, data.radius * s) : rr;
-      const edge = ctx.createRadialGradient(w / 2, h / 2, rEdge * 0.52, w / 2, h / 2, rEdge);
+      const edge = ctx.createRadialGradient(w / 2, h / 2, rr * 0.52, w / 2, h / 2, rr);
       edge.addColorStop(0, "rgba(7, 7, 10, 0)");
       edge.addColorStop(1, "rgba(7, 7, 10, 1)");
       ctx.fillStyle = edge;
       ctx.fillRect(0, 0, w, h);
     };
 
-    // Kasten in Koordinaten um die Rahmenmitte (wie ctx nach translate).
-    const boxOf = (el: Element, r: DOMRect, pad = 0): Box => {
-      const b = el.getBoundingClientRect();
-      return {
-        l: b.left - r.left - r.width / 2 - pad,
-        r: b.right - r.left - r.width / 2 + pad,
-        t: b.top - r.top - r.height / 2 - pad,
-        b: b.bottom - r.top - r.height / 2 + pad,
-      };
-    };
-
-    const measure = (): void => {
-      const r = wrap.getBoundingClientRect();
-      // Alles, was der Rahmen traegt und worauf keine Beschriftung liegen darf
-      // (Maps-Hinweis, Quellenangabe): vom Aufrufer mit data-map-obstacle
-      // markiert, damit hier keine Masse von dort stehen.
-      obstacles = Array.from(
-        wrap.parentElement?.querySelectorAll("[data-map-obstacle]") ?? [],
-      ).map((el) => boxOf(el, r));
-      acad = acadRef.current ? boxOf(acadRef.current, r) : null;
-      sizes = markRefs.current.map((el) =>
-        el ? { w: el.offsetWidth, h: el.offsetHeight } : null,
-      );
-    };
-
     const layout = (): void => {
-      measure();
       const r = wrap.getBoundingClientRect();
       const nw = Math.max(1, Math.round(r.width));
       const nh = Math.max(1, Math.round(r.height));
@@ -704,9 +469,6 @@ export function StreetMap({
     const tick = (): void => {
       if (dead) return;
       try {
-        // Die Beschriftungen entstehen erst nach dem Laden der Datei; fehlt
-        // ihr Mass noch, jetzt nachholen.
-        if (data && data.marks.some((_, i) => !sizes[i])) measure();
         draw(progress.get());
       } catch (err) {
         if (!complained) {
@@ -762,7 +524,7 @@ export function StreetMap({
       {/* Die eigene Marke traegt als einzige eine gefuellte Platte: sie ist
           der Punkt, um den es geht, und muss sich von den vier Wahrzeichen
           unterscheiden, ohne groesser zu sein. */}
-      <div ref={acadRef} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[24px] sm:translate-y-[34px]">
+      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[24px] sm:translate-y-[34px]">
         <span className="block rounded-md bg-[#ff6a1f] px-2 py-0.5 font-mono text-[0.55rem] font-semibold uppercase tracking-[0.14em] whitespace-nowrap text-[#120703] sm:px-2.5 sm:py-1 sm:text-[0.62rem] sm:tracking-[0.18em]">
           JJK Academy
         </span>

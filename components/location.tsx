@@ -201,7 +201,7 @@ export function Location(): ReactNode {
           style={{ maxWidth: MAX_WIDTH, aspectRatio: "16 / 9", background: "#07070a" }}
         >
           <StreetMap progress={scrollProgress} from={0} />
-          <span data-map-obstacle="" className="absolute top-3 right-3 flex items-center gap-1.5 rounded-md border border-white/12 bg-[#0b0b10]/85 px-2.5 py-1.5 text-[0.7rem] font-medium text-foreground/80">
+          <span className="absolute top-3 right-3 flex items-center gap-1.5 rounded-md border border-white/12 bg-[#0b0b10]/85 px-2.5 py-1.5 text-[0.7rem] font-medium text-foreground/80">
             In Google Maps öffnen
             <ArrowUpRight className="size-3" strokeWidth={2} aria-hidden="true" />
           </span>
@@ -267,7 +267,6 @@ export function Location(): ReactNode {
             {/* Der Hinweis erscheint mit der Adresse, nicht schon waehrend des
                 Zooms: solange die Karte noch faehrt, ist sie kein Ziel. */}
             <motion.span
-              data-map-obstacle=""
               style={{ opacity: hintOpacity }}
               className="absolute top-4 right-4 flex items-center gap-2 rounded-full border border-accent/60 bg-[#0b0b10]/90 px-4 py-2 text-sm font-semibold text-foreground shadow-lg backdrop-blur-[2px] transition-colors duration-300 group-hover:border-accent group-hover:bg-accent group-hover:text-white"
             >
@@ -295,7 +294,7 @@ export function Location(): ReactNode {
                 Adressplatte (die sitzt 24 px ueber dem Rand); oben links lag
                 sie unter "In Google Maps oeffnen". Weglassen geht nicht, die
                 ODbL verlangt die Nennung. */}
-            <span data-map-obstacle="" className={`pointer-events-none absolute ${isMobile ? "right-4 bottom-1" : "right-3 bottom-3"} rounded-md bg-[#07070a]/70 px-2 py-1 font-mono text-[0.6rem] tracking-wide text-foreground/50`}>
+            <span className={`pointer-events-none absolute ${isMobile ? "right-4 bottom-1" : "right-3 bottom-3"} rounded-md bg-[#07070a]/70 px-2 py-1 font-mono text-[0.6rem] tracking-wide text-foreground/50`}>
               © OpenStreetMap contributors
             </span>
           </a>
