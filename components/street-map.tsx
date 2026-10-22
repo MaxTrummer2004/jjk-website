@@ -111,8 +111,16 @@ const SHOWN = [
  * Am Handy steht diese eine Beschriftung UEBER ihrem Ring statt links davon.
  * Links war auf 318–370 px Kartenbreite kein Platz: sie lief 25–40 px ueber
  * den Rand, spaeter mehr, weil der Bahnhof beim Zoomen nach links wandert.
- * Rechts sitzt die Kino-Beschriftung, also bleibt nur oben. Der Ring liegt
- * dabei unter dem Zug-Zeichen am linken Ende der Platte.
+ * Rechts sitzt die Kino-Beschriftung, also bleibt nur oben.
+ *
+ * Seit 22.10.2026 links oben statt mittig darueber: lief die Platte vom Ring
+ * nach rechts, hing sie ueber Kino-Ring und -Beschriftung und las sich wie
+ * deren Schild (Kunde, Handy-Screenshot). Jetzt endet sie rechts 15 px hinter
+ * dem Ring, waechst also vom Kino weg. Auf 360–412 px reicht der Platz links
+ * dafuer kaum: der Ring erscheint 100–117 px von der Kartenkante, die Platte
+ * ist 125 px breit. Sie steht deshalb fast immer am linken Anschlag (6 px),
+ * und der Ring wandert unter ihr von rechts (15–28 px vor der Kante) nach
+ * links. Gemessen am 22.10.2026.
  */
 const ABOVE = "Bahnhof Puntigam";
 /**
@@ -193,6 +201,14 @@ export function StreetMap({
     // Dieselbe Grenze wie Tailwinds `sm:`, damit Lage und Schriftgroesse der
     // Beschriftung immer zusammen umschalten.
     const wide = window.matchMedia("(min-width: 40rem)");
+    // Breite der Bahnhof-Platte (offsetWidth, also ohne Transform). Gebraucht,
+    // weil sie links oben vom Ring steht und am Kartenrand anschlagen muss.
+    // Einmal messen und merken: offsetWidth in jedem Bild hiesse, nach den
+    // Stil-Schreibungen der Kino-Platte jedes Mal ein erzwungenes Layout.
+    // 0 = neu messen, nach Groessenaenderung und nachgeladener Schrift.
+    let aboveW = 0;
+    const remeasure = (): void => { aboveW = 0; };
+    document.fonts.addEventListener("loadingdone", remeasure);
 
     const toLines = (arrs: number[][] | undefined): Line[] =>
       (arrs ?? []).map((flat) => {
@@ -397,12 +413,16 @@ export function StreetMap({
         // Platte — damit hat sie eine Kante und liegt nicht auf den Strassen.
         const dir = m.s === "left" ? -1 : 1;
         const above = m.n === ABOVE && !wide.matches;
-        // Oben: der Ring 15 px vom linken Rand, also unter dem Zeichen; nie
-        // naeher als 6 px an die Kartenkante — `max` statt Sprung, damit die
-        // Platte stetig mitlaeuft. 28 px Luft unter der Platte, weil die
-        // Kino-Beschriftung 18 px ueber ihren Ring reicht und der Bahnhof bis
-        // zu 5 px tiefer liegt.
-        const lx = above ? Math.max(mx - 15, 6 - w / 2) : mx + dir * 13 * k;
+        if (above && aboveW === 0) aboveW = el.offsetWidth;
+        // Links oben: die rechte Kante 15 px rechts vom Ring, die Platte
+        // waechst nach links, weg vom Kino. Nie naeher als 6 px an die linke
+        // Kartenkante — `max` statt Sprung, damit sie stetig mitlaeuft; dort
+        // bleibt sie stehen und der Ring wandert unter ihr nach links. `lx`
+        // ist hier die LINKE Kante, nicht translateX(-100%): so bleibt `left`
+        // ganzzahlig, und die Kante gegen den Rand ist direkt gerechnet.
+        // 28 px Luft unter der Platte, weil die Kino-Beschriftung 18 px ueber
+        // ihren Ring reicht und der Bahnhof bis zu 5 px tiefer liegt.
+        const lx = above ? Math.max(mx + 15 - aboveW, 6 - w / 2) : mx + dir * 13 * k;
         let ly = above ? my - 28 : my;
         if (!above) {
           for (const q of placed) {
@@ -477,6 +497,7 @@ export function StreetMap({
       // Wert — und der ResizeObserver feuert waehrend des Wachsens in jedem
       // Bild, nach den rAF-Rueckrufen. Nur bei echter Aenderung anfassen.
       if (nw === w && nh === h && nd === dpr) return;
+      aboveW = 0;
       w = nw;
       h = nh;
       dpr = nd;
@@ -536,6 +557,7 @@ export function StreetMap({
       dead = true;
       cancelAnimationFrame(raf);
       ro.disconnect();
+      document.fonts.removeEventListener("loadingdone", remeasure);
     };
   }, [progress, from]);
 
