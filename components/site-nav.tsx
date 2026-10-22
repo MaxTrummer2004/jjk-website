@@ -108,11 +108,23 @@ export function SiteNav(): ReactNode {
   const loggedIn = useLoggedIn();
   // Eine Quelle fuer beide Knoepfe, oben und im Menue: zwei Stellen, die
   // dasselbe entscheiden, laufen frueher oder spaeter auseinander.
-  // Rot (laut) = der Weg in den Mitgliederbereich; rechts = Mitglied werden.
-  // So getauscht am 11.10.2026 auf Wunsch des Vorstands.
+  // Rot (laut) = der Weg in den Mitgliederbereich; Platte = Mitglied werden.
+  // Farbzuordnung so seit 11.10.2026 auf Wunsch des Vorstands.
   const action = loggedIn
     ? { label: "Mein Bereich", href: "/mitglieder" }
     : { label: "Für Mitglieder", href: "/mitglieder" };
+  // Das Paar "einloggen + beitreten", in dieser Reihenfolge, oben wie im
+  // Menue. Seit 22.10.2026 stehen beide direkt nebeneinander; vorher lag der
+  // rote Knopf links beim Logo und "Mitglied werden" allein am rechten Rand,
+  // dazwischen die Menue-Pille. Auftraggeber am 22.10.: die Leute finden die
+  // Anmeldung so nicht. Getrennt liest sich der rote Knopf wie ein
+  // Navigationspunkt neben "Training"; erst als Paar rechts — die uebliche
+  // Stelle fuer "Anmelden | Registrieren" — sagt er, wofuer er da ist.
+  // Beitreten steht aussen, wie dort ueblich.
+  const accountLinks = [
+    { ...action, loud: true },
+    { ...nav.signup, loud: false },
+  ] as const;
   const { navigate } = useSectionTransition();
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -150,11 +162,36 @@ export function SiteNav(): ReactNode {
       className="fixed inset-x-0 top-0 z-50"
     >
       <div className="relative flex h-20 items-center justify-between px-5 sm:px-8 lg:px-10">
-        {/* Left: logo + pill nav links */}
-        <div className="flex items-center gap-3">
+        {/* Left: logo + "Training" (ab lg) + die Menue-Pille.
+
+            Die Pille haengt seit 22.10.2026 als absolutes Kind in DIESEM
+            Behaelter statt daneben, weil sie zwischen md und xl nicht mehr in
+            die Mitte passt. Gemessen (Chromium, 22.10.2026): das Paar rechts
+            ist 332 px breit (156 "Für Mitglieder" + 8 + 168 "Mitglied
+            werden"), die offene Pille 296. Mittig braucht das Viewport also
+            >= 2 x (40 Rand + 332 + 148 halbe Pille + 16 Luft) = 1072 px; bei
+            1024 ueberdeckte die offene Pille den roten Knopf um 8 px, bei 768
+            um 128. Darum:
+              < md   Pille rechts aussen, das Paar steht im Menue.
+              md–xl  Pille direkt rechts neben dem Logo (ab lg neben
+                     "Training"), sie waechst nach rechts in die leere Mitte.
+                     `left-full` bezieht sich auf diesen Behaelter (darum
+                     md:relative), also keine eingerechnete Logobreite.
+                     -top-2 gleicht das p-2 der Pille aus, damit die
+                     sichtbare Leiste auf Hoehe der Knoepfe sitzt; +8px gibt
+                     der offenen Karte (sie fuellt die ganze Pille samt p-2)
+                     dieselbe Luecke zum Nachbarn wie im Paar. Engste Stelle:
+                     768 px, offene Karte bis 388, Paar ab 404.
+              >= xl  wieder mittig in der ganzen Zeile (xl:static gibt die
+                     Zeile als Bezug zurueck), wie vor dem 22.10.
+
+            "Training" faellt unter lg weg: bei 768 reichte die offene Karte
+            sonst bis 506 px, das Paar beginnt bei 404. Es ist der erste
+            Punkt im Menue, also nicht verloren. */}
+        <div className="flex items-center gap-3 md:relative xl:static">
           <NavLogo />
           <nav
-            className="bg-card-plate border-border hidden h-13 items-center gap-1 rounded-full border p-1.5 md:flex"
+            className="bg-card-plate border-border hidden h-13 items-center gap-1 rounded-full border p-1.5 lg:flex"
             aria-label="Hauptnavigation"
           >
             {PILL_LINKS.map((link) => (
@@ -169,224 +206,240 @@ export function SiteNav(): ReactNode {
             ))}
           </nav>
 
-          {/* Der einzige gefuellte Knopf der Seite, siehe .jjk-btn-loud in
-              app/globals.css. Er liegt bewusst nicht in der Pillenleiste:
-              zwischen Navigationspunkten waere er ein Navigationspunkt.
-
-              Das `hidden md:flex` sitzt am Behaelter und nicht am Knopf: die
-              Klasse .jjk-btn setzt selbst `display: inline-flex` und steht in
-              globals.css NACH den Utilities, gewinnt also gegen `hidden` —
-              gleiche Spezifitaet, spaetere Zeile. Genau daran ist der Knopf am
-              Handy erschienen und hat sich mit der Menue-Pille ueberlagert. */}
-          <div className="hidden md:flex">
-            <a
-              href={action.href}
-              onClick={(e) => {
-                e.preventDefault();
-                navigate(action.href);
-              }}
-              className="jjk-btn jjk-btn-loud h-13 rounded-full px-6 text-sm"
-            >
-              {action.label}
-            </a>
-          </div>
-        </div>
-
-        {/* Center: expandable menu pill */}
-        <div className="absolute top-1.5 right-5 z-50 md:right-auto md:left-1/2 md:-translate-x-1/2">
-          <motion.div
-            initial={false}
-            animate={{
-              width: menuOpen ? OPEN_WIDTH : closedWidth,
-              boxShadow: menuOpen
-                ? "0 30px 70px -24px rgba(0,0,0,0.45)"
-                : "0 30px 70px -24px rgba(0,0,0,0)",
-            }}
-            transition={
-              prefersReducedMotion
-                ? { duration: 0.01 }
-                : { duration: 0.45, ease: softEase }
-            }
-            className="relative rounded-[28px] p-2"
-          >
+          {/* Expandable menu pill — Lage je Breite siehe Kommentar oben. */}
+          <div className="absolute top-1.5 right-5 z-50 md:-top-2 md:right-auto md:left-[calc(100%+8px)] xl:top-1.5 xl:left-1/2 xl:-translate-x-1/2">
             <motion.div
               initial={false}
-              animate={{ opacity: menuOpen ? 1 : 0 }}
-              transition={{ duration: 0.35, ease: softEase }}
-              className="bg-card-plate border-border pointer-events-none absolute inset-0 rounded-[28px] border"
-            />
-            <div className="relative">
-              <div
-                className="bg-card-plate text-foreground flex h-13 w-full items-center justify-end gap-2 rounded-full pr-1.5 pl-1.5 md:justify-between md:pr-2"
-              >
-                <button
-                  ref={toggleRef}
-                  type="button"
-                  onClick={() => setMenuOpen((open) => !open)}
-                  aria-expanded={menuOpen}
-                  aria-label={menuOpen ? "Menü schließen" : "Menü öffnen"}
-                  className="hover:bg-card-plate-hot flex items-center gap-2.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+              animate={{
+                width: menuOpen ? OPEN_WIDTH : closedWidth,
+                boxShadow: menuOpen
+                  ? "0 30px 70px -24px rgba(0,0,0,0.45)"
+                  : "0 30px 70px -24px rgba(0,0,0,0)",
+              }}
+              transition={
+                prefersReducedMotion
+                  ? { duration: 0.01 }
+                  : { duration: 0.45, ease: softEase }
+              }
+              className="relative rounded-[28px] p-2"
+            >
+              <motion.div
+                initial={false}
+                animate={{ opacity: menuOpen ? 1 : 0 }}
+                transition={{ duration: 0.35, ease: softEase }}
+                className="bg-card-plate border-border pointer-events-none absolute inset-0 rounded-[28px] border"
+              />
+              <div className="relative">
+                <div
+                  className="bg-card-plate text-foreground flex h-13 w-full items-center justify-end gap-2 rounded-full pr-1.5 pl-1.5 md:justify-between md:pr-2"
                 >
-                  <MenuIcon open={menuOpen} />
-                  <MorphLabel value={menuOpen ? "Schließen" : "Menü"} />
-                </button>
-                {isDesktop && <ScrollProgress />}
-              </div>
-
-              <AnimatePresence initial={false}>
-                {menuOpen && (
-                  <motion.div
-                    key="panel"
-                    initial={{ height: 0 }}
-                    animate={{ height: "auto" }}
-                    exit={{ height: 0 }}
-                    transition={
-                      prefersReducedMotion
-                        ? { duration: 0.01 }
-                        : { duration: 0.45, ease: softEase }
-                    }
-                    className="overflow-hidden"
+                  <button
+                    ref={toggleRef}
+                    type="button"
+                    onClick={() => setMenuOpen((open) => !open)}
+                    aria-expanded={menuOpen}
+                    aria-label={menuOpen ? "Menü schließen" : "Menü öffnen"}
+                    className="hover:bg-card-plate-hot flex items-center gap-2.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
                   >
-                    <div className="flex justify-center">
-                      <motion.div
-                        initial={prefersReducedMotion ? false : "hidden"}
-                        animate={prefersReducedMotion ? false : "visible"}
-                        style={{ width: CONTENT_WIDTH }}
-                        className="shrink-0 px-4 pt-7 pb-3"
-                      >
-                        {/* Am Handy gibt es die Pillenleiste nicht, also
-                            steht die Anmeldung hier — vor der Navigation,
-                            nicht darin. `md:hidden` am Behaelter, siehe oben. */}
-                        <motion.div
-                          custom={0}
-                          variants={ITEM_VARIANTS}
-                          className="mb-6 md:hidden"
-                        >
-                          <a
-                            href={action.href}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              closeMenu();
-                              navigate(action.href);
-                            }}
-                            className="jjk-btn jjk-btn-loud w-full rounded-full px-6 py-3.5 text-sm"
-                          >
-                            {action.label}
-                          </a>
-                        </motion.div>
+                    <MenuIcon open={menuOpen} />
+                    <MorphLabel value={menuOpen ? "Schließen" : "Menü"} />
+                  </button>
+                  {isDesktop && <ScrollProgress />}
+                </div>
 
-                        <div className="flex flex-col gap-2">
-                          <motion.span
+                <AnimatePresence initial={false}>
+                  {menuOpen && (
+                    <motion.div
+                      key="panel"
+                      initial={{ height: 0 }}
+                      animate={{ height: "auto" }}
+                      exit={{ height: 0 }}
+                      transition={
+                        prefersReducedMotion
+                          ? { duration: 0.01 }
+                          : { duration: 0.45, ease: softEase }
+                      }
+                      className="overflow-hidden"
+                    >
+                      <div className="flex justify-center">
+                        <motion.div
+                          initial={prefersReducedMotion ? false : "hidden"}
+                          animate={prefersReducedMotion ? false : "visible"}
+                          style={{ width: CONTENT_WIDTH }}
+                          className="shrink-0 px-4 pt-7 pb-3"
+                        >
+                          {/* Am Handy hat die Kopfleiste keinen Platz fuer das
+                              Paar (bei 360 px bleiben zwischen Logo und Pille
+                              140 px, das Paar braucht 332), also steht es hier —
+                              vor der Navigation, nicht darin. Bis 22.10.2026 nur
+                              der rote Knopf: "Mitglied werden" war am Handy
+                              weder oben noch im Menue erreichbar.
+                              Untereinander statt zwei Spalten: 248 px Innenbreite
+                              ergaeben 120 px je Knopf, "Für Mitglieder" braucht
+                              mit Polster 156. `md:hidden` am Behaelter, siehe
+                              rechts unten. */}
+                          <motion.div
                             custom={0}
                             variants={ITEM_VARIANTS}
-                            className="text-muted-foreground mb-1 text-[11px] font-medium tracking-wider uppercase"
+                            className="mb-6 flex flex-col gap-2 md:hidden"
                           >
-                            Navigation
-                          </motion.span>
-                          {PRIMARY_LINKS.map((link, i) => (
-                            <motion.a
-                              key={link.href}
-                              href={link.href}
-                              onClick={(e) => { e.preventDefault(); closeMenu(); navigate(link.href); }}
-                              custom={1 + i}
-                              variants={ITEM_VARIANTS}
-                              className="text-foreground hover:text-foreground/55 w-fit text-[26px] leading-tight font-medium tracking-tight transition-colors focus-visible:outline-none"
-                            >
-                              {link.label}
-                            </motion.a>
-                          ))}
-                        </div>
-
-                        <motion.div
-                          custom={6}
-                          variants={ITEM_VARIANTS}
-                          className="bg-border my-6 h-px w-full"
-                        />
-
-                        <div className="flex flex-col gap-3">
-                          <motion.span
-                            custom={7}
-                            variants={ITEM_VARIANTS}
-                            className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase"
-                          >
-                            Sonstiges
-                          </motion.span>
-                          {LEGAL_LINKS.map((link, i) => (
-                            <motion.div
-                              key={link.href + link.label}
-                              custom={8 + i}
-                              variants={ITEM_VARIANTS}
-                              className="w-fit"
-                            >
+                            {accountLinks.map((link) => (
                               <a
+                                key={link.href}
                                 href={link.href}
-                                onClick={(e) => { e.preventDefault(); closeMenu(); navigate(link.href); }}
-                                className="text-foreground/80 hover:text-foreground text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  closeMenu();
+                                  navigate(link.href);
+                                }}
+                                className={`jjk-btn${link.loud ? " jjk-btn-loud" : ""} h-13 w-full overflow-hidden rounded-full px-5! focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50`}
                               >
                                 {link.label}
                               </a>
-                            </motion.div>
-                          ))}
-                        </div>
+                            ))}
+                          </motion.div>
 
-                        <div className="mt-7 flex flex-col gap-3">
-                          <motion.span
-                            custom={11}
-                            variants={ITEM_VARIANTS}
-                            className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase"
-                          >
-                            Social Media
-                          </motion.span>
-                          <div className="flex flex-wrap gap-x-5 gap-y-2">
-                            {SOCIAL_LINKS.map((link, i) => (
+                          <div className="flex flex-col gap-2">
+                            <motion.span
+                              custom={0}
+                              variants={ITEM_VARIANTS}
+                              className="text-muted-foreground mb-1 text-[11px] font-medium tracking-wider uppercase"
+                            >
+                              Navigation
+                            </motion.span>
+                            {PRIMARY_LINKS.map((link, i) => (
                               <motion.a
-                                key={link.label}
+                                key={link.href}
                                 href={link.href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={closeMenu}
-                                custom={12 + i}
+                                onClick={(e) => { e.preventDefault(); closeMenu(); navigate(link.href); }}
+                                custom={1 + i}
                                 variants={ITEM_VARIANTS}
-                                className="text-foreground/80 hover:text-foreground text-sm font-medium transition-colors focus-visible:outline-none"
+                                className="text-foreground hover:text-foreground/55 w-fit text-[26px] leading-tight font-medium tracking-tight transition-colors focus-visible:outline-none"
                               >
                                 {link.label}
                               </motion.a>
                             ))}
                           </div>
-                        </div>
-                      </motion.div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </motion.div>
+
+                          <motion.div
+                            custom={6}
+                            variants={ITEM_VARIANTS}
+                            className="bg-border my-6 h-px w-full"
+                          />
+
+                          <div className="flex flex-col gap-3">
+                            <motion.span
+                              custom={7}
+                              variants={ITEM_VARIANTS}
+                              className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase"
+                            >
+                              Sonstiges
+                            </motion.span>
+                            {LEGAL_LINKS.map((link, i) => (
+                              <motion.div
+                                key={link.href + link.label}
+                                custom={8 + i}
+                                variants={ITEM_VARIANTS}
+                                className="w-fit"
+                              >
+                                <a
+                                  href={link.href}
+                                  onClick={(e) => { e.preventDefault(); closeMenu(); navigate(link.href); }}
+                                  className="text-foreground/80 hover:text-foreground text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+                                >
+                                  {link.label}
+                                </a>
+                              </motion.div>
+                            ))}
+                          </div>
+
+                          <div className="mt-7 flex flex-col gap-3">
+                            <motion.span
+                              custom={11}
+                              variants={ITEM_VARIANTS}
+                              className="text-muted-foreground text-[11px] font-medium tracking-wider uppercase"
+                            >
+                              Social Media
+                            </motion.span>
+                            <div className="flex flex-wrap gap-x-5 gap-y-2">
+                              {SOCIAL_LINKS.map((link, i) => (
+                                <motion.a
+                                  key={link.label}
+                                  href={link.href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={closeMenu}
+                                  custom={12 + i}
+                                  variants={ITEM_VARIANTS}
+                                  className="text-foreground/80 hover:text-foreground text-sm font-medium transition-colors focus-visible:outline-none"
+                                >
+                                  {link.label}
+                                </motion.a>
+                              ))}
+                            </div>
+                          </div>
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </div>
         </div>
 
-        {/* Right: Mitglied werden (bis 11.10.2026 stand hier "Für Mitglieder";
-            der Weg in den Mitgliederbereich ist jetzt der rote Knopf links). */}
-        <div className="flex items-center gap-2">
-          <a
-            href={nav.signup.href}
-            onClick={(e) => {
-              e.preventDefault();
-              closeMenu();
-              navigate(nav.signup.href);
-            }}
-            // Traegt dieselbe Platte wie die Karten (--card-plate) statt der
-            // vollen --accent-Flaeche, damit der Kopf zum Rest der Seite passt.
-            // Der Rand ist dabei nicht Zierde: ohne ihn hat eine Flaeche auf
-            // dL* 6,0 keine Kante und liest sich nicht mehr als Schaltflaeche.
-            // hover war vorher opacity-85 — ein dunkler Knopf, der blasser
-            // wird, sinkt in den Grund statt zu antworten; deshalb glimmt jetzt
-            // der Rand auf (--border-hot), die Richtung stimmt damit wieder.
-            // Flaeche bewusst als Klasse, nicht im style-Attribut: ein inline
-            // gesetztes backgroundColor schlaegt jede Klasse, und hover: waere
-            // damit wirkungslos.
-            className="hidden h-13 items-center rounded-full border border-border bg-card-plate px-6 text-sm font-medium text-foreground transition-colors hover:border-border-hot hover:bg-card-plate-hot md:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
-          >
-            {nav.signup.label}
-          </a>
+        {/* Right: das Konto-Paar, "Für Mitglieder"/"Mein Bereich" (rot) und
+            aussen "Mitglied werden" (Platte). Bis 22.10.2026 stand der rote
+            Knopf links beim Logo und hier nur "Mitglied werden" — warum
+            jetzt beide hier, steht bei `accountLinks`.
+
+            Beide sind .jjk-btn. "Mitglied werden" war vorher von Hand gebaut
+            (Platte, Rand, beim Hover --card-plate-hot und --border-hot) — das
+            ist Strich fuer Strich der Ruhe- und Hover-Zustand von .jjk-btn,
+            nur in der Grundschrift statt in Shippori. Nebeneinander haette
+            das Paar damit zwei Schriften gezeigt und sich als zwei Dinge
+            gelesen. Jetzt unterscheidet die beiden nur noch die Farbe. Was
+            vorher fuer die Platte galt, gilt weiter, weil .jjk-btn es genauso
+            macht: Platte statt Zinnober, damit der Kopf zum Rest der Seite
+            passt; der Rand ist Kante, nicht Zierde (ohne ihn hat eine Flaeche
+            auf dL* 6,0 keine und liest sich nicht als Schaltflaeche); beim
+            Hover glimmt der Rand auf statt zu verblassen.
+            Was .jjk-btn mitbringt und hier Folgen hat:
+              - padding steht in globals.css ausserhalb jeder @layer und
+                schlaegt jede Utility; `px-6` am roten Knopf war darum
+                wirkungslos (gemessen 179 px, jetzt 156). `px-5!` gewinnt
+                ueber !important — 20 px wie der "Training"-Link, und noetig,
+                damit das Paar bei 768 neben der offenen Pille Platz hat.
+              - der Zinnober-Faden (::after) waechst beim Hover am unteren
+                Rand; overflow-hidden schneidet ihn auf die gerade Unterkante
+                der Pillenform, sonst ragt er an den Rundungen heraus.
+              - .jjk-btn hat keinen eigenen Fokusring, darum der Ring hier.
+
+            Das `hidden md:flex` sitzt am Behaelter und nicht an den Knoepfen:
+            .jjk-btn setzt selbst `display: inline-flex` und gewinnt gegen
+            `hidden` (s. o., ausserhalb der Layer). Genau daran ist der rote
+            Knopf frueher am Handy erschienen und hat sich mit der Menue-Pille
+            ueberlagert.
+
+            MagneticLink (wie beim Probetraining im Hero) bewusst nicht: er
+            zieht den Knopf bis ~30 px zum Zeiger, bei 8 px Luecke schoebe
+            sich der eine Knopf ueber den anderen — das Paar fiele genau beim
+            Hinzeigen auseinander. */}
+        <div className="hidden items-center gap-2 md:flex">
+          {accountLinks.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={(e) => {
+                e.preventDefault();
+                closeMenu();
+                navigate(link.href);
+              }}
+              className={`jjk-btn${link.loud ? " jjk-btn-loud" : ""} h-13 overflow-hidden rounded-full px-5! whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50`}
+            >
+              {link.label}
+            </a>
+          ))}
         </div>
       </div>
 
