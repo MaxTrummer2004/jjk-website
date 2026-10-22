@@ -116,13 +116,31 @@ const SHOWN = [
  * Seit 22.10.2026 links oben statt mittig darueber: lief die Platte vom Ring
  * nach rechts, hing sie ueber Kino-Ring und -Beschriftung und las sich wie
  * deren Schild (Kunde, Handy-Screenshot). Jetzt endet sie rechts 15 px hinter
- * dem Ring, waechst also vom Kino weg. Auf 360–412 px reicht der Platz links
- * dafuer kaum: der Ring erscheint 100–117 px von der Kartenkante, die Platte
- * ist 125 px breit. Sie steht deshalb fast immer am linken Anschlag (6 px),
- * und der Ring wandert unter ihr von rechts (15–28 px vor der Kante) nach
- * links. Gemessen am 22.10.2026.
+ * dem Ring, waechst also vom Kino weg.
+ *
+ * Links reicht der Platz dafuer kaum: der Ring erscheint 100–117 px von der
+ * Kartenkante, die Platte ist gut 130 px breit. Die erste Fassung schlug sie
+ * deshalb am linken Rand an, und der Ring wanderte unter ihr durch — fuer den
+ * Kunden "verschieben sich beim Scrollen" (22.10.2026). Seither haengt die
+ * Platte fest am Ring und wird stattdessen als Ganzes kleiner, siehe `fit`.
  */
 const ABOVE = "Bahnhof Puntigam";
+/**
+ * Am Handy (unter `sm:`) bleibt jede Beschriftung an ihrem Ring kleben und
+ * wird kleiner, statt auszuweichen, sobald sie an einen Rand oder eine
+ * andere Beschriftung stiesse. Kleiner als MIN_SCALE wird sie nicht: bei
+ * 0,7 rem sind das 6,7 px Schrift, die Entfernung darunter 5,3 px — darunter
+ * ist es kein Text mehr, nur noch ein Fleck. Ab FULL_SCALE abwaerts blendet
+ * sie aus und ist bei MIN_SCALE weg; voll deckend ist sie also nie unter
+ * 8,1 px. Deshalb zuerst Ausblenden, dann Untergrenze: eine Platte, die bei
+ * MIN_SCALE stehen bliebe, muesste entweder doch verrutschen oder ueber den
+ * Rand laufen, und beides ist genau das, was weg sollte.
+ */
+const MIN_SCALE = 0.6;
+const FULL_SCALE = 0.72;
+/** Luft zur Kartenkante und zwischen zwei Platten, in Bildpunkten. */
+const EDGE = 6;
+const GAP = 4;
 /**
  * Ein Zeichen je Art, damit man die Marken beim Ueberfliegen unterscheidet,
  * ohne zu lesen. Der Schluessel ist `sub` aus der Datendatei.
@@ -201,13 +219,14 @@ export function StreetMap({
     // Dieselbe Grenze wie Tailwinds `sm:`, damit Lage und Schriftgroesse der
     // Beschriftung immer zusammen umschalten.
     const wide = window.matchMedia("(min-width: 40rem)");
-    // Breite der Bahnhof-Platte (offsetWidth, also ohne Transform). Gebraucht,
-    // weil sie links oben vom Ring steht und am Kartenrand anschlagen muss.
-    // Einmal messen und merken: offsetWidth in jedem Bild hiesse, nach den
-    // Stil-Schreibungen der Kino-Platte jedes Mal ein erzwungenes Layout.
-    // 0 = neu messen, nach Groessenaenderung und nachgeladener Schrift.
-    let aboveW = 0;
-    const remeasure = (): void => { aboveW = 0; };
+    // Groesse jeder Platte (offsetWidth/-Height, also OHNE die Skalierung).
+    // Nur am Handy gebraucht: dort rechnet `fit` aus ihr, wie klein die
+    // Platte werden muss. Einmal messen und merken: offsetWidth in jedem Bild
+    // hiesse, nach den Stil-Schreibungen der Platte davor jedes Mal ein
+    // erzwungenes Layout. Leer = neu messen, nach Groessenaenderung und
+    // nachgeladener Schrift.
+    let sizes: { w: number; h: number }[] = [];
+    const remeasure = (): void => { sizes = []; };
     document.fonts.addEventListener("loadingdone", remeasure);
 
     const toLines = (arrs: number[][] | undefined): Line[] =>
@@ -375,6 +394,25 @@ export function StreetMap({
 
       // ── Wahrzeichen ──────────────────────────────────────────────────────
       const placed: { x: number; y: number }[] = [];
+      const narrow = !wide.matches;
+      // Alle Platten auf einmal messen, VOR der ersten Stil-Schreibung dieses
+      // Bildes: so kostet es hoechstens ein Layout, nicht eines je Platte.
+      // Eine Breite 0 heisst, die Platte haengt noch nicht im DOM — dann im
+      // naechsten Bild noch einmal.
+      if (narrow && (sizes.length !== data.marks.length || sizes.some((z) => z.w === 0))) {
+        sizes = data.marks.map((_, j) => {
+          const it = markRefs.current[j];
+          return { w: it?.offsetWidth ?? 0, h: it?.offsetHeight ?? 0 };
+        });
+      }
+      // Was am Handy schon steht, als Rechteck (Mitte = 0, schon skaliert und
+      // um GAP aufgeweitet). Die naechste Platte wird so klein, dass sie
+      // keines davon beruehrt.
+      const boxes: { l: number; t: number; r: number; b: number }[] = [];
+      // Wie weit die Platte vom Anker aus wachsen darf, bis `d` px aufgebraucht
+      // sind, wenn `f` px ihrer Groesse auf diese Seite fallen. f = 0: sie
+      // waechst gar nicht dorthin, also keine Grenze.
+      const reach = (d: number, f: number): number => (f > 0 ? d / f : Infinity);
       for (let i = 0; i < data.marks.length; i++) {
         const m = data.marks[i]!;
         const inT = Math.min(Math.max((eased - i * 0.03) / 0.09, 0), 1);
@@ -412,35 +450,95 @@ export function StreetMap({
         // sitzt die Beschriftung direkt neben dem Ring, auf einer eigenen
         // Platte — damit hat sie eine Kante und liegt nicht auf den Strassen.
         const dir = m.s === "left" ? -1 : 1;
-        const above = m.n === ABOVE && !wide.matches;
-        if (above && aboveW === 0) aboveW = el.offsetWidth;
-        // Links oben: die rechte Kante 15 px rechts vom Ring, die Platte
-        // waechst nach links, weg vom Kino. Nie naeher als 6 px an die linke
-        // Kartenkante — `max` statt Sprung, damit sie stetig mitlaeuft; dort
-        // bleibt sie stehen und der Ring wandert unter ihr nach links. `lx`
-        // ist hier die LINKE Kante, nicht translateX(-100%): so bleibt `left`
-        // ganzzahlig, und die Kante gegen den Rand ist direkt gerechnet.
-        // 28 px Luft unter der Platte, weil die Kino-Beschriftung 18 px ueber
-        // ihren Ring reicht und der Bahnhof bis zu 5 px tiefer liegt.
-        const lx = above ? Math.max(mx + 15 - aboveW, 6 - w / 2) : mx + dir * 13 * k;
-        let ly = above ? my - 28 : my;
-        if (!above) {
-          for (const q of placed) {
-            if (Math.abs(q.x - lx) < 170 && Math.abs(q.y - ly) < 30) ly = q.y + 34;
+        const z = sizes[i];
+        if (narrow && z) {
+          // ── Am Handy: fester Anker, Platte schrumpft ───────────────────
+          // Der Anker ist ein Punkt der Platte, der am Ring klebt; (ox, oy)
+          // sagt, welcher (0 = linke/obere Kante, 1 = rechte/untere, 0,5 =
+          // Mitte). Seitlich wie am Schreibtisch: die zugewandte Kante 13 px
+          // (mal k) neben dem Ring, mittig in der Hoehe. Der Bahnhof links
+          // oben: die rechte untere Ecke 15 px rechts und 28 px ueber dem
+          // Ring. 28 px, weil die Kino-Beschriftung 18 px ueber ihren Ring
+          // reicht und der Bahnhof bis zu 5 px tiefer liegt.
+          const above = m.n === ABOVE;
+          const ox = above || dir < 0 ? 1 : 0;
+          const oy = above ? 1 : 0.5;
+          const ax = above ? mx + 15 : mx + dir * 13 * k;
+          const ay = above ? my - 28 : my;
+          // Kartenkante, um EDGE nach innen.
+          const L = EDGE - w / 2;
+          const R = w / 2 - EDGE;
+          const T = EDGE - h / 2;
+          const B = h / 2 - EDGE;
+          // Die groesste Skalierung, bei der die Platte, vom Anker aus nach
+          // (ox, oy) gewachsen, noch in die Karte passt. Linear in der Lage
+          // des Rings, also ohne Spruenge zwischen zwei Bildern.
+          let fit = Math.min(
+            1,
+            reach(ax - L, ox * z.w),
+            reach(R - ax, (1 - ox) * z.w),
+            reach(ay - T, oy * z.h),
+            reach(B - ay, (1 - oy) * z.h),
+          );
+          // Gegen die schon gesetzten Platten: es genuegt, in EINER Achse
+          // vorbeizukommen, daher `max` der beiden. Liegt die andere ganz
+          // auf der Seite, auf die diese nicht waechst, bremst sie nichts.
+          for (const q of boxes) {
+            const sx = q.l >= ax ? reach(q.l - ax, (1 - ox) * z.w) : q.r <= ax ? reach(ax - q.r, ox * z.w) : 0;
+            const sy = q.t >= ay ? reach(q.t - ay, (1 - oy) * z.h) : q.b <= ay ? reach(ay - q.b, oy * z.h) : 0;
+            fit = Math.min(fit, Math.max(sx, sy));
           }
-          placed.push({ x: lx, y: ly });
+          const sc = Math.max(fit, MIN_SCALE);
+          // Zur Seite, auf die die Platte nicht waechst, hilft Schrumpfen
+          // nichts: dort ist der Anker selbst die Kante. Laeuft der Ring dort
+          // aus der Karte, blendet die Platte auf den letzten 21 px vor der
+          // Randluft aus, statt ueber nichts zu haengen.
+          const back = Math.min(
+            ox === 0 ? ax - L : Infinity,
+            ox === 1 ? R - ax : Infinity,
+            oy === 1 ? B - ay : Infinity,
+          );
+          const op =
+            e *
+            Math.min(Math.max((fit - MIN_SCALE) / (FULL_SCALE - MIN_SCALE), 0), 1) *
+            Math.min(Math.max(back / 21, 0), 1);
+          if (op > 0.01) {
+            boxes.push({
+              l: ax - ox * sc * z.w - GAP,
+              r: ax + (1 - ox) * sc * z.w + GAP,
+              t: ay - oy * sc * z.h - GAP,
+              b: ay + (1 - oy) * sc * z.h + GAP,
+            });
+          }
+
+          el.style.visibility = "visible";
+          el.style.opacity = `${op}`;
+          // `left`/`top` ist die ungedrehte, unskalierte Ecke, auf ganze
+          // Pixel (siehe unten); das Skalieren macht der Transform um den
+          // Anker, damit der Anker am Ring bleibt, waehrend alles andere —
+          // Schrift, Zeichen, Innenabstand, Rahmen — gemeinsam schrumpft.
+          el.style.left = `${Math.round(w / 2 + ax - ox * z.w)}px`;
+          el.style.top = `${Math.round(h / 2 + ay - oy * z.h)}px`;
+          el.style.transformOrigin = `${ox * 100}% ${oy * 100}%`;
+          el.style.transform = sc < 1 ? `scale(${sc})` : "none";
+          continue;
         }
 
+        const lx = mx + dir * 13 * k;
+        let ly = my;
+        for (const q of placed) {
+          if (Math.abs(q.x - lx) < 170 && Math.abs(q.y - ly) < 30) ly = q.y + 34;
+        }
+        placed.push({ x: lx, y: ly });
+
         el.style.visibility = "visible";
-        // Sobald die Platte am Rand ansteht, laeuft der Ring unter ihr weg aus
-        // der Karte. Dann blendet sie auf den letzten 21 px aus, statt ueber
-        // nichts zu haengen — und ist weg, bevor sie den Knopf oben erreicht.
-        el.style.opacity = `${above ? e * Math.min(Math.max((w / 2 + mx) / 21, 0), 1) : e}`;
+        el.style.opacity = `${e}`;
         // Auf ganze Pixel: auf halben Pixeln zittert Text beim Zoomen, und
         // genau das liest sich als unfertig.
         el.style.left = `${Math.round(w / 2 + lx)}px`;
         el.style.top = `${Math.round(h / 2 + ly)}px`;
-        el.style.transform = above ? "translateY(-100%)" : `translateY(-50%) ${m.s === "left" ? "translateX(-100%)" : ""}`;
+        el.style.transformOrigin = "";
+        el.style.transform = `translateY(-50%) ${m.s === "left" ? "translateX(-100%)" : ""}`;
       }
 
       // ── Das Gym ──────────────────────────────────────────────────────────
@@ -497,7 +595,7 @@ export function StreetMap({
       // Wert — und der ResizeObserver feuert waehrend des Wachsens in jedem
       // Bild, nach den rAF-Rueckrufen. Nur bei echter Aenderung anfassen.
       if (nw === w && nh === h && nd === dpr) return;
-      aboveW = 0;
+      sizes = [];
       w = nw;
       h = nh;
       dpr = nd;
@@ -576,8 +674,6 @@ export function StreetMap({
 
       {marks.map((m, i) => {
         const Icon = ICONS[m.sub];
-        // Die Platte ueber dem Ring ist am Handy etwas kleiner gesetzt.
-        const small = m.n === ABOVE;
         return (
           <div
             key={m.n}
@@ -585,11 +681,11 @@ export function StreetMap({
             className="pointer-events-none absolute flex flex-col gap-0.5 rounded-md border border-white/12 bg-[#0b0b10]/88 px-2 py-1 leading-tight backdrop-blur-[2px] sm:px-2.5 sm:py-1.5"
             style={{ opacity: 0, visibility: "hidden" }}
           >
-            <span className={`flex items-center gap-1.5 ${small ? "text-[0.63rem]" : "text-[0.7rem]"} font-semibold whitespace-nowrap text-foreground sm:text-[0.8rem]`}>
+            <span className="flex items-center gap-1.5 text-[0.7rem] font-semibold whitespace-nowrap text-foreground sm:text-[0.8rem]">
               {Icon ? <Icon className="size-3 shrink-0 text-[#ffbe84]" strokeWidth={2} aria-hidden="true" /> : null}
               {m.n}
             </span>
-            <span className={`font-mono ${small ? "text-[0.5rem]" : "text-[0.55rem]"} tracking-wide whitespace-nowrap text-[#ffbe84] sm:text-[0.6rem]`}>
+            <span className="font-mono text-[0.55rem] tracking-wide whitespace-nowrap text-[#ffbe84] sm:text-[0.6rem]">
               {km(m.d)}
             </span>
           </div>
