@@ -4353,7 +4353,10 @@ p,
 }
 /* Die Zeile, die gewaehlt werden soll. Eine Glutkante links und ein waermerer
    Grund — kein Vergroessern, kein Schatten: diese Seite hat keine Tiefe, in
-   die etwas hineinragen koennte. */
+   die etwas hineinragen koennte.
+   Derzeit traegt KEINE Zeile `data-featured` (Rueckmeldung 22.10.2026): mit
+   nur noch einem Mitgliedschaftstarif gibt es nichts zu vergleichen. Die
+   Regeln bleiben fuer den Fall, dass wieder mehrere Tarife daneben stehen. */
 .jjk-plan[data-featured] {
   background: color-mix(in srgb, var(--accent) 7%, var(--card-plate));
   box-shadow: inset 3px 0 0 var(--accent);

@@ -1,29 +1,28 @@
 "use client";
 
 /**
- * Was es kostet — fuenf Angebote in zwei Gruppen.
+ * Was es kostet — drei Angebote in zwei Gruppen.
  *
  * ── Warum Zeilen und keine Spalten ──────────────────────────────────────────
  * Die Vorgaenger-Fassung hatte zwei Kaesten nebeneinander, davor drei, davor
- * eine Bento-Wand. Mit fuenf Angeboten traegt keine Spaltenform mehr: auf
- * 380 px waeren das fuenf Wischer oder eine Tabelle, die quer laeuft, und auf
- * dem Desktop fuenf gleich laute Kaesten, in denen nichts mehr hervorsticht.
- *
- * Zeilen loesen beides. Eine Zeile ist am Handy genauso lesbar wie am Desktop,
- * sie wird nur laenger. Und eine Zeile kann leise sein, waehrend die daneben
- * laut ist — fuenf Kaesten koennen das nicht.
+ * eine Bento-Wand. Gebaut wurden die Zeilen fuer fuenf Angebote: auf 380 px
+ * waeren das fuenf Wischer gewesen oder eine Tabelle, die quer laeuft. Seit
+ * dem 12.10.2026 sind es drei; die Zeilen bleiben, weil eine Zeile am Handy
+ * genauso lesbar ist wie am Desktop — sie wird nur laenger.
  *
  * ── Warum zwei Gruppen ──────────────────────────────────────────────────────
- * "Einmal ansehen" und "hier trainieren" sind keine fuenf Stufen derselben
- * Frage, sondern zwei Fragen. Wer noch nie auf einer Matte stand, waehlt nicht
+ * "Einmal ansehen" und "hier trainieren" sind keine Stufen derselben Frage,
+ * sondern zwei Fragen. Wer noch nie auf einer Matte stand, waehlt nicht
  * zwischen Jahresvertrag und Zehnerblock — er will wissen, was ihn das erste
  * Mal kostet. Deshalb zuerst der Einstieg, dann die Mitgliedschaft.
  *
- * ── Wie das Jahr hervorgehoben ist ──────────────────────────────────────────
- * Mit einer Zahl, nicht mit einem Etikett: "240 € weniger als Flex". Ein "Beliebt!" behauptet einen Vorteil, eine Differenz zeigt
- * ihn. Dazu eine Glutkante links und ein waermerer Grund. Kein Vergroessern,
- * kein Schlagschatten — diese Seite hat keine Tiefe, in die etwas hineinragen
- * koennte, und eine Zeile, die abhebt, kommt von einer anderen Website.
+ * ── Keine Hervorhebung ──────────────────────────────────────────────────────
+ * Alle Zeilen sehen gleich aus (Rueckmeldung 22.10.2026). Die Glutkante, der
+ * waermere Grund und der rote Preis der Jahresbindung waren fuer den Vergleich
+ * mehrerer Mitgliedschaftstarife da; mit nur noch einem gibt es nichts
+ * herauszuheben. Der Mechanismus bleibt: `featured: true` in `lib/config.ts`
+ * setzt `data-featured`, und `.jjk-plan[data-featured]` in globals.css malt
+ * die Zeile wieder an.
  */
 
 import { motion } from "motion/react";

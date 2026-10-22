@@ -415,7 +415,10 @@ export const pricing = {
       reduced: "55",
       per: "pro Monat",
       note: "",
-      featured: true,
+      // Ohne Hervorhebung (Rueckmeldung 22.10.2026): die Glutkante und der
+      // rote Preis waren fuer den Vergleich mehrerer Tarife da. Mit nur noch
+      // einem Mitgliedschaftstarif gibt es nichts mehr herauszuheben.
+      featured: false,
     },
   ],
   single: [
