@@ -292,7 +292,7 @@ export function SiteNav(): ReactNode {
                                   closeMenu();
                                   navigate(link.href);
                                 }}
-                                className={`jjk-btn${link.loud ? " jjk-btn-loud" : ""} h-13 w-full overflow-hidden rounded-full px-5! focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50`}
+                                className={`jjk-btn${link.loud ? " jjk-btn-loud" : ""} h-13 w-full overflow-hidden rounded-full px-5! focus-visible:outline-none focus-visible:ring-2 ${link.loud ? "focus-visible:ring-foreground/70" : "focus-visible:ring-accent/50"}`}
                               >
                                 {link.label}
                               </a>
@@ -414,6 +414,9 @@ export function SiteNav(): ReactNode {
                 Rand; overflow-hidden schneidet ihn auf die gerade Unterkante
                 der Pillenform, sonst ragt er an den Rundungen heraus.
               - .jjk-btn hat keinen eigenen Fokusring, darum der Ring hier.
+                Am roten Knopf hell statt Zinnober: accent/50 auf der
+                Zinnober-Flaeche ergab rgb(118,25,28) neben rgb(208,31,41),
+                der Knopf wirkte nur 2 px dicker statt fokussiert.
 
             Das `hidden md:flex` sitzt am Behaelter und nicht an den Knoepfen:
             .jjk-btn setzt selbst `display: inline-flex` und gewinnt gegen
@@ -435,7 +438,7 @@ export function SiteNav(): ReactNode {
                 closeMenu();
                 navigate(link.href);
               }}
-              className={`jjk-btn${link.loud ? " jjk-btn-loud" : ""} h-13 overflow-hidden rounded-full px-5! whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50`}
+              className={`jjk-btn${link.loud ? " jjk-btn-loud" : ""} h-13 overflow-hidden rounded-full px-5! whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 ${link.loud ? "focus-visible:ring-foreground/70" : "focus-visible:ring-accent/50"}`}
             >
               {link.label}
             </a>
