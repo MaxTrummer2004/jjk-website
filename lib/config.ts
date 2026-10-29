@@ -200,39 +200,32 @@ export type ScheduleClass = {
   /** Einzeiler unter dem Namen — Format, Inhalt, Zielgruppe. */
   note?: string;
   /**
-   * Die KURSART. Wie sie in Farbe uebersetzt wird, steht in
-   * components/schedule.tsx (`toneOf`).
+   * Die KURSART. Sie bestimmt Farbe und Legende; welche Kursart welche Farbe
+   * hat, steht in components/schedule.tsx (`KIND`).
    *
-   * Seit 29.10.2026 belegt: nogi, gi, boxen, openmat, frei. basic, advanced,
-   * ringen, sparring und wettkampf sind ungenutzt, stehen aber noch im Typ,
-   * bis die Darstellung in schedule.tsx nachgezogen ist.
+   * Seit 29.10.2026 nur noch die fuenf, die der Plan wirklich benutzt.
+   * basic, advanced, ringen, sparring und wettkampf sind aus dem Typ raus:
+   * `KIND` ist ein Record ueber diese Union, und jede tote Kursart haette
+   * dort eine Farbe gebraucht, die nie jemand sieht. Umgekehrt meldet tsc
+   * jetzt eine neue Kursart, solange sie keine Farbe hat.
    */
-  kind:
-    | "basic"
-    | "gi"
-    | "nogi"
-    | "advanced"
-    | "ringen"
-    | "sparring"
-    | "wettkampf"
-    | "boxen"
-    | "openmat"
-    | "frei";
+  kind: "nogi" | "gi" | "boxen" | "openmat" | "frei";
   /**
    * Emoji hinter dem Namen: 🥋 Gi, 🤼 No-Gi, beides fuer Gi und No-Gi,
    * 🥊 Boxen. Matte frei traegt keins.
    */
   attire?: "gi" | "nogi" | "both" | "box";
+  /* `alt` (zweite Moeglichkeit im selben Slot, "entweder – oder") ist seit
+     29.10.2026 raus: gebaut fuer den Mittwoch (Wettkampftraining ODER
+     Special Wednesday), von keinem Eintrag mehr benutzt, und die Darstellung
+     in schedule.tsx ist mit weg. Ein optionales Feld, das niemand rendert,
+     wuerde still verschluckt. */
   /**
-   * Zweite Moeglichkeit im selben Slot ("entweder – oder"). War fuer den
-   * Mittwoch gebaut (Wettkampftraining ODER Special Wednesday); seit
-   * 29.10.2026 von keinem Eintrag mehr benutzt.
-   */
-  alt?: { name: string; attire?: "gi" | "nogi" | "both" | "box" };
-  /**
-   * Das empfohlene Level — der Text im Chip. Seit 29.10.2026 ist alles
-   * "jedes" (der Verein unterscheidet keine Stufen mehr); anfaenger,
-   * intermediate und advanced sind ungenutzt.
+   * Das empfohlene Level. Seit 29.10.2026 ist alles "jedes" (der Verein
+   * unterscheidet keine Stufen mehr). Der Plan sagt das EINMAL im Intro und
+   * zeigt ein Chip nur noch bei Abweichung — die anderen drei Werte bleiben
+   * deshalb im Typ: setzt jemand wieder eine Stufe, erscheint sie an genau
+   * dieser Einheit, und der Satz "alle Kurse fuer jedes Level" faellt weg.
    */
   level: "anfaenger" | "jedes" | "intermediate" | "advanced";
   /**
@@ -313,7 +306,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   {
     day: "Sa",
     classes: [
-      { time: "Nach Absprache", name: "Open Mat", note: "Gi & No-Gi · freies Rollen für alle · Zeit variabel, wird in der Gruppe abgesprochen", program: "Open Mat", kind: "openmat", level: "jedes", attire: "both" },
+      { time: "Nach Absprache", name: "Open Mat", note: "Gi & No-Gi · freies Rollen für alle", program: "Open Mat", kind: "openmat", level: "jedes", attire: "both" },
     ],
   },
 ];

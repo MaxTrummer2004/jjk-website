@@ -41,46 +41,111 @@ import ClickStack, { type ClickStackHandle } from "@/components/click-stack";
 import { useReducedMotion } from "@/lib/motion";
 
 /**
- * Die Palette aus dem Aushang.
+ * Die Palette — seit 29.10.2026 wieder nach KURSART, wie der neue Aushang.
  *
- * Gefaerbt wird nach RICHTUNG, nicht nach Level — der Aushang sagt es selbst:
- * "die Farbgruppe zeigt die Richtung, das Label das empfohlene Level". Fuenf
- * Gruppen, innerhalb einer Gruppe abgestuft, alles aus der Tailwind-Rampe:
+ * Bis dahin faerbte der Plan nach Stufe (Vorstand, 11.10.2026: Anfaenger und
+ * jedes Level gruen, Intermediate orange, Advanced rot, Boxen blau). Mit dem
+ * neuen Plan ist jeder Kurs "Jedes Level", also waere alles gruen ausser
+ * Boxen gewesen: No-Gi, Gi, Open Mat und Matte frei gleich, die Farbe haette
+ * nichts mehr unterschieden. Der Aushang faerbt nach Kursart mit Legende, und
+ * genau das tut der Plan jetzt auch.
  *
- *   gruen  — Anfaenger & alle Level   (BJJ Basic, Gi/No-Gi Training, Open Mat)
- *   rot    — Fortgeschrittene         (Advanced Training)
- *   lila   — Ringen
- *   blau   — Sparring & Wettkampf
- *   orange — Boxen
+ * Die Toene sind keine neuen, sondern die, die diese Datei schon getragen hat
+ * (alles Tailwind-Rampe, 600er/700er):
+ *
+ *   No-Gi      green-600  — war Anfaenger & jedes Level; No-Gi ist der
+ *                           haeufigste Kurs (3x) und bleibt, wie er war
+ *   Gi         amber-600  — war bis 11.10. Boxen; der waermste Ton, also der
+ *                           groesste Abstand zu Gruen, und Gi/No-Gi ist DIE
+ *                           Unterscheidung ("brauche ich meinen Gi?")
+ *   Boxen      blue-700   — bleibt seit 11.10. blau, niemand muss umlernen
+ *   Open Mat   purple-700 — war Ringen; einmal pro Woche, steht allein am
+ *                           Samstag und braucht daher keinen Nachbarabstand
+ *   Matte frei neutral-500 — grau, wie am Aushang: das ist kein Kurs, sondern
+ *                           offene Matte, und soll neben den Kursen zuruecktreten
+ *
+ * Nebeneinander stehen im Plan nur Blau/Gelb (Di), Blau/Gruen (Do) und je
+ * Grau davor — alle Paare liegen weit auseinander. Rot ist absichtlich nicht
+ * dabei: Zinnober gehoert der Seite selbst (Hover, Akzent), und eine rote
+ * Kursfarbe saehe aus wie ein Zustand.
  *
  * Eine 600er/700er-Stufe ist fuer helle Gruende gebaut, dieser Grund ist fast
  * schwarz. Das wird nicht ueber die Farbe geloest, sondern ueber ihren
- * Einsatz: sie traegt Flaechen (gefuelltes Chip mit weisser Schrift) und
- * Linien, nie Kleinschrift.
+ * Einsatz: sie traegt Flaechen (das Farbfeld) und Linien, nie Kleinschrift.
+ *
+ * Die Reihenfolge der Schluessel ist die der Legende ("Pro Woche"), wie am
+ * Aushang: No-Gi, Gi, Boxen, Open Mat, dann Matte frei.
  */
-const GROUPS = {
-  gruen:  { label: "Anfänger & jedes Level", tone: "#16a34a" }, // green-600
-  orange: { label: "Ab Intermediate",        tone: "#ea580c" }, // orange-600
-  rot:    { label: "Ab Advanced",            tone: "#b91c1c" }, // red-700
-  blau:   { label: "Boxen",                  tone: "#1d4ed8" }, // blue-700
-} as const;
+const KIND: Record<ScheduleClass["kind"], { label: string; tone: string }> = {
+  nogi:    { label: "Jiu-Jitsu No-Gi", tone: "#16a34a" }, // green-600
+  gi:      { label: "Jiu-Jitsu Gi",    tone: "#d97706" }, // amber-600
+  boxen:   { label: "Boxen",           tone: "#1d4ed8" }, // blue-700
+  openmat: { label: "Open Mat",        tone: "#7e22ce" }, // purple-700
+  frei:    { label: "Matte frei",      tone: "#737373" }, // neutral-500
+};
 
-/**
- * Farbe einer Einheit. Seit 11.10.2026 nach STUFE statt nach Richtung
- * (Vorgabe des Vorstands): Anfaenger und jedes Level gruen, Intermediate
- * orange, Advanced rot — nur Boxen bekommt unabhaengig von der Stufe blau.
- * Freies Training ist jedes Level, also gruen.
- */
 function toneOf(c: ScheduleClass): string {
-  if (c.kind === "boxen") return GROUPS.blau.tone;
-  if (c.level === "advanced") return GROUPS.rot.tone;
-  if (c.level === "intermediate") return GROUPS.orange.tone;
-  return GROUPS.gruen.tone;
+  return KIND[c.kind].tone;
 }
 
 /**
- * 🥋 Gi, 🤼 No-Gi (auch Ringen und Sparring), 🥊 Boxen — wie auf dem
- * frueheren Aushang. Nur dort, wo `attire` gesetzt ist.
+ * Das Farbfeld vor der Zeit, und dasselbe Feld in der Legende. Bis
+ * 29.10.2026 trug ein gefuelltes Level-Chip die Farbe; das Chip ist weg
+ * (siehe `LevelChip`), und die Haarlinie allein steht am Desktop auf 55 %
+ * Deckkraft — zu leise, um eine Legende zu tragen. Ein flaches Quadrat ist
+ * die kleinste FLAECHE, auf der eine 700er-Farbe auf Schwarz noch sicher
+ * erkennbar ist. Eckig, weil auf dieser Seite nichts abgerundet ist.
+ */
+function Swatch({ tone }: { tone: string }): ReactNode {
+  return (
+    <span
+      aria-hidden="true"
+      className="inline-block h-2 w-2 shrink-0"
+      style={{ background: tone }}
+    />
+  );
+}
+
+/**
+ * "18:00–19:15" ist eine Uhrzeit, "Nach Absprache" (Open Mat, seit
+ * 29.10.2026) nicht. `time` ist in lib/config.ts reiner Anzeigetext; hier
+ * entscheidet nur die Form ueber die Schrift.
+ */
+function isClock(time: string): boolean {
+  return /^\d{1,2}:\d{2}/.test(time);
+}
+
+/**
+ * Die Zeitzeile einer Einheit. Eine Uhrzeit steht in Mono mit
+ * Tabellenziffern. "Nach Absprache" in derselben Mono sah aus wie eine
+ * kaputte Uhrzeit — gleiche Schrift, gleiche Stelle, aber keine Ziffern. Es
+ * steht deshalb als Mono-Etikett in Versalien und gedaempft: dieselbe Form
+ * wie jede Augenbraue der Seite, also lesbar als "Hinweis zur Zeit", nicht
+ * als Zeit.
+ */
+function SlotTime({ time, clockClass }: { time: string; clockClass: string }): ReactNode {
+  if (isClock(time)) {
+    return (
+      // Farbe inline: `.jjk-slot-time` faerbt die Zeit in `--slot`, und die
+      // soll weiss bleiben (siehe `Slot`).
+      <span
+        className={clockClass}
+        style={{ color: "var(--foreground)", fontVariantNumeric: "tabular-nums" }}
+      >
+        {time}
+      </span>
+    );
+  }
+  return (
+    <span className="font-mono text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+      {time}
+    </span>
+  );
+}
+
+/**
+ * 🥋 Gi, 🤼 No-Gi, beides fuer die Open Mat, 🥊 Boxen. Nur dort, wo
+ * `attire` gesetzt ist — Matte frei traegt keins.
  */
 const ATTIRE: Record<NonNullable<ScheduleClass["attire"]>, { emoji: string; label: string }> = {
   gi:   { emoji: "🥋", label: "im Gi" },
@@ -89,31 +154,10 @@ const ATTIRE: Record<NonNullable<ScheduleClass["attire"]>, { emoji: string; labe
   box:  { emoji: "🥊", label: "Boxen" },
 };
 
-/**
- * "Entweder – oder" wie am Aushang: kleine Ueberzeile, erster Kurs, ein
- * "ODER"-Chip, zweiter Kurs. Nur fuer Slots mit `alt`.
- */
-function EitherOr({ c, nameClass }: { c: ScheduleClass; nameClass: string }): ReactNode {
-  if (!c.alt) return null;
-  return (
-    <>
-      <span className="font-mono text-[0.55rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-        Entweder – oder
-      </span>
-      <span className={nameClass}>
-        {c.name}
-        <AttireMark attire={c.attire} />
-      </span>
-      <span className="my-0.5 inline-flex w-fit rounded-sm border border-white/15 px-1.5 py-px font-mono text-[0.55rem] font-semibold uppercase tracking-[0.16em] text-foreground-dim">
-        oder
-      </span>
-      <span className={nameClass}>
-        {c.alt.name}
-        <AttireMark attire={c.alt.attire} />
-      </span>
-    </>
-  );
-}
+/* Hier stand `EitherOr` ("Entweder – oder", fuer den Mittwoch:
+   Wettkampftraining ODER Special Wednesday). Seit 29.10.2026 benutzt kein
+   Eintrag mehr `alt`, und das Feld ist aus `ScheduleClass` raus — ein Feld,
+   das niemand darstellt, waere eine stille Falle. Zurueckholen: git log. */
 
 function AttireMark({ attire }: { attire: ScheduleClass["attire"] }): ReactNode {
   if (!attire) return null;
@@ -126,6 +170,8 @@ function AttireMark({ attire }: { attire: ScheduleClass["attire"] }): ReactNode 
 }
 
 
+const ALL_CLASSES = schedule.flatMap((d) => d.classes);
+
 /** Was im Chip steht: das empfohlene Level, nicht die Kursart. */
 const LEVEL_LABEL: Record<ScheduleClass["level"], string> = {
   anfaenger:    "Anfänger",
@@ -135,22 +181,50 @@ const LEVEL_LABEL: Record<ScheduleClass["level"], string> = {
 };
 
 /**
- * Wie oft es jede STUFE pro Woche gibt — fuer die Aufzaehlung ueber dem Plan
- * (Wunsch des Vorstands, 11.10.2026: nicht pro Kurs, sondern pro Kategorie).
- * Freies Training zaehlt als eigene Zeile, nicht unter "Jedes Level". Aus
- * `schedule` gerechnet, nicht abgetippt: aendert sich der Plan, stimmt die
- * Zahl von selbst.
+ * Ob wirklich JEDE Einheit fuer jedes Level ist. Nur dann steht der Satz
+ * des Aushangs ("alle Kurse fuer jedes Level") im Intro — gerechnet, damit er
+ * nicht stehen bleibt, wenn der Verein wieder einen Kurs mit Stufe einfuehrt.
  */
-const LEVEL_ORDER: ScheduleClass["level"][] = ["anfaenger", "jedes", "intermediate", "advanced"];
-const WEEKLY: { name: string; count: number }[] = (() => {
-  const all = schedule.flatMap((d) => d.classes);
-  const frei = all.filter((c) => c.kind === "frei").length;
-  const rows = LEVEL_ORDER.map((level) => ({
-    name: LEVEL_LABEL[level],
-    count: all.filter((c) => c.kind !== "frei" && c.level === level).length,
-  })).filter((r) => r.count > 0);
-  return [{ name: "Freies Training", count: frei }, ...rows].filter((r) => r.count > 0);
-})();
+const EVERY_LEVEL = ALL_CLASSES.every((c) => c.level === "jedes");
+
+/**
+ * Das Level-Chip, seit 29.10.2026 nur noch als AUSNAHME.
+ *
+ * Bis dahin trug jede Einheit ihr Chip. Mit dem neuen Plan stuende auf allen
+ * dreizehn Karten "Jedes Level" — dreizehnmal dieselbe Aussage ist keine
+ * Information, sondern Rauschen, und es kostete pro Einheit eine Zeile. Der
+ * Satz steht jetzt EINMAL im Intro, wie am Aushang ueber dem Plan. Ein Chip
+ * erscheint nur, wenn eine Einheit davon abweicht; dann ist es genau die
+ * Stelle, die man sehen muss. Neutral umrandet statt in der Kursfarbe
+ * gefuellt: die Farbe gehoert jetzt der Kursart.
+ */
+function LevelChip({ level }: { level: ScheduleClass["level"] }): ReactNode {
+  if (level === "jedes") return null;
+  return (
+    <span className="mt-2 inline-flex w-fit items-center border border-border px-1.5 py-[3px] font-mono text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-foreground-dim">
+      {LEVEL_LABEL[level]}
+    </span>
+  );
+}
+
+/**
+ * Wie oft es jede KURSART pro Woche gibt, mit ihrem Farbfeld — Zaehlung und
+ * Legende in einem. Seit 29.10.2026 nach Kursart statt nach Stufe (alles ist
+ * jetzt "Jedes Level", die Stufenzaehlung haette "Jedes Level 8x" gesagt).
+ * Aus `schedule` gerechnet, nicht abgetippt: aendert sich der Plan, stimmen
+ * Zahl und Legende von selbst, und eine Kursart, die nicht im Plan steht,
+ * steht auch nicht in der Legende. Stand heute: No-Gi 3, Gi 2, Boxen 2 —
+ * die "7 Kurse pro Woche" aus `pricing.benefits` — plus Open Mat 1 und
+ * Matte frei 5.
+ */
+const WEEKLY: { kind: ScheduleClass["kind"]; label: string; tone: string; count: number }[] =
+  (Object.keys(KIND) as ScheduleClass["kind"][])
+    .map((kind) => ({
+      kind,
+      ...KIND[kind],
+      count: ALL_CLASSES.filter((c) => c.kind === kind).length,
+    }))
+    .filter((r) => r.count > 0);
 
 /* Die Schluessel hiessen frueher Mon/Tue/Wed — `schedule` liefert aber
    Mo/Di/Mi. Der Lookup lief also immer ins Leere und kein einziges Kanji
@@ -175,6 +249,26 @@ const DAY_FULL: Record<string, string> = {
   Sa: "Samstag",
 };
 
+/** Wie viele Slots die laengste Spalte hat (Di und Do: drei). */
+const MAX_SLOTS = schedule.reduce((m, c) => Math.max(m, c.classes.length), 0);
+
+/**
+ * Ob eine Einheit den Rest ihrer Spalte bzw. Karte fuellt.
+ *
+ * Seit 29.10.2026 sind die Tage ungleich lang: Di/Do drei Eintraege
+ * (Matte frei, zwei Kurse zu 60 Minuten), Mo/Mi/Fr zwei (Matte frei, EIN
+ * Kurs zu 75 Minuten ab 18:00), Sa einer. Vorher fuellte ein leeres Element
+ * den Rest, und unter Mo/Mi/Fr stand ein Drittel der Spalte leer — das sah
+ * aus wie ein vergessener Kurs. Jetzt reicht die LETZTE Einheit eines kurzen
+ * Tages bis unten, wie am Aushang, wo der 75-Minuten-Kurs die Spalte fuellt.
+ * Das stimmt auch zeitlich: 18:00–19:15 liegt quer ueber den beiden Schienen
+ * 17:45 und 19:00 der langen Tage. Am Samstag fuellt die Open Mat die ganze
+ * Spalte — sie hat keine feste Zeit, also auch kein festes Ende.
+ */
+function grows(col: (typeof schedule)[number], j: number): boolean {
+  return col.classes.length < MAX_SLOTS && j === col.classes.length - 1;
+}
+
 function DayCard({ col }: { col: (typeof schedule)[number] }) {
   return (
     <div className="flex h-full flex-col" style={{ fontFamily: "var(--font-display)" }}>
@@ -196,8 +290,9 @@ function DayCard({ col }: { col: (typeof schedule)[number] }) {
         </span>
       </div>
 
-      {/* class list */}
-      <div className="flex flex-col gap-0 overflow-hidden">
+      {/* class list. `flex-1`, damit die letzte Einheit eines kurzen Tages
+          bis zum Kartenboden reichen kann (siehe `grow`). */}
+      <div className="flex flex-1 flex-col gap-0 overflow-hidden">
         {col.classes.map((c, j) => {
           const tone = toneOf(c);
           return (
@@ -208,36 +303,30 @@ function DayCard({ col }: { col: (typeof schedule)[number] }) {
                 borderLeft: `2px solid ${tone}`,
                 marginLeft: "1px",
                 borderBottom: "1px solid rgba(255,255,255,0.04)",
+                flexGrow: grows(col, j) ? 1 : 0,
               } as CSSProperties}
             >
               {/* Zeit: weiss, groesser, tabellarische Ziffern und nur leicht
                   gesperrt. Uppercase entfaellt — bei Ziffern tut es nichts
-                  ausser die Zeichen auseinanderzuziehen. */}
-              <span
-                className="font-mono text-[0.78rem] font-medium tracking-[0.04em] text-foreground"
-                style={{ fontVariantNumeric: "tabular-nums" }}
-              >
-                {c.time}
+                  ausser die Zeichen auseinanderzuziehen. Davor das Farbfeld
+                  der Kursart, dasselbe wie in der Legende am Desktop. */}
+              <span className="flex items-center gap-2">
+                <Swatch tone={tone} />
+                <SlotTime
+                  time={c.time}
+                  clockClass="font-mono text-[0.78rem] font-medium tracking-[0.04em] text-foreground"
+                />
               </span>
-              {c.alt ? (
-                <EitherOr c={c} nameClass="text-foreground text-[0.95rem] leading-snug font-semibold" />
-              ) : (
-                <span className="text-foreground text-[0.95rem] leading-snug font-semibold">
-                  {c.name}
-                  <AttireMark attire={c.attire} />
-                </span>
-              )}
+              <span className="text-foreground text-[0.95rem] leading-snug font-semibold">
+                {c.name}
+                <AttireMark attire={c.attire} />
+              </span>
               {c.note ? (
                 <span className="text-foreground-dim text-[0.72rem] leading-snug">
                   {c.note}
                 </span>
               ): null}
-              <span
-                className="mt-2 inline-flex w-fit items-center px-1.5 py-[3px] text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-white"
-                style={{ background: tone, borderRadius: 3 }}
-              >
-                {LEVEL_LABEL[c.level]}
-              </span>
+              <LevelChip level={c.level} />
             </div>
           );
         })}
@@ -361,8 +450,9 @@ function ScheduleStack({
 }
 
 /* Hier stand MatFootnote: "Matte frei ab 16:30 … Dehnen 17:15 … 60 Minuten".
-   Auf Wunsch des Vorstands (10.10.2026) ersatzlos weg; das freie Training
-   steht jetzt als eigene Zeile 17:00–17:45 im Plan. */
+   Auf Wunsch des Vorstands (10.10.2026) ersatzlos weg. Die offene Matte
+   steht seit 29.10.2026 als "Matte frei" 17:00–17:45 Mo–Fr im Plan, als
+   eigene Einheit in Grau (vorher "Freies Training"). */
 
 // ---- Wochenpanel (nur ab md) ---------------------------------------------
 
@@ -388,10 +478,6 @@ function ScheduleStack({
  * im Detailfenster hinter einem Klick.
  */
 
-
-/** Wie viele Slots die laengste Spalte hat — kuerzere Tage bekommen unten
- *  Fuellraum, damit alle Spalten gleich hoch schliessen. */
-const MAX_SLOTS = schedule.reduce((m, c) => Math.max(m, c.classes.length), 0);
 
 interface Detail {
   title: string;
@@ -428,67 +514,60 @@ function buildDetail(programTitle: string): Detail | null {
 // ---- Eine Einheit --------------------------------------------------------
 
 /**
- * Der Kommentar an `.jjk-slot` in globals.css ist eindeutig: die Stufe traegt
- * die Haarlinie am linken Rand, nicht zusaetzlich noch ein Chip und ein Balken,
- * die alle dasselbe sagen. Daran halte ich mich — das gefuellte Chip bleibt
- * dem Handy-Stapel, wo es keine Legende ueber sich hat.
+ * Der Kommentar an `.jjk-slot` in globals.css ist eindeutig: die Kursart
+ * traegt die Haarlinie am linken Rand, nicht zusaetzlich noch ein Chip und
+ * ein Balken, die alle dasselbe sagen. Seit 29.10.2026 sagen es genau zwei
+ * Dinge: die Haarlinie und das Farbfeld vor der Zeit, das die Legende ueber
+ * dem Plan aufloest. Das Level-Chip, das bis dahin die Farbe trug, steht nur
+ * noch bei Ausnahmen (`LevelChip`).
  *
- * Die Zeit steht in Vordergrundweiss, nicht in der Stufenfarbe. Das war die
- * Lehre aus der letzten Runde: Zinnober auf #07070a ist als Kleinschrift
- * unlesbar. Die Stufe steht als eigene Mono-Zeile darunter, im aufgehellten
- * Ton (`text`), und ist damit lesbar, ohne die Zeit zu verdraengen.
+ * Die Zeit steht in Vordergrundweiss, nicht in der Kursfarbe. Das war die
+ * Lehre aus einer frueheren Runde: Farbe auf #07070a ist als Kleinschrift
+ * unlesbar.
+ *
+ * Flex-Spalte statt Fliesstext, weil ein <button> seinen Inhalt sonst
+ * senkrecht MITTIG setzt — sobald die Einheit ueber `grow` hoeher wird als
+ * ihr Inhalt, rutschte die Zeit von der Oberkante weg und die Zeilen der
+ * Nachbarspalten stuenden nicht mehr auf einer Linie.
  */
 function Slot({
   c,
+  grow,
   onOpen,
 }: {
   c: ScheduleClass;
+  grow: boolean;
   onOpen: (programTitle: string) => void;
 }): ReactNode {
   const tone = toneOf(c);
-  const label = LEVEL_LABEL[c.level];
   const openable = Boolean(c.program);
+  const level = c.level === "jedes" ? "" : `, ${LEVEL_LABEL[c.level]}`;
 
   const body = (
     <>
-      <span
-        className="jjk-slot-time"
-        style={{ color: "var(--foreground)", fontVariantNumeric: "tabular-nums" }}
-      >
-        {c.time}
+      <span className="flex items-center gap-2">
+        <Swatch tone={tone} />
+        <SlotTime time={c.time} clockClass="jjk-slot-time" />
       </span>
-      {c.alt ? (
-        <span className="flex flex-col">
-          <EitherOr c={c} nameClass="jjk-slot-name font-semibold text-[0.95rem]" />
-        </span>
-      ) : (
-        <span className="jjk-slot-name" style={{ fontWeight: 600, fontSize: "0.95rem" }}>
-          {c.name}
-          <AttireMark attire={c.attire} />
-        </span>
-      )}
+      <span className="jjk-slot-name" style={{ fontWeight: 600, fontSize: "0.95rem" }}>
+        {c.name}
+        <AttireMark attire={c.attire} />
+      </span>
       {c.note ? (
         <span className="mt-0.5 block text-[0.72rem] leading-snug text-muted-foreground">
           {c.note}
         </span>
       ): null}
-      {/* Gefuelltes Chip, weisse Schrift — so steht es auch im Aushang, und
-          eine Flaeche traegt eine 700er-Farbe auf Schwarz zuverlaessig,
-          waehrend dieselbe Farbe als Schrift durchfaellt. */}
-      <span
-        className="mt-2 inline-flex w-fit items-center px-1.5 py-[3px] text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-white"
-        style={{ background: tone, borderRadius: 3 }}
-      >
-        {label}
-      </span>
+      <LevelChip level={c.level} />
     </>
   );
 
-  const style = { "--slot": tone } as CSSProperties;
+  const style = { "--slot": tone, flexGrow: grow ? 1 : 0 } as CSSProperties;
+  const layout = "jjk-slot flex flex-col items-stretch justify-start";
 
   if (!openable) {
     return (
-      <div className="jjk-slot" style={style}>
+      <div className={layout} style={style}>
         {body}
       </div>
     );
@@ -498,9 +577,9 @@ function Slot({
     <button
       type="button"
       onClick={() => onOpen(c.program!)}
-      className="jjk-slot w-full cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/70"
+      className={`${layout} w-full cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/70`}
       style={style}
-      aria-label={`${c.name}, ${c.time}, ${label}: Details anzeigen`}
+      aria-label={`${c.name}, ${c.time}${level}: Details anzeigen`}
     >
       {body}
     </button>
@@ -624,8 +703,11 @@ function ProgramSheet({
                     className="flex items-baseline gap-4 text-sm"
                   >
                     <span className="min-w-[6.5rem] text-foreground">{w.day}</span>
+                    {/* "Samstag · Nach Absprache" liest sich als Satz, nicht
+                        als Uhrzeit — also Grundschrift statt Mono, wenn die
+                        Zeit keine ist (29.10.2026, Open Mat). */}
                     <span
-                      className="font-mono text-foreground-dim"
+                      className={isClock(w.time) ? "font-mono text-foreground-dim": "text-foreground-dim"}
                       style={{ fontVariantNumeric: "tabular-nums" }}
                     >
                       {w.time}
@@ -777,15 +859,11 @@ function WeekPanel(): ReactNode {
                     <span className="jjk-day-today">Heute</span>
                   ): null}
                 </div>
+                {/* Kein Fuellraum mehr unter kurzen Tagen: die letzte Einheit
+                    fuellt die Spalte selbst (`grows`, 29.10.2026). */}
                 {col.classes.map((c, j) => (
-                  <Slot key={`${c.time}-${j}`} c={c} onOpen={onOpen} />
+                  <Slot key={`${c.time}-${j}`} c={c} grow={grows(col, j)} onOpen={onOpen} />
                 ))}
-                {/* Fuellraum: der Samstag hat eine Einheit, die Werktage zwei.
-                    Ohne ihn zieht die Grid-Zeile alle Spalten auf dieselbe
-                    Hoehe, aber die kurze Spalte streckt ihre Slots dabei mit. */}
-                {col.classes.length < MAX_SLOTS ? (
-                  <div className="flex-grow" aria-hidden="true" />
-                ): null}
               </div>
             ))}
           </div>
@@ -812,17 +890,33 @@ function Intro({ headingClass }: { headingClass: string }): ReactNode {
         blur
         className={headingClass}
       />
+      {/* Die Kopfzeile des Aushangs (29.10.2026), einmal fuer alle Kurse
+          statt "Jedes Level" auf jeder Karte. Heller als die Feiertagszeile:
+          das ist die Aussage, die Feiertage sind das Kleingedruckte. Der
+          Teil mit dem Level steht nur, solange er fuer JEDE Einheit stimmt
+          (`EVERY_LEVEL`). Halbgeviertstrich statt Geviertstrich: der ist im
+          Deutschen der Gedankenstrich, und er ist in der Schrift-Teilmenge
+          (scripts/gen-fonts.py). */}
+      <p className="mt-4 max-w-2xl text-base leading-relaxed text-foreground">
+        Brazilian Jiu-Jitsu & Boxen –{" "}
+        {EVERY_LEVEL ? "alle Kurse für jedes Level, Einstieg jederzeit möglich.": "Einstieg jederzeit möglich."}
+      </p>
       {/* Feiertage (Vorstand, 15.10.2026): direkt unter der Ueberschrift,
           damit man es vor dem Plan liest, am Handy wie am PC. */}
-      <p className="mt-4 text-sm text-foreground-dim">
+      <p className="mt-1.5 text-sm text-foreground-dim">
         An gesetzlichen Feiertagen bleibt das Gym geschlossen.
       </p>
-      {/* Hier stand eine Farblegende (Anfaenger & jedes Level / Ab
-          Intermediate / Ab Advanced / Boxen). Raus am 11.10.2026: dieselbe
-          Information steht schon im Chip jeder Einheit (Vorstand). */}
 
-      {/* Wie oft es jede Stufe pro Woche gibt. Nur ab md: am Handy nahm die
-          Liste zu viel Platz vor dem eigentlichen Plan (Vorstand, 11.10.2026). */}
+      {/* Wie oft es jede Kursart pro Woche gibt — und seit 29.10.2026
+          zugleich die Farblegende. Die Legende war am 11.10.2026 rausgeflogen,
+          weil das Level-Chip jeder Einheit dieselbe Information trug. Seit die
+          Farbe die Kursart zeigt und das Chip weg ist, braucht sie wieder
+          einen Schluessel; als eigene Zeile neben "Pro Woche" haette sie
+          dieselben fuenf Namen ein zweites Mal aufgezaehlt. Also ein Feld vor
+          jedem Eintrag, und die Zeile ist beides.
+          Nur ab md: am Handy nahm die Liste zu viel Platz vor dem eigentlichen
+          Plan (Vorstand, 11.10.2026). Dort steht die Farbe auf jeder Karte
+          direkt neben dem Kursnamen, ein Schluessel ist da nicht noetig. */}
       <div className="mt-8 hidden md:block">
         <p className="font-mono text-[0.68rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
           Pro Woche
@@ -830,10 +924,11 @@ function Intro({ headingClass }: { headingClass: string }): ReactNode {
         <ul className="mt-3 flex flex-wrap gap-2">
           {WEEKLY.map((w) => (
             <li
-              key={w.name}
-              className="flex items-center gap-2 rounded-md border border-border bg-card-plate px-3 py-1.5 text-sm text-foreground"
+              key={w.kind}
+              className="flex items-center gap-2 border border-border bg-card-plate px-3 py-1.5 text-sm text-foreground"
             >
-              {w.name}
+              <Swatch tone={w.tone} />
+              {w.label}
               <span className="font-mono text-xs font-semibold tabular-nums text-foreground-dim">
                 {w.count}×
               </span>
@@ -852,17 +947,25 @@ export function Schedule() {
     <section id="schedule" className="w-full px-4 pt-28 pb-6 sm:px-6 sm:py-36 lg:px-8">
       <div className="mx-auto w-full max-w-[1400px]">
 
-        {/* Mobile: stacked layout */}
+        {/* Mobile: stacked layout.
+            Kartenhoehe 510 -> 400 (29.10.2026). Die 510 waren fuer drei
+            Einheiten MIT Level-Chip und das Mittwoch-"Entweder – oder"
+            gemessen; beides ist weg. Gemessen bei 390 px: der laengste Tag
+            (Di/Do, drei Einheiten, Boxen-Notiz zweizeilig) braucht 345 px,
+            in 510 standen darunter 165 px leer. 400 laesst ~55 px Luft,
+            genug fuer ein Level-Chip, falls je wieder eines kommt. Der
+            Bereich drumherum behaelt seine 80 px fuer den Faecher (590 -> 480),
+            und die Seite wird am Handy 110 px kuerzer. */}
         <div className="md:hidden">
           <Intro headingClass="jjk-section-title max-w-2xl" />
           <div className="mt-10">
             <ScheduleStack
               cardWidth={240}
-              cardHeight={510}
+              cardHeight={400}
               spreadX={22}
               spreadY={-18}
               shadowBlur={40}
-              stackClassName="h-[590px]"
+              stackClassName="h-[480px]"
             />
           </div>
         </div>
