@@ -54,7 +54,12 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
       { text: siteConfig.address.street, href: siteConfig.address.maps },
       { text: siteConfig.address.city, href: siteConfig.address.maps },
       { text: "Mo bis Fr, 17:00 bis 20:30 Uhr" },
-      { text: "Sa, 12:15 bis 13:45 Uhr" },
+      // Bis 29.10.2026 "Sa, 12:15 bis 13:45 Uhr". Die Open Mat hat seit dem
+      // neuen Plan keine feste Zeit mehr, sie wird in der Gruppe ausgemacht
+      // (siehe `schedule` in lib/config.ts). Die Werktagszeile ist unveraendert:
+      // sie liest sich als Hallenzeit, nicht als Kursplan (der letzte Kurs
+      // endet um 20:00, das tat er auch vorher) — Annahme, nicht bestaetigt.
+      { text: "Sa, Open Mat nach Absprache" },
     ],
   },
   {

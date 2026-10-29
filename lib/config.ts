@@ -92,69 +92,40 @@ export const reasons = [
 ] as const;
 
 /**
- * The six programmes.
+ * Die Programme — der laengere Text hinter einem Klick auf eine Einheit im
+ * Wochenplan (Detailfenster in components/schedule.tsx). `title` muss genau
+ * dem `program` der Eintraege in `schedule` entsprechen; die Termine im
+ * Fenster werden daraus gerechnet, deshalb stehen hier nur die Tage.
  *
- * `kanji` is the character standing behind each board in components/features-6
- * — 基本 kihon, 上級 jōkyū, 寝技 newaza, 試合 shiai, 少年 shōnen, 女子 joshi. It is
- * copy, not decoration: it says the same thing as the title, which is why the
- * markup hides it from screen readers rather than reading the heading twice.
+ * `kanji` ist das Wasserzeichen im Fenster — 寝技 newaza, 道着 dōgi,
+ * 拳闘 kentō, 自由 jiyū. Es sagt dasselbe wie der Titel und wird deshalb
+ * vor Screenreadern versteckt.
+ *
+ * Seit 29.10.2026 nur noch vier (neuer Trainingsplan des Vereins). BJJ
+ * Basic, Advanced Training, Ringen, Sparring und Wettkampftraining gibt es
+ * nicht mehr, und mit ihnen die Kanji 基本 上級 立技 乱取 試合. Bewusst nur
+ * Zeichen, die schon vorher im Quelltext standen: jedes neue Kanji hiesse
+ * scripts/gen-fonts.py neu laufen lassen. "Matte frei" (Mo–Fr vor dem
+ * Training) hat absichtlich KEINEN Eintrag — wie vorher "Freies Training"
+ * ist das keine Einheit mit Inhalt, sondern offene Matte; ohne `program`
+ * ist der Slot im Plan auch nicht anklickbar.
  */
 export const programs = [
   {
-    title: "BJJ Basic",
-    kanji: "基本",
-    level: "Ohne Vorkenntnisse",
-    blurb:
-      "Montag, No-Gi. Hier fängst du an: Vorkenntnisse braucht es keine.",
-    tag: "Einsteiger",
-  },
-  {
-    title: "Gi Training",
-    kanji: "道着",
+    title: "Jiu-Jitsu No-Gi",
+    kanji: "寝技",
     level: "Jedes Level",
     blurb:
-      "Freitag. Technik und Sparring im Gi, offen für alle Stufen.",
-    tag: "Gi",
-  },
-  {
-    title: "No-Gi Training",
-    kanji: "寝技",
-    level: "Ab Intermediate",
-    blurb:
-      "Dienstag. Technik und Sparring ohne Gi: schnell, viel Scrambles.",
+      "Montag, Mittwoch und Donnerstag. Technik und Sparring ohne Gi.",
     tag: "No-Gi",
   },
   {
-    title: "Advanced Training",
-    kanji: "上級",
-    level: "Ab Advanced",
-    blurb:
-      "Mittwoch im Gi, Freitag No-Gi. Systeme, harte Runden, ein schärferes A-Game.",
-    tag: "Fortgeschritten",
-  },
-  {
-    title: "Ringen",
-    kanji: "立技",
-    level: "Ab Intermediate",
-    blurb:
-      "Montag. Eine Woche Fokus Kondition, eine Woche Fokus Technik.",
-    tag: "Standkampf",
-  },
-  {
-    title: "Sparring",
-    kanji: "乱取",
+    title: "Jiu-Jitsu Gi",
+    kanji: "道着",
     level: "Jedes Level",
     blurb:
-      "Donnerstag. Freies Rollen: nur Mattenzeit.",
-    tag: "Rollen",
-  },
-  {
-    title: "Wettkampftraining",
-    kanji: "試合",
-    level: "Ab Intermediate",
-    blurb:
-      "Mittwoch, im Wechsel mit Special Wednesday: Positionssparring aus selbst bestimmten Positionen.",
-    tag: "Athleten",
+      "Dienstag und Freitag. Technik und Sparring im Gi.",
+    tag: "Gi",
   },
   {
     title: "Boxen",
@@ -169,7 +140,7 @@ export const programs = [
     kanji: "自由",
     level: "Jedes Level",
     blurb:
-      "Samstag, Gi und No-Gi. Freies Rollen für alle.",
+      "Samstag, Gi und No-Gi. Freies Rollen für alle. Die Zeit ist variabel und wird in der Gruppe abgesprochen.",
     tag: "Samstag",
   },
 ] as const;
@@ -229,12 +200,12 @@ export type ScheduleClass = {
   /** Einzeiler unter dem Namen — Format, Inhalt, Zielgruppe. */
   note?: string;
   /**
-   * Die KURSART. Sie bestimmt die Farbe.
+   * Die KURSART. Wie sie in Farbe uebersetzt wird, steht in
+   * components/schedule.tsx (`toneOf`).
    *
-   * Der Aushang faerbt nach Richtung, nicht nach Level: fuenf Gruppen
-   * (Anfaenger & alle Level, Fortgeschrittene, Ringen, Sparring & Wettkampf,
-   * Boxen), innerhalb einer Gruppe abgestuft. Welche Kursart in welcher Gruppe
-   * liegt und mit welchem Wert, steht in components/schedule.tsx.
+   * Seit 29.10.2026 belegt: nogi, gi, boxen, openmat, frei. basic, advanced,
+   * ringen, sparring und wettkampf sind ungenutzt, stehen aber noch im Typ,
+   * bis die Darstellung in schedule.tsx nachgezogen ist.
    */
   kind:
     | "basic"
@@ -248,16 +219,21 @@ export type ScheduleClass = {
     | "openmat"
     | "frei";
   /**
-   * Emoji hinter dem Namen: 🥋 Gi, 🤼 No-Gi / Ringen / Sparring, beides
-   * fuer Gi und No-Gi, 🥊 Boxen. Freies Training traegt keins.
+   * Emoji hinter dem Namen: 🥋 Gi, 🤼 No-Gi, beides fuer Gi und No-Gi,
+   * 🥊 Boxen. Matte frei traegt keins.
    */
   attire?: "gi" | "nogi" | "both" | "box";
   /**
-   * Zweite Moeglichkeit im selben Slot ("entweder – oder"), wie am Aushang
-   * beim Mittwoch: Wettkampftraining ODER Special Wednesday.
+   * Zweite Moeglichkeit im selben Slot ("entweder – oder"). War fuer den
+   * Mittwoch gebaut (Wettkampftraining ODER Special Wednesday); seit
+   * 29.10.2026 von keinem Eintrag mehr benutzt.
    */
   alt?: { name: string; attire?: "gi" | "nogi" | "both" | "box" };
-  /** Das empfohlene Level — der Text im Chip. */
+  /**
+   * Das empfohlene Level — der Text im Chip. Seit 29.10.2026 ist alles
+   * "jedes" (der Verein unterscheidet keine Stufen mehr); anfaenger,
+   * intermediate und advanced sind ungenutzt.
+   */
   level: "anfaenger" | "jedes" | "intermediate" | "advanced";
   /**
    * `title` des zugehoerigen Eintrags in `programs`.
@@ -270,74 +246,74 @@ export type ScheduleClass = {
 };
 
 /**
- * Der Wochenplan nach dem Aushang vom September 2026.
+ * Der Wochenplan nach dem Aushang des Vereins vom 29.10.2026.
  *
- * Montag standen No-Gi und Ringen bis zum 6. Oktober 2026 vertauscht: Ringen
- * um 17:45, No-Gi um 19:05. Richtig ist umgekehrt.
+ * Seit 29.10.2026 (Auftraggeber: "Trainingsplan umaendern nach dem Bild"):
+ * sieben Kurse pro Woche — Jiu-Jitsu No-Gi 3x (Mo und Mi 18:00–19:15,
+ * Do 19:00–20:00), Jiu-Jitsu Gi 2x (Di 19:00–20:00, Fr 18:00–19:15), Boxen
+ * 2x (Di und Do 17:45–18:45). Dazu Mo–Fr 17:00–17:45 "Matte frei" zum
+ * Drillen eigener Techniken und am Samstag die Open Mat. Alles "Jedes
+ * Level", Einstieg jederzeit. Es gibt damit keine gemeinsamen Schienen mehr:
+ * Mo/Mi/Fr eine Einheit zu 75 Minuten ab 18:00, Di/Do zwei zu 60 Minuten ab
+ * 17:45 und 19:00.
  *
- * Die Zeiten sind seit 7. Oktober 2026 anders gedacht. Vorher standen hier
- * 17:45–19:00 und 19:05–20:20, also zweimal 75 Minuten mit fuenf Minuten
- * dazwischen — das war die Obergrenze als Zusage. Angesetzt ist eine Einheit
- * aber auf 60 Minuten, und bis zur naechsten liegt eine Viertelstunde. Jeder
- * Trainer KANN damit auf 75 gehen, muss aber nicht, und niemand steht im
- * Unrecht, wenn er puenktlich aufhoert. Deshalb stehen jetzt die 60 Minuten
- * im Plan und die Viertelstunde in der Fussnote.
+ * Die Open Mat hat KEINE feste Zeit, sie wird in der Gruppe ausgemacht.
+ * Deshalb steht "Nach Absprache" woertlich in `time`, statt eine Uhrzeit zu
+ * erfinden. `time` ist reiner Anzeigetext (schedule.tsx und coaches.tsx
+ * geben ihn nur aus und bauen React-Keys daraus, geparst wird er nirgends).
+ * Vorher Sa 12:15–13:45.
  *
- * Seit 10. Oktober 2026: BJJ Basic Montag 17:45 (vorher Dienstag 19:00),
- * No-Gi Training Dienstag 19:00 (vorher Montag 17:45). Mo–Fr steht
- * "Freies Training" als eigene Zeile im Plan (seit 11.10.2026 17:00–17:45,
- * weil die Halle um 17:00 oeffnet; davor 16:45); die Fussnote mit
- * "Matte frei ab 16:30 / Dehnen 17:15 / 60 Minuten" ist auf Wunsch des
- * Vorstands ersatzlos weg. "Kein Unterricht" bei Sparring und Open Mat
- * ebenfalls.
+ * Weg sind BJJ Basic, Advanced Training, Ringen, Sparring,
+ * Wettkampftraining und Special Wednesday, und mit ihnen die Stufen
+ * Anfaenger, Intermediate und Advanced.
  *
- * Drei Schienen pro Werktag (17:00, 17:45, 19:00) plus Open Mat am Samstag.
+ * Davor (Sept. bis Okt. 2026): Mo–Fr 17:00 freies Training, danach je eine
+ * Einheit um 17:45 und 19:00, angesetzt auf 60 Minuten mit einer
+ * Viertelstunde Puffer. Die Fussnote "Matte frei ab 16:30 / Dehnen 17:15"
+ * ist seit 10.10.2026 auf Wunsch des Vorstands weg.
  */
 export const schedule: { day: string; classes: ScheduleClass[] }[] = [
   {
     day: "Mo",
     classes: [
-      { time: "17:00–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
-      { time: "17:45–18:45", name: "BJJ Basic", note: "No-Gi · für alle ohne Vorkenntnisse", program: "BJJ Basic", kind: "basic", level: "anfaenger", attire: "nogi" },
-      { time: "19:00–20:00", name: "Ringen", note: "Eine Woche Fokus Kondition, eine Woche Fokus Technik", program: "Ringen", kind: "ringen", level: "intermediate", attire: "nogi" },
+      { time: "17:00–17:45", name: "Matte frei", note: "Zum Drillen eigener Techniken", kind: "frei", level: "jedes" },
+      { time: "18:00–19:15", name: "Jiu-Jitsu No-Gi", note: "Technik & Sparring ohne Gi", program: "Jiu-Jitsu No-Gi", kind: "nogi", level: "jedes", attire: "nogi" },
     ],
   },
   {
     day: "Di",
     classes: [
-      { time: "17:00–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
+      { time: "17:00–17:45", name: "Matte frei", note: "Zum Drillen eigener Techniken", kind: "frei", level: "jedes" },
       { time: "17:45–18:45", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes", attire: "box" },
-      { time: "19:00–20:00", name: "No-Gi Training", note: "Technik & Sparring ohne Gi", program: "No-Gi Training", kind: "nogi", level: "intermediate", attire: "nogi" },
+      { time: "19:00–20:00", name: "Jiu-Jitsu Gi", note: "Technik & Sparring im Gi", program: "Jiu-Jitsu Gi", kind: "gi", level: "jedes", attire: "gi" },
     ],
   },
   {
     day: "Mi",
     classes: [
-      { time: "17:00–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
-      { time: "17:45–18:45", name: "Advanced Training", note: "Gi", program: "Advanced Training", kind: "advanced", level: "advanced", attire: "gi" },
-      { time: "19:00–20:00", name: "Wettkampftraining", note: "Positionssparring aus selbst bestimmten Positionen", program: "Wettkampftraining", kind: "wettkampf", level: "intermediate", attire: "nogi", alt: { name: "Special Wednesday", attire: "both" } },
+      { time: "17:00–17:45", name: "Matte frei", note: "Zum Drillen eigener Techniken", kind: "frei", level: "jedes" },
+      { time: "18:00–19:15", name: "Jiu-Jitsu No-Gi", note: "Technik & Sparring ohne Gi", program: "Jiu-Jitsu No-Gi", kind: "nogi", level: "jedes", attire: "nogi" },
     ],
   },
   {
     day: "Do",
     classes: [
-      { time: "17:00–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
+      { time: "17:00–17:45", name: "Matte frei", note: "Zum Drillen eigener Techniken", kind: "frei", level: "jedes" },
       { time: "17:45–18:45", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes", attire: "box" },
-      { time: "19:00–20:00", name: "Sparring", note: "Freies Rollen", program: "Sparring", kind: "sparring", level: "jedes", attire: "nogi" },
+      { time: "19:00–20:00", name: "Jiu-Jitsu No-Gi", note: "Technik & Sparring ohne Gi", program: "Jiu-Jitsu No-Gi", kind: "nogi", level: "jedes", attire: "nogi" },
     ],
   },
   {
     day: "Fr",
     classes: [
-      { time: "17:00–17:45", name: "Freies Training", kind: "frei", level: "jedes" },
-      { time: "17:45–18:45", name: "Advanced Training", note: "No-Gi", program: "Advanced Training", kind: "advanced", level: "advanced", attire: "nogi" },
-      { time: "19:00–20:00", name: "Gi Training", note: "Technik & Sparring im Gi", program: "Gi Training", kind: "gi", level: "jedes", attire: "gi" },
+      { time: "17:00–17:45", name: "Matte frei", note: "Zum Drillen eigener Techniken", kind: "frei", level: "jedes" },
+      { time: "18:00–19:15", name: "Jiu-Jitsu Gi", note: "Technik & Sparring im Gi", program: "Jiu-Jitsu Gi", kind: "gi", level: "jedes", attire: "gi" },
     ],
   },
   {
     day: "Sa",
     classes: [
-      { time: "12:15–13:45", name: "Open Mat", note: "Gi & No-Gi · freies Rollen für alle", program: "Open Mat", kind: "openmat", level: "jedes", attire: "both" },
+      { time: "Nach Absprache", name: "Open Mat", note: "Gi & No-Gi · freies Rollen für alle · Zeit variabel, wird in der Gruppe abgesprochen", program: "Open Mat", kind: "openmat", level: "jedes", attire: "both" },
     ],
   },
 ];
@@ -411,10 +387,16 @@ export const pricing = {
   ],
   /** Kleingedruckt unter den Vorteilen: es gibt auch Vertraege ohne Jahr. */
   flexNote: "Lieber flexibel bleiben? Die Mitgliedschaft geht auch ohne Jahresbindung, gegen einen kleinen monatlichen Aufpreis.",
-  /** Was in der Mitgliedschaft drin ist (Vorstand, 12.10.2026). */
+  /**
+   * Was in der Mitgliedschaft drin ist (Vorstand, 12.10.2026). Seit
+   * 29.10.2026 nach dem neuen Plan: 7 Kurse statt 11, kein Ringen mehr, und
+   * das freie Training heisst jetzt "Matte frei" und endet um 17:45, wenn
+   * der erste Kurs beginnt. Die Zahl ist abgetippt, nicht aus `schedule`
+   * gerechnet — bei der naechsten Planaenderung hier mitziehen.
+   */
   benefits: [
-    "11 Kurse pro Woche: BJJ im Gi und No-Gi, Ringen, Boxen",
-    "Mo bis Fr ab 17:00 freies Training: mach, was du willst",
+    "7 Kurse pro Woche: Jiu-Jitsu im Gi und No-Gi, Boxen",
+    "Matte frei Mo bis Fr 17:00 bis 17:45, Open Mat am Samstag",
   ],
   /**
    * Das Kleingedruckte: die Einschreibgebuehr und der Ausweis. Beides gehoert
@@ -431,16 +413,22 @@ export const pricing = {
     "Mitglied wirst du online über „Mitglied werden“ oder direkt im Training.",
 } as const;
 
+/**
+ * Die Fragen unter "Fragen". Seit 29.10.2026 auf den neuen Plan gezogen:
+ * BJJ Basic, die Stufen und das freie Training ab 17:00 kamen in drei
+ * Antworten vor. Tage und Uhrzeiten sind hier abgetippt — bei einer
+ * Planaenderung mit `schedule` zusammen pruefen.
+ */
 export const faqs = [
   {
     question: "Ich habe noch nie trainiert. Ist das ein Problem?",
     answer:
-      "Im Gegenteil, das ist der Normalfall. BJJ Basic am Montag ist für komplette Anfänger gebaut. Du bekommst geduldige Trainingspartner und wirst am ersten Tag in kein hartes Sparring geworfen.",
+      "Im Gegenteil, das ist der Normalfall. Alle Kurse sind für jedes Level offen, auch für komplette Anfänger. Du bekommst geduldige Trainingspartner und wirst am ersten Tag in kein hartes Sparring geworfen.",
   },
   {
     question: "Was brauche ich für die erste Einheit?",
     answer:
-      "Kurze Hose, T-Shirt, Wasser, mehr brauchst du nicht. Für die Stunden im Gi brauchst du einen eigenen; zum Anfangen reichen die No-Gi-Einheiten völlig, davon gibt es jede Woche mehrere. Komm 15 Minuten früher, dann zeigen wir dir alles.",
+      "Kurze Hose, T-Shirt, Wasser, mehr brauchst du nicht. Für die Stunden im Gi brauchst du einen eigenen; zum Anfangen reichen die No-Gi-Einheiten völlig, davon gibt es drei pro Woche. Komm 15 Minuten früher, dann zeigen wir dir alles.",
   },
   {
     question: "Muss ich fit oder beweglich sein, um anzufangen?",
@@ -450,7 +438,7 @@ export const faqs = [
   {
     question: "Wann kann ich als Anfänger einsteigen?",
     answer:
-      "Jederzeit. Für den Anfang empfehlen wir BJJ Basic am Montag um 17:45: No-Gi und für alle ohne Vorkenntnisse gebaut. Das Level bei den Kursen ist aber eine Empfehlung, keine Sperre: Wenn dein Trainer sagt, du bist so weit, kannst du auch in Kurse für Fortgeschrittene gehen. Gi Training am Freitag, Sparring am Donnerstag und die Open Mat am Samstag sind ohnehin für jedes Level offen. Und Montag bis Freitag ist ab 17:00 freies Training.",
+      "Jederzeit. Jeder Kurs ist für jedes Level offen. Für den Anfang bietet sich No-Gi an, dafür brauchst du keinen Gi: Montag und Mittwoch um 18:00, Donnerstag um 19:00. Boxen ist Dienstag und Donnerstag um 17:45. Montag bis Freitag ist von 17:00 bis 17:45 die Matte frei, und am Samstag gibt es die Open Mat nach Absprache.",
   },
   {
     question: "Muss ich mich binden?",
