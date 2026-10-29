@@ -6866,3 +6866,95 @@ p,
 html[data-jjk-intro="skip"] .jjk-intro-veil {
   opacity: 0 !important;
 }
+
+/* ── Der Zaehler im Loader (29.10.2026) ────────────────────────────────────
+   Auftraggeber: "Kann man die Schriftart bzw. das Design davon mehr an die
+   Website anpassen?" Der Zaehler war das einzige Element der Seite ausserhalb
+   des Schriftsystems: Geist (die Textschrift) in Medium, reines #000. Jetzt
+   steht er wie eine Seitenzahl auf dem Blatt.
+
+   Ziffern in der Anzeigeschrift, 700 wie .jjk-section-title und .jjk-mark —
+   die Ueberschriften und das Kolophon, also dieselbe Stimme wie der Rest.
+   Farbe #241a12, die Tinte, die schon auf dem Papier von .jjk-fuda steht,
+   statt #000: Tusche ist nie schwarz, sie ist ein sehr dunkles Braun, und
+   auf dem warmen #f5f3ef des Loader-Grunds liest sich reines Schwarz als
+   Bildschirm, nicht als Papier. Der Grund ist an der Stelle bis etwa L* 62
+   grau (Wolken des Watercolor); #241a12 haelt dort noch rund 6:1.
+
+   Darueber EIN Haarstrich Zinnober und eine Legende in der Mono, genau das
+   Muster von KanjiLabel (Strich bg-accent/40 + Glosse) und den Augenbrauen
+   der Sektionen. Kein Siegel: in der Mitte steht schon logo-seal.png, ein
+   zweites Siegel wuerde mit ihm konkurrieren (dieselbe Begruendung wie bei
+   .jjk-fuda-stamp).
+
+   ── Warum jede Ziffer eine eigene Zelle hat ───────────────────────────────
+   Shippori hat keine Tabellenziffern: das Subset fuehrt kein `tnum`, und die
+   Vorschuebe im 700er laufen von 572 ("1") bis 652 ("8") Einheiten von 1000.
+   tabular-nums waere also wirkungslos, und die Zahl liefe zwischen "11"
+   (1,144 em) und "88" (1,304 em) um 0,16 em in der Breite — bei 150 px
+   wandert die linke Kante um 24 px, und das in Schritten alle 22 ms. Deshalb
+   steht jede Ziffer zentriert in einer festen Zelle von 0,62 em, und die
+   Zahl in einem festen Kasten von drei Zellen, rechtsbuendig: der Kasten ist
+   von 0 bis 100 gleich breit, die Einerstelle steht immer am selben Ort.
+   0,62 em und nicht 0,652: die Zelle darf schmaler sein als der breiteste
+   Vorschub, weil der Ueberstand (je 0,016 em) im Fleisch neben der Ziffer
+   liegt, nicht in ihr — so steht "11" nicht luftiger als vorher.
+   -------------------------------------------------------------------------- */
+.jjk-intro-count {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.9rem;
+  color: #241a12;
+  user-select: none;
+  pointer-events: none;
+}
+.jjk-intro-count-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  /* Das Braun der Fuda-Legenden (.jjk-fuda-row dt), deckend statt 0,7:
+     ueber den grauen Wolken wird die Mono sonst bei 10 px zu Dunst. */
+  color: #4a3722;
+  /* letter-spacing haengt auch hinter den letzten Buchstaben an; das zieht
+     die Legende um genau diesen Betrag zurueck auf die Kante der Ziffern. */
+  margin-inline-end: -0.24em;
+}
+/* Ab sm stehen die Ziffern bis 150 px hoch; 0,62 rem daneben las sich im
+   Bildschirmfoto bei 1440 als Kruemel. 0,68 rem ist die zweite Augenbrauen-
+   Groesse der Seite (footer-4, legal-page), also keine neue. */
+@media (min-width: 640px) {
+  .jjk-intro-count-label {
+    font-size: 0.68rem;
+  }
+}
+.jjk-intro-count-label::before {
+  content: "";
+  width: 1.75rem;
+  height: 1px;
+  background: var(--accent);
+}
+.jjk-intro-count-num {
+  display: flex;
+  justify-content: flex-end;
+  width: calc(3 * 0.62em);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(56px, 11vw, 150px);
+  /* Die Mincho hat ein japanisches Geviert, die Ziffern sitzen darin hoch
+     und haben viel leeren Unterbau. 0,9 ist so gewaehlt, dass die Tinte
+     unten so weit von der Blattkante steht wie rechts (gemessen unten/
+     rechts: 40/41 px bei 1440, 24/25 px bei 390) — die Ecke ist quadratisch. Mit Geist
+     waren es 60 unten gegen 40 rechts, die Zahl schwebte. */
+  line-height: 0.9;
+}
+.jjk-intro-count-digit {
+  display: inline-block;
+  width: 0.62em;
+  text-align: center;
+}

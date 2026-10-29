@@ -542,17 +542,32 @@ export function JJKHero(): ReactNode {
         </div>
 
         {/* Zaehler unten rechts — blendet aus, sobald 100 erreicht ist (darf ein
-            normales Ausblenden sein). Nach dem Verlauf (phase="done") ganz weg. */}
+            normales Ausblenden sein). Nach dem Verlauf (phase="done") ganz weg.
+            Seit 29.10.2026 in der Anzeigeschrift, Tinte statt Schwarz, mit
+            Zinnober-Strich und Legende; Begruendung und die Ziffernzellen
+            stehen bei .jjk-intro-count in globals.css. Weiter aria-hidden: der
+            Zaehler misst nichts, er ist ein Taktgeber fuer den Crossfade. Key
+            von rechts gezaehlt, damit die Einerstelle beim Sprung 9→10 dieselbe
+            Zelle bleibt. */}
         {phase !== "done" && !prefersReducedMotion && (
-          <motion.p
+          <motion.div
             aria-hidden="true"
             initial={false}
             animate={{ opacity: progress >= 100 ? 0 : 1 }}
             transition={{ duration: 0.5, ease: softEase }}
-            className="jjk-intro-veil absolute bottom-6 right-6 sm:bottom-10 sm:right-10 z-20 text-[clamp(56px,11vw,150px)] leading-none tracking-tighter tabular-nums text-black font-medium select-none"
+            className="jjk-intro-veil jjk-intro-count absolute bottom-6 right-6 sm:bottom-10 sm:right-10 z-20"
           >
-            {progress}
-          </motion.p>
+            <span className="jjk-intro-count-label">Graz</span>
+            <span className="jjk-intro-count-num">
+              {String(progress)
+                .split("")
+                .map((digit, i, all) => (
+                  <span key={all.length - i} className="jjk-intro-count-digit">
+                    {digit}
+                  </span>
+                ))}
+            </span>
+          </motion.div>
         )}
       </motion.div>
       </motion.div>
