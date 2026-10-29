@@ -192,24 +192,11 @@ export const programs = [
  * statt hier ein zweites Mal gepflegt zu werden.
  *
  * Die Reihenfolge ist die Reihenfolge im Karussell.
+ *
+ * Liri, Ervin und Gabriel sind seit 29.10.2026 nicht mehr auf der Seite
+ * (Auftraggeber). Ihre Bilder liegen weiter unter public/img/coaches/.
  */
 export const coaches = [
-  {
-    name: "Liri",
-    belt: "BJJ",
-    beltHex: "#7e22ce",
-    image: "/img/coaches/liri.jpg",
-    bio: "",
-    teaches: [] as string[],
-  },
-  {
-    name: "Ervin",
-    belt: "BJJ",
-    beltHex: "#7e22ce",
-    image: "/img/coaches/ervin.jpg",
-    bio: "",
-    teaches: [] as string[],
-  },
   {
     name: "Wolfi",
     belt: "BJJ",
@@ -239,14 +226,6 @@ export const coaches = [
     belt: "Boxen",
     beltHex: "#1d4ed8",
     image: "/img/coaches/ricardo.jpg?v=2",
-    bio: "",
-    teaches: [] as string[],
-  },
-  {
-    name: "Gabriel",
-    belt: "Ringen & Stand-up",
-    beltHex: "#6b7280",
-    image: "/img/coaches/gabriel.jpg",
     bio: "",
     teaches: [] as string[],
   },
