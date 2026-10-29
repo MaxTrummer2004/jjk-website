@@ -193,7 +193,7 @@ export const programs = [
  *
  * Die Reihenfolge ist die Reihenfolge im Karussell.
  *
- * Liri, Ervin und Ricardo sind seit 29.10.2026 nicht mehr auf der Seite
+ * Liri, Ervin, Ricardo und Gabriel sind seit 29.10.2026 nicht mehr auf der Seite
  * (Auftraggeber). Ihre Bilder liegen weiter unter public/img/coaches/.
  */
 export const coaches = [
@@ -218,14 +218,6 @@ export const coaches = [
     belt: "Boxen",
     beltHex: "#1d4ed8",
     image: "/img/coaches/sophie.jpg",
-    bio: "",
-    teaches: [] as string[],
-  },
-  {
-    name: "Gabriel",
-    belt: "Ringen & Stand-up",
-    beltHex: "#6b7280",
-    image: "/img/coaches/gabriel.jpg",
     bio: "",
     teaches: [] as string[],
   },
