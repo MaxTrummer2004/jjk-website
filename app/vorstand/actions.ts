@@ -7,6 +7,7 @@ import { sql } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 import { getCurrentMember, getMember, isBoard, type MemberRecord } from "@/lib/members";
 import { ENROLLMENT_FEE_CENTS, PLAN_INFO, dueCents, monthKey } from "@/lib/membership";
+import { admissionMail, sendMail } from "@/lib/mail";
 import { isMollieConfigured, mollie, toValue } from "@/lib/mollie";
 
 /**
@@ -32,18 +33,70 @@ function done(): void {
   revalidatePath("/mitglieder");
 }
 
-/** Aufnehmen nach § 5 Abs. 2. Minderjaehrige erst mit Elternunterschrift (§ 5 Abs. 1). */
+/**
+ * Aufnehmen nach § 5 Abs. 2. Minderjaehrige erst mit Elternunterschrift (§ 5 Abs. 1).
+ *
+ * Seit 30.10.2026 mit Willkommensmail: was zu zahlen ist und wie, inklusive
+ * Dauerauftrag fuer den Monatsbeitrag (lib/mail.ts, admissionMail). Das
+ * UPDATE prueft den Status noch einmal selbst und liefert die Zeile zurueck,
+ * damit ein Doppelklick auf "Aufnehmen" nicht zwei Mails verschickt.
+ *
+ * Bei Minderjaehrigen geht die Mail an die eigene Adresse UND, wenn
+ * angegeben, an die der Erziehungsberechtigten: das Konto laeuft auf das
+ * Kind (Login per eigener Adresse), den Dauerauftrag richten aber in der
+ * Regel die Eltern ein, die nach § 5 Abs. 1 ohnehin zugestimmt haben. Die
+ * Elternadresse ist im Formular freiwillig, deshalb nur "wenn angegeben".
+ */
 export async function admitAction(formData: FormData): Promise<void> {
   const me = await requireBoard();
   const target = await getMember(idFrom(formData));
   if (!target || target.status !== "pending") return;
   if (target.isMinor && !target.guardianConsentReceived) return;
-  await sql`
+  const admitted = await sql<{ guardian_email: string | null }>`
     update members
     set status = 'active', decided_at = now(), decided_by = ${me.id}, joined_at = current_date
-    where id = ${target.id}
+    where id = ${target.id} and status = 'pending'
+    returning guardian_email
   `;
+  const row = admitted[0];
+  if (row && target.email) {
+    // Ein Mailfehler darf die Aufnahme nicht zuruecknehmen: sie steht schon
+    // in der Datenbank, und der Mitgliederbereich zeigt dasselbe.
+    try {
+      const guardian = target.isMinor && row.guardian_email ? row.guardian_email : null;
+      const mail = admissionMail({
+        firstName: target.firstName ?? target.name,
+        fullName: target.name,
+        plan: target.plan,
+        reducedRequested: target.reducedRequested,
+        reducedVerified: target.reducedVerified,
+        feeExempt: target.feeExempt,
+        payOnline: isMollieConfigured(),
+        guardianCopy: guardian !== null,
+      });
+      await sendMail({
+        to: guardian ? [target.email, guardian] : target.email,
+        ...mail,
+        replyTo: siteConfig.email,
+      });
+    } catch (err) {
+      console.error("[admit] Willkommensmail", target.id, err);
+    }
+  }
   done();
+}
+
+/** Doppelzahlung erledigt (rueckerstattet oder geklaert). Die Zeile bleibt
+ *  mit Datum stehen — sie gehoert zu den Zahlungsaufzeichnungen. */
+export async function resolvePaymentIssueAction(formData: FormData): Promise<void> {
+  const me = await requireBoard();
+  const id = Number(formData.get("issue_id"));
+  if (!Number.isInteger(id) || id <= 0) return;
+  await sql`
+    update payment_issues set resolved_at = now(), resolved_by = ${me.id}
+    where id = ${id} and resolved_at is null
+  `;
+  revalidatePath("/vorstand");
 }
 
 export async function rejectAction(formData: FormData): Promise<void> {

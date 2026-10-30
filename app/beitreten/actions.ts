@@ -5,7 +5,7 @@ import { ensureSchema, sql } from "@/lib/db";
 import { createSession, hashPassword } from "@/lib/auth";
 import { PLAN_INFO, isAdult, isPlan } from "@/lib/membership";
 import { boardEmails, sendMail } from "@/lib/mail";
-import { isBoardEmail } from "@/lib/members";
+import { clientIp, hit, type Limit } from "@/lib/rate-limit";
 
 /**
  * Die Beitrittserklaerung, online.
@@ -19,6 +19,11 @@ import { isBoardEmail } from "@/lib/members";
  * Erziehungsberechtigten. Ein Haekchen im Browser ist keine Schriftform. Die
  * Elterndaten werden hier erfasst, die Unterschrift aber im Training geleistet;
  * der Vorstand hakt sie ab, erst dann ist die Aufnahme moeglich.
+ *
+ * Missbrauch (30.10.2026): Honigtopf-Feld "website" und hoechstens fuenf
+ * Antraege je IP und Stunde (lib/rate-limit.ts). Die E-Mail-Adresse wird
+ * weiterhin NICHT bestaetigt — deshalb wird auch niemand mehr allein ueber
+ * seine Adresse aufgenommen, siehe initialStatus unten.
  */
 
 export interface JoinState {
@@ -48,7 +53,24 @@ const TEXT_FIELDS = [
 
 const BOX_FIELDS = ["reduced", "consent_photos", "consent_whatsapp", "accept_terms"] as const;
 
+/**
+ * Fuenf Antraege je IP und Stunde (30.10.2026). Jeder Antrag schickt eine
+ * Mail an eine unbestaetigte Adresse und eine an den Vorstand; ohne Grenze
+ * waere das Formular ein Mailrelay. Fuenf reicht fuer eine Familie, die am
+ * selben WLAN mehrere Kinder anmeldet. Gezaehlt wird erst nach der
+ * Formularpruefung — ein Tippfehler kostet nichts —, aber VOR der Abfrage
+ * "gibt es die Adresse schon", damit sich nicht beliebig ausprobieren laesst,
+ * wer Mitglied ist.
+ */
+const JOIN_IP: Limit = { bucket: "join-ip", max: 5, windowSeconds: 60 * 60 };
+
 export async function joinAction(prev: JoinState, formData: FormData): Promise<JoinState> {
+  // Honigtopf wie beim Probetraining (components/trial): ein Feld, das
+  // Menschen nie sehen und einfache Bots ausfuellen. Der Bot bekommt
+  // dieselbe Weiterleitung wie ein echter Antrag, es entsteht aber weder
+  // Konto noch Mail — er soll nicht merken, woran er gescheitert ist.
+  if (String(formData.get("website") ?? "") !== "") redirect("/mitglieder");
+
   const v: Record<string, string> = {};
   for (const key of TEXT_FIELDS) v[key] = String(formData.get(key) ?? "").trim();
   for (const key of BOX_FIELDS) v[key] = formData.get(key) !== null ? "on" : "";
@@ -92,6 +114,12 @@ export async function joinAction(prev: JoinState, formData: FormData): Promise<J
 
   await ensureSchema();
 
+  if (!(await hit(JOIN_IP, await clientIp()))) {
+    return fail(
+      "Von diesem Anschluss kamen in der letzten Stunde schon mehrere Anträge. Bitte später nochmal versuchen oder uns im Training ansprechen."
+    );
+  }
+
   const existing = await sql`select id from members where email = ${v.email}`;
   if (existing.length > 0) {
     return fail(
@@ -100,11 +128,24 @@ export async function joinAction(prev: JoinState, formData: FormData): Promise<J
   }
 
   const passwordHash = await hashPassword(password);
-  // Vorstandsmitglieder (BOARD_EMAILS bei Scalingo) sind sofort aufgenommen.
-  // Sonst braeuchte das allererste Vorstandsmitglied jemanden, der es
-  // aufnimmt — und den gaebe es nicht. Wer in BOARD_EMAILS steht, hat das
-  // ohnehin der Zugang zum Hosting entschieden, nicht dieses Formular.
-  const initialStatus = isBoardEmail(v.email ?? "") && !minor ? "active" : "pending";
+  // JEDER Antrag beginnt als 'pending', auch mit einer Adresse aus
+  // BOARD_EMAILS (30.10.2026). Bis dahin wurde eine Vorstandsadresse sofort
+  // aufgenommen — aber niemand prueft, dass die Adresse dem Antragsteller
+  // gehoert. Wer eine Vorstandsadresse kannte, die noch kein Konto hatte,
+  // konnte sich damit eintragen und war im selben Moment Vorstand: alle
+  // Mitgliederdaten, Aufnahmen, Passwort-Links. BOARD_EMAILS sagt, WELCHE
+  // Adresse Vorstand ist; dass man sie besitzt, bewies das Formular nie.
+  //
+  // Das allererste Vorstandsmitglied (es gibt noch niemanden, der aufnehmen
+  // koennte): Antrag hier normal stellen, dann im Scalingo-Dashboard unter
+  // Addons → PostgreSQL → "Run a console" (oder `scalingo --app <app>
+  // pgsql-console`) von Hand aufnehmen:
+  //   update members set status = 'active', decided_at = now()
+  //   where email = 'vorname@jjk.academy' and status = 'pending';
+  // Ab dann nimmt dieses Konto die weiteren Vorstandsmitglieder unter
+  // /vorstand auf. Vorher pruefen, dass der Antrag wirklich von der Person
+  // stammt (Name, Telefon) — genau das ist die Pruefung, die hier fehlt.
+  const initialStatus = "pending";
   const name = `${v.first_name} ${v.last_name}`;
   const g = (key: string): string | null => (minor && v[key] ? (v[key] as string) : null);
 
@@ -152,6 +193,13 @@ export async function joinAction(prev: JoinState, formData: FormData): Promise<J
         "",
         "Über die Aufnahme entscheidet der Vorstand, meistens beim nächsten Training. Den Stand siehst du jederzeit im Mitgliederbereich: https://jjk.academy/mitglieder",
         minor ? "\nWeil du unter 18 bist, unterschreibt ein Erziehungsberechtigter beim ersten Training die Zustimmung." : "",
+        "",
+        // Zahlung erst NACH der Aufnahme (30.10.2026): die Aufnahme-Mail
+        // (app/vorstand/actions.ts) bringt Einschreibgebuehr und Dauerauftrag
+        // samt IBAN. Hier nur ankuendigen, damit niemand vorher ueberweist.
+        PLAN_INFO[v.plan].monthly
+          ? "Sobald dich der Vorstand aufgenommen hat, bekommst du eine Mail mit allem zur Zahlung (Einschreibgebühr und Dauerauftrag für den Monatsbeitrag)."
+          : "Sobald dich der Vorstand aufgenommen hat, bekommst du eine Mail mit allem zur Zahlung.",
         "",
         "Bis bald auf der Matte!",
         "Jiu Jitsu Kaisen Akademie",

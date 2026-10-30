@@ -18,9 +18,12 @@ import {
   deleteRejectedAction,
   deleteTrialRequestAction,
   rejectAction,
+  resolvePaymentIssueAction,
   toggleFlagAction,
   togglePaymentAction,
 } from "./actions";
+import { mollieKeyWarning } from "@/lib/mollie";
+import { paymentKindLabel } from "@/lib/mail";
 import { ResetPassword } from "./reset-password";
 import { CreateStaff, NewSetupLink } from "./staff";
 
@@ -177,6 +180,22 @@ export default async function BoardPage(): Promise<ReactNode> {
     select member_id, kind, period::text as period, source from payments
   `;
 
+  // Doppelzahlungen aus dem Mollie-Webhook (30.10.2026), bis sie erledigt sind.
+  const issues = await sql<{
+    id: number;
+    member_name: string;
+    provider_ref: string;
+    kind: string;
+    period: string | null;
+    amount_cents: number;
+    created: string;
+  }>`
+    select id, member_name, provider_ref, kind, period::text as period, amount_cents,
+      to_char(created_at at time zone 'Europe/Vienna', 'DD.MM.YYYY HH24:MI') as created
+    from payment_issues where resolved_at is null order by created_at
+  `;
+  const keyWarning = mollieKeyWarning();
+
   const paid = (id: number, kind: string, period?: string): boolean =>
     payments.some(
       (p) => p.member_id === id && p.kind === kind && (period === undefined || p.period === period)
@@ -205,6 +224,45 @@ export default async function BoardPage(): Promise<ReactNode> {
         </TransitionLink>
 
         <h1 className="jjk-section-title mt-10">Vorstand</h1>
+
+        {keyWarning ? (
+          <p className="mt-8 rounded-xl border px-4 py-3 text-sm text-foreground" style={{ borderColor: RED }}>
+            {keyWarning}
+          </p>
+        ) : null}
+
+        {/* ── Doppelzahlungen ──────────────────────────────────────── */}
+        {issues.length > 0 ? (
+          <section className="mt-12">
+            <h2 className="font-mono text-[0.72rem] font-medium uppercase tracking-[0.24em]" style={{ color: RED }}>
+              Doppelzahlungen ({issues.length})
+            </h2>
+            <p className="mt-2 text-sm text-foreground-dim">
+              Online bezahlt, obwohl der Posten schon eingetragen war. Im Mollie-Dashboard rückerstatten
+              oder mit dem Mitglied klären, dann als erledigt markieren.
+            </p>
+            <ul className="mt-4 flex flex-col gap-3">
+              {issues.map((i) => (
+                <li key={i.id} className="rounded-xl border bg-card-plate p-4" style={{ borderColor: RED }}>
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <p className="font-medium text-foreground">{i.member_name}</p>
+                    <p className="text-xs text-foreground-dim">{i.created}</p>
+                  </div>
+                  <p className="mt-1 text-sm text-foreground">
+                    {paymentKindLabel(i.kind, i.period)} · {euro(i.amount_cents)}
+                  </p>
+                  <p className="mt-1 font-mono text-xs text-foreground-dim">{i.provider_ref.split(":")[0]}</p>
+                  <form action={resolvePaymentIssueAction} className="mt-3">
+                    <input type="hidden" name="issue_id" value={i.id} />
+                    <button type="submit" className="h-9 rounded-md border border-border px-3 text-sm text-foreground hover:border-border-hot">
+                      Erledigt
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         {/* ── Probetraining-Anfragen ───────────────────────────────── */}
         <section className="mt-12">

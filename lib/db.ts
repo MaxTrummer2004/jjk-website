@@ -216,6 +216,57 @@ async function createSchema(): Promise<void> {
       unique (member_id, training_date)
     );
   `;
+
+  // Zaehler fuer lib/rate-limit.ts (30.10.2026): Beitritt, Probetraining und
+  // Login, je Fenster eine Zeile. `key` ist ein HMAC der IP bzw. Adresse,
+  // nie die Adresse selbst. Zeilen ueber zwei Tage raeumt rate-limit.ts weg.
+  await sql`
+    create table if not exists rate_limits (
+      bucket text not null,
+      key text not null,
+      window_start timestamptz not null,
+      hits integer not null default 0,
+      primary key (bucket, key, window_start)
+    );
+  `;
+
+  // Die zuletzt angelegte Mollie-Zahlung je Mitglied (30.10.2026). Ohne sie
+  // erzeugten Doppelklick oder zwei Tabs zwei Zahlungen ueber dieselben
+  // Posten; wurden beide bezahlt, verschluckte der Webhook die zweite. Jetzt
+  // fuehrt der Knopf zurueck in den Checkout, solange die Zahlung offen ist
+  // (app/mitglieder/pay-actions.ts). Eine Zeile pro Mitglied, wird ueber-
+  // schrieben. `payment_id` ist waehrend des Anlegens 'creating:<zufall>' —
+  // das ist die Sperre gegen den gleichzeitigen zweiten Klick.
+  await sql`
+    create table if not exists mollie_checkouts (
+      member_id integer primary key references members(id) on delete cascade,
+      payment_id text not null,
+      items_key text not null,
+      checkout_url text,
+      created_at timestamptz not null default now()
+    );
+  `;
+
+  // Online eingegangen, aber schon bezahlt (30.10.2026): Geld da, Posten war
+  // schon eingetragen — von Hand abgehakt oder eine zweite Mollie-Zahlung.
+  // Vorher verschwand das still im `on conflict do nothing` des Webhooks.
+  // Der Vorstand sieht die Zeile unter /vorstand und erstattet in Mollie
+  // zurueck. `provider_ref` eindeutig, damit Mollies Wiederholungen weder
+  // eine zweite Zeile noch eine zweite Mail erzeugen.
+  await sql`
+    create table if not exists payment_issues (
+      id serial primary key,
+      member_id integer references members(id) on delete set null,
+      member_name text not null,
+      provider_ref text not null unique,
+      kind text not null,
+      period date,
+      amount_cents integer not null,
+      created_at timestamptz not null default now(),
+      resolved_at timestamptz,
+      resolved_by integer references members(id) on delete set null
+    );
+  `;
 }
 
 export function ensureSchema(): Promise<void> {

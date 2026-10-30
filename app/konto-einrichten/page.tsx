@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { ensureSchema, sql } from "@/lib/db";
+import { createMetadata } from "@/lib/metadata";
 import { DismissTransition } from "@/components/dismiss-transition";
 import { SetupForm } from "./setup-form";
 
-export const metadata: Metadata = {
+// 30.10.2026: ueber createMetadata, damit canonical/og:url nicht mehr von der
+// Wurzel geerbt auf die Startseite zeigen (noindex plus canonical auf eine
+// andere URL sind fuer Google widerspruechliche Signale).
+export const metadata: Metadata = createMetadata({
   title: "Konto einrichten",
-  robots: { index: false, follow: false },
-};
+  path: "/konto-einrichten",
+  noIndex: true,
+});
 
 export const dynamic = "force-dynamic";
 

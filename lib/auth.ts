@@ -44,10 +44,28 @@ export function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
 }
 
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  // Konten, die per SQL mit Einrichtungslink angelegt werden, haben noch kein
-  // Passwort (Platzhalter statt bcrypt-Hash) — damit kann sich niemand einloggen.
-  if (!hash || !hash.startsWith("$2")) return false;
+/**
+ * Ein Hash, gegen den nie jemand gewinnt — nur damit ein Login mit
+ * unbekannter Adresse genauso lange rechnet wie einer mit falschem Passwort
+ * (30.10.2026). Vorher kam "falsch" bei unbekannter Adresse sofort, bei
+ * bekannter nach ~70 ms bcrypt: an der Antwortzeit liess sich ablesen, wer
+ * Mitglied ist. Einmal je Prozess erzeugt, beim ersten Bedarf, mit derselben
+ * Kostenstufe wie hashPassword().
+ */
+let dummyHash: Promise<string> | null = null;
+
+export async function verifyPassword(
+  password: string,
+  hash: string | null | undefined
+): Promise<boolean> {
+  // Kein Konto, oder ein per SQL mit Einrichtungslink angelegtes ohne
+  // Passwort (Platzhalter statt bcrypt-Hash): niemand kommt hinein. Gerechnet
+  // wird trotzdem, gegen den Blindhash, damit die Zeit nichts verraet.
+  if (!hash || !hash.startsWith("$2")) {
+    dummyHash ??= hashPassword(crypto.randomUUID());
+    await bcrypt.compare(password, await dummyHash);
+    return false;
+  }
   return bcrypt.compare(password, hash);
 }
 

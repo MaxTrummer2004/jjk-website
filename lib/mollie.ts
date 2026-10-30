@@ -29,8 +29,35 @@ const API = "https://api.mollie.com/v2";
  *  "EPS" UND "SEPA Direct Debit" aktiviert sein. */
 export const FIRST_PAYMENT_METHODS = ["eps"];
 
+/**
+ * Testzahlungen zaehlen nur ausserhalb der Produktion (30.10.2026). Mit einem
+ * test_-Schluessel im Live-Betrieb konnte ein Mitglied im Test-Checkout von
+ * Mollie auf "paid" klicken, und der Webhook trug das als echte Zahlung ein:
+ * gruener Status, kein Geld. Wer im Live-Betrieb bewusst testen will, setzt
+ * MOLLIE_ALLOW_TEST=1 bei Scalingo und nimmt es danach wieder heraus.
+ */
+export function testPaymentsAllowed(): boolean {
+  return process.env.NODE_ENV !== "production" || process.env.MOLLIE_ALLOW_TEST === "1";
+}
+
+function isTestKey(): boolean {
+  return process.env.MOLLIE_API_KEY?.startsWith("test_") ?? false;
+}
+
+/** Ein test_-Schluessel im Live-Betrieb gilt als NICHT eingerichtet: ein
+ *  Bezahlknopf, dessen Ergebnis der Webhook ohnehin verwirft, ist schlimmer
+ *  als keiner. Ohne Knopf zeigt der Statusblock die Bankdaten. */
 export function isMollieConfigured(): boolean {
-  return Boolean(process.env.MOLLIE_API_KEY);
+  if (!process.env.MOLLIE_API_KEY) return false;
+  return !isTestKey() || testPaymentsAllowed();
+}
+
+/** Hinweis fuer /vorstand, wenn der Schluessel nicht zum Betrieb passt; sonst null. */
+export function mollieKeyWarning(): string | null {
+  if (!isTestKey() || process.env.NODE_ENV !== "production") return null;
+  return testPaymentsAllowed()
+    ? "Mollie läuft mit einem Testschlüssel und MOLLIE_ALLOW_TEST=1: Testzahlungen werden wie echte verbucht. Nach dem Testen bei Scalingo den Live-Schlüssel eintragen und MOLLIE_ALLOW_TEST entfernen."
+    : "MOLLIE_API_KEY ist ein Testschlüssel (test_…). Der Bezahlknopf ist deshalb ausgeblendet, Testzahlungen werden nicht verbucht. Für echte Zahlungen bei Scalingo den Live-Schlüssel (live_…) eintragen.";
 }
 
 export function siteUrl(): string {
@@ -50,7 +77,16 @@ export function toCents(value: string): number {
   return Math.round(Number(value) * 100);
 }
 
-export class MollieError extends Error {}
+/** `status` ist der HTTP-Status von Mollie, damit Aufrufer 404 (unbekannte
+ *  ID) von einem echten Fehler unterscheiden koennen. */
+export class MollieError extends Error {
+  constructor(
+    message: string,
+    readonly status?: number
+  ) {
+    super(message);
+  }
+}
 
 export async function mollie<T = Record<string, unknown>>(
   method: "GET" | "POST" | "PATCH" | "DELETE",
@@ -72,7 +108,7 @@ export async function mollie<T = Record<string, unknown>>(
   const json = text ? (JSON.parse(text) as Record<string, unknown>) : {};
   if (!res.ok) {
     const detail = typeof json.detail === "string" ? json.detail : res.statusText;
-    throw new MollieError(`Mollie ${method} ${path}: ${res.status} ${detail}`);
+    throw new MollieError(`Mollie ${method} ${path}: ${res.status} ${detail}`, res.status);
   }
   return json as T;
 }
@@ -80,6 +116,8 @@ export async function mollie<T = Record<string, unknown>>(
 export interface MolliePayment {
   id: string;
   status: string;
+  /** "live" oder "test" — welcher Schluessel die Zahlung angelegt hat. */
+  mode?: "live" | "test";
   sequenceType?: string;
   amount: { value: string; currency: string };
   customerId?: string;

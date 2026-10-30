@@ -6,10 +6,14 @@ import { redirect } from "next/navigation";
 import { createSession, destroySession, hashPassword, verifyPassword } from "@/lib/auth";
 import { getCurrentMember } from "@/lib/members";
 import { mostRecentTrainingDay, toDateOnly } from "@/lib/attendance";
+import { clientIp, hit, refund, type Limit } from "@/lib/rate-limit";
 
 export interface ActionResult {
   error?: string;
 }
+
+const LOGIN_IP: Limit = { bucket: "login-ip", max: 20, windowSeconds: 15 * 60 };
+const LOGIN_EMAIL: Limit = { bucket: "login-email", max: 8, windowSeconds: 15 * 60 };
 
 /**
  * Registrieren gibt es hier nicht mehr: ein Konto entsteht nur noch ueber die
@@ -28,18 +32,39 @@ export async function loginAction(
     .toLowerCase();
   const password = String(formData.get("password") ?? "");
 
-  const result = await sql`
-    select id, password_hash, status from members where email = ${email}
+  // Grenze gegen Passwort-Raten (30.10.2026), zwei Zaehler:
+  //   je IP    20 Fehlversuche / 15 min — eine Maschine, die viele Konten abklappert
+  //   je Konto  8 Fehlversuche / 15 min — viele Maschinen gegen ein Konto
+  // Gezaehlt wird VOR bcrypt und bei Erfolg zurueckgegeben (refund), netto
+  // also nur Fehlversuche. Erst pruefen und nur bei Fehlschlag zaehlen liesse
+  // hundert parallele Anfragen alle am Zaehler vorbei, solange bcrypt rechnet.
+  // Ist die Grenze erreicht, wird auch das RICHTIGE Passwort abgewiesen, ohne
+  // es zu pruefen — sonst waere die Sperre ein Orakel. Nach Ablauf des
+  // Fensters geht es von selbst wieder; dauerhaft sperrt nichts. Der Preis:
+  // wer die Adresse eines Mitglieds kennt, kann dessen Login 15 Minuten lang
+  // blockieren. Das ist das kleinere Uebel gegenueber unbegrenztem Raten.
+  const ip = await clientIp();
+  const byIp = await hit(LOGIN_IP, ip);
+  const byEmail = email ? await hit(LOGIN_EMAIL, email) : true;
+  if (!byIp || !byEmail) {
+    return { error: "Zu viele Versuche. Bitte in 15 Minuten nochmal." };
+  }
+
+  const result = await sql<{ id: number; password_hash: string }>`
+    select id, password_hash from members where email = ${email}
   `;
   const row = result[0];
-  if (!row || !(await verifyPassword(password, row.password_hash as string))) {
+  // Ohne Konto rechnet verifyPassword gegen einen Blindhash — gleiche Dauer,
+  // damit die Antwortzeit nicht verraet, ob die Adresse Mitglied ist.
+  if (!(await verifyPassword(password, row?.password_hash)) || !row) {
     return { error: "E-Mail-Adresse oder Passwort falsch." };
   }
+  await Promise.all([refund(LOGIN_IP, ip), refund(LOGIN_EMAIL, email)]);
 
   // Kein Haken heisst: das Cookie endet mit dem Browser. Das ist der Grund,
   // warum es den Haken gibt — an einem geteilten Rechner soll das Schliessen
   // des Fensters reichen.
-  await createSession(row.id as number, formData.get("remember") !== null);
+  await createSession(row.id, formData.get("remember") !== null);
   revalidatePath("/mitglieder");
   return {};
 }

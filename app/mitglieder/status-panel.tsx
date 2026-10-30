@@ -3,6 +3,7 @@ import { siteConfig } from "@/lib/config";
 import { PLAN_INFO, euro, type Plan } from "@/lib/membership";
 import type { PaymentStatus } from "@/lib/payments";
 import { cancelFlexAction, startPaymentAction } from "./pay-actions";
+import { PayButton } from "./pay-button";
 
 /**
  * Der Statusblock oben im Mitgliederbereich. Server-Komponente: sie bekommt
@@ -237,13 +238,9 @@ function PaymentBlock({
         <form action={startPaymentAction} className="mt-5">
           {/* "zahlungspflichtig" steht im Knopf, weil § 8 Abs. 2 FAGG das fuer
               Online-Bestellungen verlangt (Button-Loesung). */}
-          <button
-            type="submit"
-            className="inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-center text-sm font-semibold transition-opacity hover:opacity-90"
-            style={{ color: RED }}
-          >
+          <PayButton color={RED}>
             {oneOff.map((i) => i.label).join(" + ")} jetzt zahlungspflichtig bezahlen · {euro(oneOffCents)}
-          </button>
+          </PayButton>
           <p className="mt-3 text-xs leading-relaxed text-white/85">
             Einmalige Zahlung per EPS-Überweisung über Mollie.
           </p>

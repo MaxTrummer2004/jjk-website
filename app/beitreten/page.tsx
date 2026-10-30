@@ -8,6 +8,8 @@ export const metadata: Metadata = createMetadata({
   title: "Mitglied werden",
   description:
     "Beitrittserklärung der Jiu Jitsu Kaisen Academy: online ausfüllen, der Vorstand bestätigt die Aufnahme.",
+  // Fehlte bis 30.10.2026: canonical und og:url zeigten auf die Startseite.
+  path: "/beitreten",
 });
 
 /**

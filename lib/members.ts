@@ -111,6 +111,15 @@ export function isBoardEmail(email: string | null): boolean {
   return list.includes(email.toLowerCase());
 }
 
+/**
+ * Vorstand = Adresse in BOARD_EMAILS UND aufgenommen ('active'). Die zweite
+ * Haelfte traegt die Last: die Adresse ist nie bestaetigt worden, jeder kann
+ * einen Antrag mit einer Vorstandsadresse stellen. Seit 30.10.2026 entsteht
+ * deshalb jedes Konto als 'pending' (app/beitreten/actions.ts); 'active' wird
+ * es nur durch einen bestehenden Vorstand oder per SQL. Wer einen Antrag mit
+ * einer Vorstandsadresse aufnimmt, macht den Antragsteller zum Vorstand —
+ * also vorher wissen, wer das ist.
+ */
 export function isBoard(member: MemberRecord | null): boolean {
   return member !== null && member.status === "active" && isBoardEmail(member.email);
 }

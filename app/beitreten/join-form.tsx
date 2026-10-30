@@ -218,6 +218,17 @@ export function JoinForm(): ReactNode {
         </label>
       </Section>
 
+      {/* Honigtopf gegen Bots, wie im Probetraining-Formular: fuer Menschen
+          unsichtbar, nicht fokussierbar, fuer Screenreader ausgeblendet. Wer
+          es fuellt, wird in actions.ts still verworfen (30.10.2026). */}
+      <input
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="absolute left-[-9999px] h-0 w-0 opacity-0"
+      />
+
       {state.error ? (
         <p role="alert" className="rounded-lg border border-accent/50 bg-accent/10 px-4 py-3 text-sm text-foreground">
           {state.error}
