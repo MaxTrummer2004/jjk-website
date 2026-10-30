@@ -336,7 +336,7 @@ export function Coaches(): ReactNode {
       <div className="mx-auto w-full max-w-[1400px] px-4 pt-14 sm:px-6 sm:pt-36 lg:px-8">
         <KanjiLabel kanji="師範" furigana="しはん" gloss="Trainer" />
         <StaggeredText
-          text="Trainer, die fürs BJJ leben"
+          text="Trainer, die für Kampfsport leben"
           as="h2"
           segmentBy="words"
           direction="bottom"
