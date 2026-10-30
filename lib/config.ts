@@ -132,7 +132,7 @@ export const programs = [
     kanji: "拳闘",
     level: "Jedes Level",
     blurb:
-      "Dienstag und Donnerstag. Boxtechnik, Pratzen und Partnerübungen.",
+      "Dienstag und Donnerstag. Technik, Partnerübungen und Sparring für alle, die wollen.",
     tag: "Boxen",
   },
   {
@@ -280,7 +280,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
     day: "Di",
     classes: [
       { time: "17:00–17:45", name: "Matte frei", note: "Zum Drillen eigener Techniken", kind: "frei", level: "jedes" },
-      { time: "17:45–18:45", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes", attire: "box" },
+      { time: "17:45–18:45", name: "Boxen", note: "Technik, Partnerübungen & Sparring (für alle, die wollen)", program: "Boxen", kind: "boxen", level: "jedes", attire: "box" },
       { time: "19:00–20:00", name: "Jiu-Jitsu Gi", note: "Technik & Sparring im Gi", program: "Jiu-Jitsu Gi", kind: "gi", level: "jedes", attire: "gi" },
     ],
   },
@@ -295,7 +295,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
     day: "Do",
     classes: [
       { time: "17:00–17:45", name: "Matte frei", note: "Zum Drillen eigener Techniken", kind: "frei", level: "jedes" },
-      { time: "17:45–18:45", name: "Boxen", note: "Boxtechnik, Pratzen & Partnerübungen", program: "Boxen", kind: "boxen", level: "jedes", attire: "box" },
+      { time: "17:45–18:45", name: "Boxen", note: "Technik, Partnerübungen & Sparring (für alle, die wollen)", program: "Boxen", kind: "boxen", level: "jedes", attire: "box" },
       { time: "19:00–20:00", name: "Jiu-Jitsu No-Gi", note: "Technik & Sparring ohne Gi", program: "Jiu-Jitsu No-Gi", kind: "nogi", level: "jedes", attire: "nogi" },
     ],
   },
