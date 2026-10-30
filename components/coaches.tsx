@@ -139,12 +139,17 @@ function CoachSheet({
                  Mitte eines stehenden Portraets ist der Bauch. Der Ausschnitt
                  sitzt jetzt im oberen Drittel, wo bei einem Menschen das
                  Gesicht ist. */
-              className="h-56 w-full shrink-0 bg-cover bg-[50%_22%] sm:h-auto sm:w-72"
+              className="h-44 w-full shrink-0 bg-cover bg-[50%_22%] sm:h-auto sm:w-72"
               style={{ backgroundImage: `url(${coach.image})` }}
               aria-hidden="true"
             />
 
-            <div className="flex min-w-0 flex-1 flex-col gap-5 px-8 py-9 pr-14">
+            {/* Am Handy (30.10.2026): Foto h-44 statt h-56 und weniger Rand. Auf
+                einem echten Handy mit Browserleiste (ca. 650 px hoch) war das
+                Fenster bei 88svh rund 575 px hoch und Matthias' Text lief unten
+                aus dem Bild. pr-14 braucht es nur ab sm, wo das Kreuz neben
+                dem Text steht; am Handy sitzt es auf dem Foto. */}
+            <div className="flex min-w-0 flex-1 flex-col gap-4 px-6 py-7 sm:gap-5 sm:px-8 sm:py-9 sm:pr-14">
               <div>
                 {coach.belt ? (
                   <p className="flex items-center gap-2.5 font-mono text-[0.62rem] uppercase tracking-[0.24em] text-foreground-dim">
@@ -160,7 +165,7 @@ function CoachSheet({
                   </p>
                 ) : null}
                 <h3
-                  className="mt-3 text-4xl font-semibold leading-tight text-foreground"
+                  className="mt-3 text-3xl font-semibold leading-tight text-foreground sm:text-4xl"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {coach.name}
@@ -200,9 +205,13 @@ function CoachSheet({
               type="button"
               onClick={onClose}
               aria-label="Schließen"
-              className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center border border-border text-foreground-dim transition-colors hover:border-border-hot hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              /* Deckende Platte statt nur Rahmen (30.10.2026): am Handy liegt
+                 das Kreuz auf dem hellen Foto, und ein duenner dunkler Rand mit
+                 grauem Zeichen war dort kaum zu sehen. Platte und helles
+                 Zeichen tragen auf Foto wie auf dunklem Grund. */
+              className="absolute top-3 right-3 flex h-10 w-10 items-center justify-center border border-foreground/25 bg-card-plate/90 text-foreground transition-colors hover:border-border-hot hover:bg-card-plate-hot focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:top-4 sm:right-4"
             >
-              <span aria-hidden="true" className="text-base leading-none">
+              <span aria-hidden="true" className="text-xl leading-none">
                 ×
               </span>
             </button>
