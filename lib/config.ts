@@ -148,10 +148,10 @@ export const programs = [
 /**
  * Die Trainer.
  *
- * `bio` ist noch leer. Das ist kein Versehen: im Repo lagen nur vier
- * Bilddateien, und einem Trainer einen Lebenslauf anzudichten waere auf einer
- * Vereinsseite ein peinlicher Fehler. Die Oberflaeche kommt damit klar — ein
- * leerer Text laesst das Infofenster den Rest zeigen.
+ * `bio` steht seit 30.10.2026 im Infofenster. Die Fakten darin kommen vom
+ * Auftraggeber (Kampfsporterfahrung, Guertel, Staerken); dazugedichtet ist
+ * nichts. Ein leerer Text bleibt erlaubt: dann zeigt das Infofenster nur
+ * den Rest.
  *
  * `beltHex` ist die Farbe des Balkens neben der Graduierung. Schwarz auf
  * dunklem Grund waere unsichtbar, deshalb ein sehr dunkles Grau mit heller
@@ -173,7 +173,8 @@ export const coaches = [
     belt: "BJJ",
     beltHex: "#16161c",
     image: "/img/coaches/wolfi.jpg",
-    bio: "",
+    bio:
+      "Wolfi macht seit Jahrzehnten Kampfsport, und das merkt man in jeder Runde mit ihm. Im BJJ ist er unglaublich technisch, bei ihm sitzt jedes Detail. Abseits der Matte spielt er übrigens Videospiele auf Weltklasse-Niveau.",
     teaches: [] as string[],
   },
   {
@@ -181,7 +182,8 @@ export const coaches = [
     belt: "BJJ",
     beltHex: "#16161c",
     image: "/img/coaches/matthias.jpg",
-    bio: "",
+    bio:
+      "Matthias trägt den schwarzen Gürtel gleich zweimal: im BJJ und im Shotokan-Karate. Auf der Matte fallen vor allem seine Pins auf. Wer einmal unter ihm liegt, kommt so schnell nicht wieder raus, und landet er selbst unten, ist er mit seinen Escapes schneller wieder frei, als man schauen kann.",
     teaches: [] as string[],
   },
   {
@@ -189,7 +191,8 @@ export const coaches = [
     belt: "Boxen",
     beltHex: "#1d4ed8",
     image: "/img/coaches/sophie.jpg",
-    bio: "",
+    bio:
+      "Sophie hat ihre Boxtechnik über viele Jahre perfektioniert und ist auch in anderen Kampfsportarten zu Hause. Diese Erfahrung bringt sie in jedes Boxtraining mit.",
     teaches: [] as string[],
   },
 ] as const;
