@@ -96,6 +96,10 @@ const NEAR = 320;
  * braucht also keine neue Abfrage. Die Namen muessen mit `n` dort
  * uebereinstimmen.
  *
+ * Shopping City Seiersberg ist seit 30.10.2026 raus (Auftraggeber); es
+ * bleiben drei. Sie steht weiter in der Datendatei und kommt mit einer
+ * Zeile hier zurueck.
+ *
  * Kino und Bahnhof sind der Sonderfall: sie liegen keine 90 m auseinander.
  * Ihre Beschriftungen zeigen deshalb voneinander weg (`s` in der Datendatei).
  * Wer hier eine davon gegen etwas anderes tauscht, sollte die Seiten wieder
@@ -104,7 +108,6 @@ const NEAR = 320;
 const SHOWN = [
   "Cineplexx",
   "Bahnhof Puntigam",
-  "Shopping City Seiersberg",
   "Stadion Liebenau",
 ];
 /**
