@@ -62,14 +62,23 @@ const BOX_FIELDS = ["reduced", "consent_photos", "consent_whatsapp", "accept_ter
  * "gibt es die Adresse schon", damit sich nicht beliebig ausprobieren laesst,
  * wer Mitglied ist.
  */
-const JOIN_IP: Limit = { bucket: "join-ip", max: 5, windowSeconds: 60 * 60 };
+// 20 statt 5 (Review 30.10.2026): eine Gruppe im WLAN der Akademie teilt
+// sich eine IP, und sollte Scalingos Router doch eine gemeinsame Adresse
+// liefern, saesse die ganze Seite in diesem Topf. Die Mailflut an fremde
+// Adressen begrenzt schon die Pruefung "gibt es die Adresse schon".
+const JOIN_IP: Limit = { bucket: "join-ip", max: 20, windowSeconds: 60 * 60 };
 
 export async function joinAction(prev: JoinState, formData: FormData): Promise<JoinState> {
   // Honigtopf wie beim Probetraining (components/trial): ein Feld, das
   // Menschen nie sehen und einfache Bots ausfuellen. Der Bot bekommt
   // dieselbe Weiterleitung wie ein echter Antrag, es entsteht aber weder
   // Konto noch Mail — er soll nicht merken, woran er gescheitert ist.
-  if (String(formData.get("website") ?? "") !== "") redirect("/mitglieder");
+  // Die Log-Zeile ist fuer den Fall, dass ein Passwortmanager das Feld
+  // fuellt: sonst verschwaende ein echter Antrag ohne jede Spur.
+  if (String(formData.get("website") ?? "") !== "") {
+    console.warn("[beitreten] Honigtopf ausgefuellt, Antrag verworfen");
+    redirect("/mitglieder");
+  }
 
   const v: Record<string, string> = {};
   for (const key of TEXT_FIELDS) v[key] = String(formData.get(key) ?? "").trim();

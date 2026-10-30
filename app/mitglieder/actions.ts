@@ -12,7 +12,7 @@ export interface ActionResult {
   error?: string;
 }
 
-const LOGIN_IP: Limit = { bucket: "login-ip", max: 20, windowSeconds: 15 * 60 };
+const LOGIN_IP: Limit = { bucket: "login-ip", max: 50, windowSeconds: 15 * 60 };
 const LOGIN_EMAIL: Limit = { bucket: "login-email", max: 8, windowSeconds: 15 * 60 };
 
 /**
@@ -33,7 +33,8 @@ export async function loginAction(
   const password = String(formData.get("password") ?? "");
 
   // Grenze gegen Passwort-Raten (30.10.2026), zwei Zaehler:
-  //   je IP    20 Fehlversuche / 15 min — eine Maschine, die viele Konten abklappert
+  //   je IP    50 Fehlversuche / 15 min — eine Maschine, die viele Konten abklappert
+  //            (50 statt 20, Review 30.10.2026: geteilte IP im Gym-WLAN)
   //   je Konto  8 Fehlversuche / 15 min — viele Maschinen gegen ein Konto
   // Gezaehlt wird VOR bcrypt und bei Erfolg zurueckgegeben (refund), netto
   // also nur Fehlversuche. Erst pruefen und nur bei Fehlschlag zaehlen liesse
@@ -44,8 +45,11 @@ export async function loginAction(
   // wer die Adresse eines Mitglieds kennt, kann dessen Login 15 Minuten lang
   // blockieren. Das ist das kleinere Uebel gegenueber unbegrenztem Raten.
   const ip = await clientIp();
+  // Erst die IP: ist sie schon gesperrt, wird der Zaehler je Adresse gar
+  // nicht erst beruehrt (sonst schriebe ein gesperrter Angreifer weiter
+  // billig Zeilen in rate_limits).
   const byIp = await hit(LOGIN_IP, ip);
-  const byEmail = email ? await hit(LOGIN_EMAIL, email) : true;
+  const byEmail = byIp && email ? await hit(LOGIN_EMAIL, email) : true;
   if (!byIp || !byEmail) {
     return { error: "Zu viele Versuche. Bitte in 15 Minuten nochmal." };
   }

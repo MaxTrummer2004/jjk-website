@@ -75,7 +75,10 @@ export async function admitAction(formData: FormData): Promise<void> {
         guardianCopy: guardian !== null,
       });
       await sendMail({
-        to: guardian ? [target.email, guardian] : target.email,
+        // Gleiche Adresse zweimal (Kind meldet sich mit der Elternadresse an)
+        // lehnt Brevo ab, und dann bekaeme niemand die Bankdaten (Review
+        // 30.10.2026).
+        to: guardian && guardian !== target.email ? [target.email, guardian] : target.email,
         ...mail,
         replyTo: siteConfig.email,
       });

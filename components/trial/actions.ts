@@ -21,7 +21,9 @@ import { clientIp, hit, type Limit } from "@/lib/rate-limit";
  * Namen fuellen. Drei Anfragen je IP und Stunde, drei je Kontaktangabe und
  * Tag: mehr braucht kein Mensch, der ein Probetraining will.
  */
-const TRIAL_IP: Limit = { bucket: "trial-ip", max: 3, windowSeconds: 60 * 60 };
+// 10 statt 3 je IP (Review 30.10.2026), aus demselben Grund wie beim
+// Beitritt: geteilte IP im Gym-WLAN. Die Grenze je Kontakt bleibt bei 3.
+const TRIAL_IP: Limit = { bucket: "trial-ip", max: 10, windowSeconds: 60 * 60 };
 const TRIAL_CONTACT: Limit = { bucket: "trial-contact", max: 3, windowSeconds: 24 * 60 * 60 };
 
 export interface TrialState {
