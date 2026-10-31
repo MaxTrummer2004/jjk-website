@@ -12,6 +12,7 @@ import {
   webhookUrl,
   type MolliePayment,
 } from "@/lib/mollie";
+import { clientIp, hit, refund, type Limit } from "@/lib/rate-limit";
 
 /**
  * Mollie-Webhook. Mollie schickt NUR die Zahlungs-ID (form-encoded "id=tr_…");
@@ -35,11 +36,54 @@ import {
  * Vorstand gemailt. Zurueckerstattet wird bewusst nicht automatisch: ob das
  * Geld zurueck soll oder z. B. fuer den naechsten Block gilt, klaert der
  * Vorstand mit dem Mitglied.
+ *
+ * Ausgedachte IDs (31.10.2026, Sicherheitsreview): bis dahin ging JEDE
+ * POST-ID mit "tr_" vorne als GET an die Mollie-API, mit unserem Schluessel.
+ * Wer die URL kennt, konnte so beliebig viele API-Aufrufe in unserem Namen
+ * ausloesen — und laeuft unser Schluessel bei Mollie in eine Grenze, scheitern
+ * auch die echten Zahlungen im Mitgliederbereich. Jetzt zwei Stufen:
+ *
+ * 1. Format. Mollie-Zahlungs-IDs sind "tr_" + Buchstaben/Ziffern: aeltere mit
+ *    10 Zeichen (tr_d0b0E3EA3v in der Doku), neuere mit 22
+ *    (tr_5B8cwPMGnU6qLbRvo7qEZo). Erlaubt sind 6 bis 64: weit genug, dass
+ *    eine laengere ID-Generation nicht still verworfen wird (ein verworfener
+ *    Webhook ist eine bezahlte Zahlung ohne Eintrag), eng genug, dass
+ *    Pfadzeichen wie "/" oder "?" nie in die API-URL kommen. Alles andere:
+ *    200 ohne jeden Aufruf, ohne Datenbank.
+ *
+ * 2. Unbekannte IDs je IP, siehe UNKNOWN_IP unten.
  */
 
 type Item = { kind: "enrollment" | "month" | "block"; cents: number; period: string };
 
 const ok = (): NextResponse => new NextResponse(null, { status: 200 });
+
+const PAYMENT_ID_RE = /^tr_[A-Za-z0-9]{6,64}$/;
+
+/**
+ * Hoechstens 120 UNBEKANNTE IDs je IP in 15 Minuten (31.10.2026).
+ *
+ * Gezaehlt wird vor dem API-Aufruf (sonst liefen parallele Anfragen alle
+ * durch, wie beim Login), und eine ID, die Mollie KENNT, gibt ihren Treffer
+ * danach zurueck (refund). Netto zaehlen also nur 404er — und die erzeugt
+ * Mollie selbst nie, denn Mollie meldet nur Zahlungen, die es angelegt hat.
+ * Echter Verkehr fuellt diesen Zaehler deshalb nicht, egal wie viele Abos am
+ * Monatsersten abgebucht werden.
+ *
+ * Ueber der Grenze 429, nicht 200. Mollie wiederholt, solange keine
+ * 2xx-Antwort kommt (bis zu zehnmal, ueber rund einen Tag verteilt). Sollte doch einmal ein echter
+ * Webhook hier landen — etwa wenn Scalingos Router allen dieselbe Adresse
+ * gaebe und ein Angreifer den gemeinsamen Topf fuellt —, kommt er spaeter
+ * wieder statt verloren zu sein. Mit 200 waere er still weg: Geld bei Mollie,
+ * kein Eintrag bei uns. Eine Grenze, die echte Zahlungen verschluckt, waere
+ * schlimmer als keine.
+ *
+ * Der Schluessel ist die IP, die der Router gesehen hat (lib/rate-limit.ts,
+ * letzter X-Forwarded-For-Eintrag) — ein Angreifer kann also nicht Mollies
+ * Topf fuellen, nur seinen eigenen. Faellt der Zaehler aus, laesst hit()
+ * durch: dann gilt eben nur Stufe 1.
+ */
+const UNKNOWN_IP: Limit = { bucket: "mollie-unknown-ip", max: 120, windowSeconds: 15 * 60 };
 
 type Recorded = { kind: string; period: string | null; cents: number };
 
@@ -86,7 +130,9 @@ async function reportDuplicates(memberId: number, paymentId: string, dups: Recor
     if (rows.length > 0) fresh.push(d);
   }
   if (fresh.length === 0) return;
-  console.error("[mollie webhook] Doppelzahlung", paymentId, name, fresh);
+  // Nur IDs im Log (31.10.2026): Logs liegen ein Jahr bei Scalingo, der
+  // Name steht schon in payment_issues und in der Vorstandsmail.
+  console.error("[mollie webhook] Doppelzahlung", paymentId, `Mitglied #${memberId}`, fresh);
   await sendMail({ to: boardEmails(), ...duplicatePaymentMail({ memberName: name, paymentId, items: fresh }) });
 }
 
@@ -101,19 +147,26 @@ function nextMonthStart(now: Date): string {
 export async function POST(request: Request): Promise<NextResponse> {
   const form = await request.formData().catch(() => null);
   const id = form?.get("id");
-  if (typeof id !== "string" || !id.startsWith("tr_")) return ok();
+  if (typeof id !== "string" || !PAYMENT_ID_RE.test(id)) return ok();
 
   try {
     await ensureSchema();
+    const ip = await clientIp();
+    if (!(await hit(UNKNOWN_IP, ip))) return new NextResponse(null, { status: 429 });
     let payment: MolliePayment;
     try {
       payment = await mollie<MolliePayment>("GET", `/payments/${id}`);
     } catch (err) {
       // Unbekannte ID (oder eine des anderen Modus): nichts zu tun, und kein
-      // 500, das Mollie zu Wiederholungen verleitet.
+      // 500, das Mollie zu Wiederholungen verleitet. Der Treffer bleibt
+      // stehen — genau diese Faelle zaehlt UNKNOWN_IP.
       if (err instanceof MollieError && err.status === 404) return ok();
+      // Anderer Fehler (Mollie nicht erreichbar o. ae.): die ID ist nicht
+      // als unbekannt erwiesen, also zurueckgeben. Mollie wiederholt.
+      await refund(UNKNOWN_IP, ip);
       throw err;
     }
+    await refund(UNKNOWN_IP, ip);
     if (payment.mode === "test" && !testPaymentsAllowed()) {
       console.error("[mollie webhook] Testzahlung im Live-Betrieb ignoriert:", payment.id, payment.status);
       return ok();

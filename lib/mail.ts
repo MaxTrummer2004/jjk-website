@@ -43,10 +43,22 @@ export async function sendMail(opts: {
       }),
       cache: "no-store",
     });
-    if (!res.ok) console.error("[mail]", res.status, await res.text());
+    if (!res.ok) console.error("[mail]", res.status, redactForLog(await res.text()));
   } catch (err) {
     console.error("[mail]", err);
   }
+}
+
+/**
+ * Brevos Fehlertext fuers Log (31.10.2026). Er nennt mitunter die
+ * Empfaengeradresse ("email is not valid: max@…"), und Scalingo bewahrt Logs
+ * ein Jahr auf — laenger, als wir manche dieser Adressen ueberhaupt
+ * speichern (Probetraining: drei Monate). Adressen werden zu "<email>", der
+ * Rest auf 300 Zeichen gekappt; Status und Fehlercode reichen zur Diagnose.
+ */
+export function redactForLog(text: string): string {
+  const clean = text.replace(/[^\s"'<>(),;:\\]+@[^\s"'<>(),;:\\]+/g, "<email>");
+  return clean.length > 300 ? `${clean.slice(0, 300)}…` : clean;
 }
 
 /** Die Vorstandsadressen aus BOARD_EMAILS, fuer Benachrichtigungen. */

@@ -3,6 +3,7 @@
 import { useActionState, type ReactNode } from "react";
 import { siteConfig } from "@/lib/config";
 import { requestTrialAction, type TrialState } from "./actions";
+import { MAX } from "@/lib/input";
 
 /**
  * Das Probetraining-Formular samt Instagram-Knopf — seit 11.10.2026 auf
@@ -25,6 +26,10 @@ function instagramUrl(): string | null {
 export function TrialForm(): ReactNode {
   const [state, action, pending] = useActionState(requestTrialAction, initial);
   const insta = instagramUrl();
+  // Nach einem Fehler mit den alten Eingaben neu aufbauen (31.10.2026), wie
+  // in app/beitreten/join-form.tsx: React leert das Formular nach jeder
+  // Action, und eine abgelehnte Namensangabe soll nicht die Nachricht kosten.
+  const v = state.values ?? {};
 
   return (
     <div>
@@ -44,7 +49,7 @@ export function TrialForm(): ReactNode {
           Danke! Deine Anfrage ist angekommen, wir melden uns bei dir.
         </p>
       ) : (
-        <form action={action} className="mt-6 flex flex-col gap-3">
+        <form key={state.attempt ?? 0} action={action} className="mt-6 flex flex-col gap-3">
           {insta ? (
             <p className="text-center text-xs uppercase tracking-[0.16em] text-muted-foreground">
               oder hier
@@ -52,20 +57,29 @@ export function TrialForm(): ReactNode {
           ) : null}
           <label className="flex flex-col gap-1 text-sm text-foreground">
             Name
-            <input name="name" required autoComplete="name" className={input} />
+            <input
+              name="name"
+              required
+              autoComplete="name"
+              maxLength={MAX.name}
+              defaultValue={v.name}
+              className={input}
+            />
           </label>
           <label className="flex flex-col gap-1 text-sm text-foreground">
             Wie erreichen wir dich?
             <input
               name="contact"
               required
+              maxLength={MAX.contact}
+              defaultValue={v.contact}
               placeholder="E-Mail, Telefon oder Instagram-Name"
               className={input}
             />
           </label>
           <label className="flex flex-col gap-1 text-sm text-foreground">
             Wunschtag <span className="text-foreground-dim">(optional)</span>
-            <select name="day" defaultValue="" className={input}>
+            <select name="day" defaultValue={v.day ?? ""} className={input}>
               <option value="">egal</option>
               <option value="Mo">Montag</option>
               <option value="Di">Dienstag</option>
@@ -77,7 +91,7 @@ export function TrialForm(): ReactNode {
           </label>
           <label className="flex flex-col gap-1 text-sm text-foreground">
             Nachricht <span className="text-foreground-dim">(optional)</span>
-            <textarea name="message" rows={3} maxLength={1000} className={input} />
+            <textarea name="message" rows={3} maxLength={MAX.message} defaultValue={v.message} className={input} />
           </label>
           {/* Honigtopf gegen Bots: fuer Menschen unsichtbar und nicht fokussierbar. */}
           <input

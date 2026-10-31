@@ -11,6 +11,7 @@ import {
   isAdult,
 } from "@/lib/membership";
 import { MembershipTerms } from "./terms";
+import { MAX } from "@/lib/input";
 
 const initial: JoinState = {};
 
@@ -26,6 +27,7 @@ function Field({
   defaultValue,
   onChange,
   hint,
+  maxLength,
 }: {
   label: string;
   name: string;
@@ -35,6 +37,9 @@ function Field({
   defaultValue?: string | undefined;
   onChange?: ((value: string) => void) | undefined;
   hint?: string;
+  /** Dieselbe Grenze, die actions.ts prueft (lib/input.ts) — hier nur, damit
+   *  man sie beim Tippen merkt statt erst nach dem Absenden. */
+  maxLength?: number;
 }): ReactNode {
   return (
     <label className="flex flex-col gap-1.5">
@@ -48,6 +53,7 @@ function Field({
         autoComplete={autoComplete}
         required={required}
         defaultValue={defaultValue}
+        maxLength={maxLength}
         onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         className={input}
       />
@@ -83,24 +89,24 @@ export function JoinForm(): ReactNode {
     <form key={state.attempt ?? 0} action={action} className="mt-12 flex flex-col gap-12">
       <Section title="Daten des Mitglieds">
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Vorname" name="first_name" autoComplete="given-name" defaultValue={v.first_name} />
-          <Field label="Nachname" name="last_name" autoComplete="family-name" defaultValue={v.last_name} />
+          <Field label="Vorname" name="first_name" maxLength={MAX.name} autoComplete="given-name" defaultValue={v.first_name} />
+          <Field label="Nachname" name="last_name" maxLength={MAX.name} autoComplete="family-name" defaultValue={v.last_name} />
         </div>
-        <Field label="Adresse" name="address" autoComplete="street-address" defaultValue={v.address} hint="Straße, Hausnummer, PLZ, Ort" />
+        <Field label="Adresse" name="address" maxLength={MAX.address} autoComplete="street-address" defaultValue={v.address} hint="Straße, Hausnummer, PLZ, Ort" />
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Geburtsdatum" name="birth_date" type="date" autoComplete="bday" defaultValue={v.birth_date} onChange={setBirth} />
-          <Field label="Telefonnummer" name="phone" type="tel" autoComplete="tel" defaultValue={v.phone} />
+          <Field label="Telefonnummer" name="phone" maxLength={MAX.phone} type="tel" autoComplete="tel" defaultValue={v.phone} />
         </div>
-        <Field label="E-Mail-Adresse" name="email" type="email" autoComplete="email" defaultValue={v.email} hint="Damit loggst du dich später im Mitgliederbereich ein." />
+        <Field label="E-Mail-Adresse" name="email" maxLength={MAX.email} type="email" autoComplete="email" defaultValue={v.email} hint="Damit loggst du dich später im Mitgliederbereich ein." />
       </Section>
 
       {minor ? (
         <Section title="Erziehungsberechtigte" note="weil du unter 18 bist">
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Vorname" name="guardian_first_name" defaultValue={v.guardian_first_name} />
-            <Field label="Nachname" name="guardian_last_name" defaultValue={v.guardian_last_name} />
-            <Field label="Telefonnummer" name="guardian_phone" type="tel" defaultValue={v.guardian_phone} />
-            <Field label="E-Mail-Adresse" name="guardian_email" type="email" required={false} defaultValue={v.guardian_email} />
+            <Field label="Vorname" name="guardian_first_name" maxLength={MAX.name} defaultValue={v.guardian_first_name} />
+            <Field label="Nachname" name="guardian_last_name" maxLength={MAX.name} defaultValue={v.guardian_last_name} />
+            <Field label="Telefonnummer" name="guardian_phone" maxLength={MAX.phone} type="tel" defaultValue={v.guardian_phone} />
+            <Field label="E-Mail-Adresse" name="guardian_email" maxLength={MAX.email} type="email" required={false} defaultValue={v.guardian_email} />
           </div>
           <p className="rounded-lg border border-accent/40 bg-accent/10 px-4 py-3 text-sm leading-relaxed text-foreground">
             Laut unseren Statuten braucht die Aufnahme Minderjähriger die{" "}

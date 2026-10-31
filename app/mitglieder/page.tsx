@@ -134,11 +134,19 @@ export default async function MitgliederPage({
     votesByMember.set(v.member_id, list);
   }
 
+  // Nur id, Name und die drei angezeigten Zahlen gehen an den Browser
+  // (31.10.2026, Sicherheitsreview). Vorher `{ ...m, stats }`: damit stand
+  // joined_at JEDES aktiven Mitglieds im RSC-Payload, und mit eligibleDays
+  // und votedDays zwei Zahlen, aus denen sich das Beitrittsdatum ebenfalls
+  // zurueckrechnen laesst. Die Datenschutzerklaerung verspricht den anderen
+  // Mitgliedern nur Name und Anwesenheitsquote. MemberProfile ist eine
+  // Client-Komponente — alles in `ranked` ist im Seitenquelltext lesbar,
+  // auch was sie nicht anzeigt.
   const ranked = membersResult
     .map((m) => {
       const votes = votesByMember.get(m.id) ?? [];
-      const stats = computeStats(new Date(m.joined_at), votes);
-      return { ...m, stats };
+      const { presentDays, attendancePct, reliabilityPct } = computeStats(new Date(m.joined_at), votes);
+      return { id: m.id, name: m.name, stats: { presentDays, attendancePct, reliabilityPct } };
     })
     .sort((a, b) => {
       if (b.stats.presentDays !== a.stats.presentDays) {
