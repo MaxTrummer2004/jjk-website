@@ -18,8 +18,8 @@ export function ChangePassword(): ReactNode {
       </summary>
       <form action={action} className="mt-3 flex flex-col gap-2 text-sm">
         <input name="current" type="password" placeholder="Aktuelles Passwort" autoComplete="current-password" required className={inputClass} />
-        <input name="password" type="password" placeholder="Neues Passwort (mind. 8 Zeichen)" autoComplete="new-password" minLength={8} required className={inputClass} />
-        <input name="password2" type="password" placeholder="Neues Passwort wiederholen" autoComplete="new-password" minLength={8} required className={inputClass} />
+        <input name="password" type="password" placeholder="Neues Passwort (mind. 8 Zeichen)" autoComplete="new-password" minLength={8} maxLength={72} required className={inputClass} />
+        <input name="password2" type="password" placeholder="Neues Passwort wiederholen" autoComplete="new-password" minLength={8} maxLength={72} required className={inputClass} />
         {state.error ? <p className="text-accent">{state.error}</p> : null}
         {state.ok ? <p className="text-green-500">Passwort geändert.</p> : null}
         <button

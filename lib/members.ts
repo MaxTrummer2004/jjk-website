@@ -1,5 +1,5 @@
 import { ensureSchema, sql } from "@/lib/db";
-import { getSessionMemberId } from "@/lib/auth";
+import { readSessionClaims } from "@/lib/auth";
 import { isPlan, type MemberStatus, type Plan } from "@/lib/membership";
 
 /**
@@ -88,10 +88,35 @@ export async function getMember(id: number): Promise<MemberRecord | null> {
   return row ? toRecord(row) : null;
 }
 
+/**
+ * Vorstandssitzungen enden nach sieben Tagen, auch mit Haken (31.10.2026).
+ * Ein Vorstandscookie oeffnet Name, Adresse, Geburtsdatum und Telefon jedes
+ * Mitglieds; bleibt es auf einem Rechner im Gym liegen, soll das nicht drei
+ * Monate so bleiben. Mitglieder behalten 90 Tage — dort steht nur das eigene
+ * Konto auf dem Spiel. Kostet einen Vergleich, keine Abfrage.
+ */
+const BOARD_SESSION_SECONDS = 60 * 60 * 24 * 7;
+
+/**
+ * DIE Stelle, an der aus einem Cookie ein eingeloggtes Mitglied wird — jede
+ * Seite und jede Server Action geht hierueber. Deshalb steht hier auch der
+ * Widerruf (31.10.2026): passt die Sitzungsversion im Token nicht mehr zu
+ * members.session_version, ist niemand eingeloggt. Hochgezaehlt wird beim
+ * Passwortwechsel, beim Zuruecksetzen durch den Vorstand und beim Setzen
+ * ueber einen Einrichtungslink. Dieselbe Abfrage wie vorher, eine Spalte mehr.
+ */
 export async function getCurrentMember(): Promise<MemberRecord | null> {
-  const id = await getSessionMemberId();
-  if (!id) return null;
-  return getMember(id);
+  const claims = await readSessionClaims();
+  if (!claims) return null;
+  await ensureSchema();
+  const rows = await sql.query<Row & { session_version: number }>(
+    `select ${MEMBER_COLUMNS}, session_version from members where id = ${Number(claims.memberId)}`
+  );
+  const row = rows[0];
+  if (!row || row.session_version !== claims.sv) return null;
+  const member = toRecord(row);
+  if (isBoard(member) && Date.now() / 1000 - claims.iat > BOARD_SESSION_SECONDS) return null;
+  return member;
 }
 
 /**
@@ -116,9 +141,10 @@ export function isBoardEmail(email: string | null): boolean {
  * Haelfte traegt die Last: die Adresse ist nie bestaetigt worden, jeder kann
  * einen Antrag mit einer Vorstandsadresse stellen. Seit 30.10.2026 entsteht
  * deshalb jedes Konto als 'pending' (app/beitreten/actions.ts); 'active' wird
- * es nur durch einen bestehenden Vorstand oder per SQL. Wer einen Antrag mit
- * einer Vorstandsadresse aufnimmt, macht den Antragsteller zum Vorstand —
- * also vorher wissen, wer das ist.
+ * es nur durch einen bestehenden Vorstand oder per SQL. Einen Antrag mit
+ * einer Vorstandsadresse aufzunehmen hiesse, den Antragsteller zum Vorstand
+ * zu machen; seit 31.10.2026 lehnt admitAction das ab, und Vorstandskonten
+ * entstehen nur ueber "Konto anlegen" (app/vorstand/actions.ts).
  */
 export function isBoard(member: MemberRecord | null): boolean {
   return member !== null && member.status === "active" && isBoardEmail(member.email);

@@ -13,7 +13,7 @@ function LinkBox({ name, link }: { name?: string | undefined; link: string }): R
   return (
     <div className="mt-3 rounded-lg border border-border bg-background/60 p-3 text-sm">
       <p className="text-foreground-dim">
-        Link für {name ?? "das Konto"}. Schick ihn weiter, damit wird das Passwort festgelegt. Er gilt einmal.
+        Link für {name ?? "das Konto"}. Schick ihn weiter, damit wird das Passwort festgelegt. Er gilt einmal und 72 Stunden lang.
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <code className="min-w-0 flex-1 break-all text-foreground">{link}</code>

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { ensureSchema, sql } from "@/lib/db";
-import { getCurrentMember, isBoard } from "@/lib/members";
+import { getCurrentMember, isBoard, isBoardEmail } from "@/lib/members";
 import {
   ENROLLMENT_FEE_CENTS,
   PLAN_INFO,
@@ -308,9 +308,18 @@ export default async function BoardPage(): Promise<ReactNode> {
           ) : (
             <ul className="mt-4 flex flex-col gap-4">
               {pending.map((m) => {
-                const blocked = m.is_minor && !m.guardian_consent_received;
+                // Vorstandsadresse (31.10.2026): Aufnehmen machte den
+                // Antragsteller zum Vorstand. admitAction lehnt das ab; hier
+                // steht, warum, und welcher Weg der richtige ist.
+                const boardAddress = isBoardEmail(m.email);
+                const needsGuardian = m.is_minor && !m.guardian_consent_received;
+                const blocked = needsGuardian || boardAddress;
                 return (
-                  <li key={m.id} className="rounded-xl border border-border bg-card-plate p-5">
+                  <li
+                    key={m.id}
+                    className="rounded-xl border border-border bg-card-plate p-5"
+                    style={boardAddress ? { borderColor: RED } : undefined}
+                  >
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <p className="text-lg font-medium text-foreground">
                         {m.name}
@@ -319,12 +328,30 @@ export default async function BoardPage(): Promise<ReactNode> {
                             unter 18
                           </span>
                         ) : null}
+                        {boardAddress ? (
+                          <span
+                            className="ml-2 rounded px-1.5 py-0.5 text-xs font-medium text-white"
+                            style={{ background: RED }}
+                          >
+                            Vorstandsadresse
+                          </span>
+                        ) : null}
                       </p>
                       <p className="text-sm text-foreground-dim">
                         {isPlan(m.plan) ? PLAN_INFO[m.plan].label : "–"}
                         {m.reduced_requested ? " · ermäßigt beantragt" : ""}
                       </p>
                     </div>
+                    {boardAddress ? (
+                      <p className="mt-3 text-sm text-foreground">
+                        {m.email} steht in der Vorstandsliste. Aufgenommen hätte dieses Konto Zugriff
+                        auf alle Mitgliederdaten, und die Adresse hat niemand bestätigt: jeder kann sie
+                        beim Beitritt eintippen. Deshalb hier kein Aufnehmen. Ist es wirklich jemand
+                        vom Vorstand: Antrag ablehnen, endgültig löschen und unter „Konto für Trainer
+                        oder Vorstand anlegen“ neu anlegen. Das Passwort setzt dann, wer den Link
+                        bekommt.
+                      </p>
+                    ) : null}
                     <div className="mt-4 flex flex-wrap gap-2">
                       {m.is_minor ? (
                         <Toggle memberId={m.id} action={toggleFlagAction} fields={{ flag: "guardian" }} on={m.guardian_consent_received} label="Elternunterschrift" />
@@ -337,7 +364,13 @@ export default async function BoardPage(): Promise<ReactNode> {
                         <button
                           type="submit"
                           disabled={blocked}
-                          title={blocked ? "Erst die Unterschrift eines Erziehungsberechtigten" : undefined}
+                          title={
+                            boardAddress
+                              ? "Vorstandsadresse: nur über „Konto für Trainer oder Vorstand anlegen“"
+                              : needsGuardian
+                                ? "Erst die Unterschrift eines Erziehungsberechtigten"
+                                : undefined
+                          }
                           className="jjk-btn jjk-btn-loud h-9 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           Aufnehmen

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { ensureSchema, sql } from "@/lib/db";
 import { createMetadata } from "@/lib/metadata";
+import { hashSetupToken } from "@/lib/setup-token";
 import { DismissTransition } from "@/components/dismiss-transition";
 import { SetupForm } from "./setup-form";
 
@@ -19,10 +20,15 @@ export const dynamic = "force-dynamic";
 /**
  * Passwort festlegen ueber einen Einrichtungslink.
  *
- * Fuer Konten, die der Vorstand per SQL anlegt (Trainer, Vorstand,
- * beitragsfrei): das Konto bekommt einen `setup_token`, der Link
+ * Fuer Konten, die der Vorstand unter /vorstand anlegt (Trainer, Vorstand,
+ * beitragsfrei) oder fuer die er einen neuen Link erzeugt: der Link
  * /konto-einrichten?token=… wird weitergegeben, und die Person legt ihr
  * Passwort selbst fest. Danach ist der Token weg.
+ *
+ * Seit 31.10.2026 wird nach dem SHA-256 des Tokens gesucht (nur der steht in
+ * der Datenbank, lib/setup-token.ts), und ein Link ueber 72 Stunden sagt
+ * "abgelaufen" statt "ungueltig" — damit die Person weiss, dass sie nichts
+ * falsch kopiert hat, sondern einen neuen braucht.
  */
 export default async function SetupPage({
   searchParams,
@@ -33,11 +39,14 @@ export default async function SetupPage({
   await ensureSchema();
   const rows =
     token.length >= 16
-      ? await sql<{ first_name: string | null; name: string }>`
-          select first_name, name from members where setup_token = ${token}
+      ? await sql<{ first_name: string | null; name: string; expired: boolean }>`
+          select first_name, name,
+            (setup_token_expires_at is null or setup_token_expires_at <= now()) as expired
+          from members where setup_token_hash = ${hashSetupToken(token)}
         `
       : [];
-  const member = rows[0];
+  const found = rows[0];
+  const member = found && !found.expired ? found : undefined;
 
   return (
     <main id="main-content" className="flex min-h-screen items-center justify-center bg-background-deep px-5 py-16">
@@ -51,6 +60,14 @@ export default async function SetupPage({
               eingeloggt.
             </p>
             <SetupForm token={token} />
+          </>
+        ) : found ? (
+          <>
+            <h1 className="mb-2 text-2xl font-bold text-foreground">Link abgelaufen</h1>
+            <p className="text-sm text-foreground-dim">
+              Dieser Link galt 72 Stunden und ist abgelaufen. Bitte beim Vorstand einen neuen
+              anfordern.
+            </p>
           </>
         ) : (
           <>

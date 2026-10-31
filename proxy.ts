@@ -17,7 +17,7 @@
  * ── Warum nur das Cookie geprueft wird und nicht das Token ──────────────────
  * Hier faellt keine Zugriffsentscheidung. Wer ein gefaelschtes Cookie
  * mitbringt, wird auf /mitglieder geschickt — und dort von
- * getSessionMemberId() als nicht eingeloggt behandelt und bekommt das
+ * getCurrentMember() als nicht eingeloggt behandelt und bekommt das
  * Login-Formular. Das Token in der Middleware zu pruefen hiesse, jede
  * Anfrage an die Startseite eine Signaturpruefung kosten zu lassen, um am
  * Ende dasselbe Ergebnis zu bekommen.

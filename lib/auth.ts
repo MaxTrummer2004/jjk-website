@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { ensureSchema, sql } from "@/lib/db";
 import {
   HOME_OVERRIDE_COOKIE,
   MEMBER_HINT_COOKIE,
@@ -10,8 +11,17 @@ import {
 /**
  * Login-Sessions fuer den Mitgliederbereich: ein signiertes JWT in einem
  * httpOnly-Cookie (kein Passwort, keine DB-Session-Tabelle noetig — das
- * Token traegt nur die Mitglieds-ID und ist server-seitig gegen
- * Faelschung geschuetzt, per AUTH_SECRET).
+ * Token traegt die Mitglieds-ID und ist server-seitig gegen Faelschung
+ * geschuetzt, per AUTH_SECRET).
+ *
+ * Seit 31.10.2026 traegt es ausserdem `sv`, die Sitzungsversion des Kontos
+ * (members.session_version). Vorher war ein einmal ausgestelltes Token 90
+ * Tage gueltig, egal was passierte: Passwort geaendert, vom Vorstand
+ * zurueckgesetzt, per Einrichtungslink neu gesetzt — das alte Cookie auf dem
+ * fremden Rechner kam weiter hinein. Jetzt zaehlt jede dieser Aktionen die
+ * Version hoch, und getCurrentMember() (lib/members.ts) weist jedes Token mit
+ * einer anderen Version ab. Eine Sitzungstabelle braucht das nicht: der
+ * Vergleich laeuft in derselben Abfrage, die das Mitglied ohnehin laedt.
  */
 const COOKIE_NAME = SESSION_COOKIE;
 const SESSION_SECONDS = 60 * 60 * 24 * 90; // 90 Tage eingeloggt bleiben
@@ -43,6 +53,35 @@ function getSecret(): Uint8Array {
 export function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
 }
+
+/**
+ * Laengengrenzen fuer Eingaben, bevor gerechnet wird (31.10.2026).
+ *
+ * bcrypt liest nur die ersten 72 BYTE eines Passworts, der Rest wird still
+ * abgeschnitten: "72 x a" und "72 x a + irgendwas" waeren dasselbe Passwort,
+ * und wer sich ein langes Passwort ausdenkt, glaubt an eine Sicherheit, die
+ * es nicht gibt. Neue Passwoerter ueber 72 Byte werden deshalb abgewiesen
+ * statt gekuerzt (Umlaute zaehlen in UTF-8 doppelt).
+ *
+ * Beim PRUEFEN (Login, aktuelles Passwort) gilt die Grenze NICHT: wer vor
+ * heute ein laengeres Passwort gesetzt hat, kommt damit weiter hinein, weil
+ * bcrypt beim Pruefen genauso abschneidet wie beim Setzen. Dort nur eine
+ * grobe Obergrenze, damit niemand ein Megabyte durch den Encoder schickt.
+ *
+ * E-Mail: 254 Zeichen ist die Obergrenze nach RFC 5321. Sie steht VOR jedem
+ * regulaeren Ausdruck — /^[^\s@]+@[^\s@]+\.[^\s@]+$/ braucht auf 40 000
+ * Punkten 2,4 s (gemessen), quadratisch im Rueckverfolgen.
+ */
+export const MAX_PASSWORD_BYTES = 72;
+export const MAX_PASSWORD_CHECK_CHARS = 1024;
+export const MAX_EMAIL_CHARS = 254;
+
+export function passwordTooLong(password: string): boolean {
+  return new TextEncoder().encode(password).length > MAX_PASSWORD_BYTES;
+}
+
+export const PASSWORD_TOO_LONG =
+  "Das Passwort ist zu lang (höchstens 72 Zeichen, Umlaute zählen doppelt).";
 
 /**
  * Ein Hash, gegen den nie jemand gewinnt — nur damit ein Login mit
@@ -80,7 +119,18 @@ export async function createSession(
   memberId: number,
   remember = true
 ): Promise<void> {
-  const token = await new SignJWT({ memberId })
+  // Die Version kommt aus der Datenbank, nicht vom Aufrufer: so kann kein
+  // Aufrufer (Login, Beitritt, Einrichtungslink, Passwortwechsel) ein Token
+  // mit veralteter Version ausstellen, das sofort wieder abgewiesen wuerde.
+  // Eine Abfrage je Login, nicht je Seitenaufruf.
+  await ensureSchema();
+  const rows = await sql<{ session_version: number }>`
+    select session_version from members where id = ${memberId}
+  `;
+  const sv = rows[0]?.session_version ?? 0;
+  // `rm` merkt sich den Haken, damit ein neu ausgestelltes Token (nach dem
+  // Passwortwechsel) dieselbe Cookie-Lebensdauer bekommt wie das alte.
+  const token = await new SignJWT({ memberId, sv, rm: remember })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_SECONDS}s`)
@@ -113,13 +163,43 @@ export async function destroySession(): Promise<void> {
   store.delete(HOME_OVERRIDE_COOKIE);
 }
 
-export async function getSessionMemberId(): Promise<number | null> {
+export interface SessionClaims {
+  memberId: number;
+  /** Sitzungsversion beim Ausstellen; muss zu members.session_version passen. */
+  sv: number;
+  /** Haken "eingeloggt bleiben" beim Login. */
+  remember: boolean;
+  /** Ausgestellt um (Sekunden seit 1970). */
+  iat: number;
+}
+
+/**
+ * Liest und prueft NUR die Signatur des Cookies — nicht, ob die Sitzung noch
+ * gilt. Hiess bis 31.10.2026 getSessionMemberId(); umbenannt, damit niemand
+ * es weiter als "wer ist eingeloggt" benutzt und dabei an der Sitzungs-
+ * version vorbeigeht. Die einzige Stelle, die daraus ein Mitglied macht, ist
+ * getCurrentMember() in lib/members.ts.
+ *
+ * Tokens von vor dem 31.10.2026 haben kein `sv`. Sie gelten als Version 0:
+ * die Spalte entsteht mit Vorgabe 0 fuer jede bestehende Zeile, ein altes
+ * Token passt also genau so lange, bis das Konto zum ersten Mal hochzaehlt —
+ * danach ist es ungueltig wie jedes andere. Wer beim Deploy eingeloggt ist,
+ * bleibt es; widerrufbar ist trotzdem jedes Token. Ohne `rm` gilt "merken",
+ * weil das JWT ohnehin 90 Tage traegt und der Haken vorgewaehlt ist.
+ */
+export async function readSessionClaims(): Promise<SessionClaims | null> {
   const store = await cookies();
   const token = store.get(COOKIE_NAME)?.value;
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, getSecret());
-    return typeof payload.memberId === "number" ? payload.memberId : null;
+    if (typeof payload.memberId !== "number") return null;
+    return {
+      memberId: payload.memberId,
+      sv: typeof payload.sv === "number" ? payload.sv : 0,
+      remember: typeof payload.rm === "boolean" ? payload.rm : true,
+      iat: typeof payload.iat === "number" ? payload.iat : 0,
+    };
   } catch {
     return null;
   }
