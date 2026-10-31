@@ -4,12 +4,36 @@
  * Aufgebaut nach Art. 13 DSGVO. Die inhaltlichen Angaben zur Verarbeitung
  * sind NICHT erfunden, sondern aus dem Code dieses Projekts abgelesen:
  *
- *   lib/db.ts             — das Schema: members(name, username, password_hash,
- *                           joined_at) und attendance_votes(member_id,
- *                           training_date, present, created_at)
+ *   lib/db.ts             — das Schema (Stand 31.10.2026), jede Tabelle mit
+ *                           Personenbezug:
+ *                             members — Beitrittsdaten, Erziehungsberechtigte,
+ *                               Einwilligungen, Aufnahmestand, password_hash,
+ *                               plan/Ermaessigung, fee_exempt, setup_token,
+ *                               mollie_customer_id, mollie_subscription_id
+ *                             attendance_votes(member_id, training_date,
+ *                               present, created_at)
+ *                             payments(member_id, kind, period, amount_cents,
+ *                               source, recorded_by, recorded_at, provider_ref)
+ *                             payment_issues(member_id, member_name,
+ *                               provider_ref, kind, period, amount_cents,
+ *                               created_at, resolved_at, resolved_by)
+ *                             mollie_checkouts(member_id, payment_id,
+ *                               items_key, checkout_url, created_at)
+ *                             trial_requests(name, contact, preferred_day,
+ *                               message, created_at)
+ *                             rate_limits(bucket, key, window_start, hits) —
+ *                               key ist HMAC-SHA256 (AUTH_SECRET) von IP,
+ *                               E-Mail bzw. Probetraining-Kontakt
+ *   lib/rate-limit.ts     — Mengengrenzen fuer Login, Beitritt, Probetraining;
+ *                           Zeilen ueber 48 h raeumt ein Aufraeumen bei etwa
+ *                           jedem fuenfzigsten Treffer weg (kein Zeitplaner)
+ *   lib/mail.ts + alle sendMail-Aufrufe — fuenf Mailarten, siehe Abschnitt
+ *                           E-Mail-Versand
  *   lib/auth.ts           — bcrypt mit Kostenfaktor 10; Session als
  *                           HS256-JWT im Cookie `jjk_session`, httpOnly,
- *                           sameSite lax, Pfad /, 90 Tage
+ *                           sameSite lax, Pfad /, 90 Tage mit "Angemeldet
+ *                           bleiben" (und nach dem Beitritt), sonst
+ *                           Sitzungs-Cookie
  *   app/mitglieder/page.tsx — die Rangliste: jedes eingeloggte Mitglied sieht
  *                           Name und Anwesenheitsquote JEDES
  *                           anderen Mitglieds. Das ist eine Offenlegung
@@ -136,6 +160,12 @@ export default function DatenschutzPage(): ReactNode {
           Monate). Die Router-Logs — also die Zeile pro Request mit IP — sind
           laut derselben Doku "not enable by default" und fuer diese App nicht
           eingeschaltet. Plan-abhaengig ist daran nichts.
+
+          31.10.2026: Die Anwendung selbst schreibt nur console.error/warn ins
+          Log (next.config.ts, removeConsole). Namen und E-Mail-Adressen
+          werden dort seit heute nicht mehr ausgegeben (Webhook, Mailfehler).
+          Wer ein neues console.error mit Personenbezug einbaut, macht den
+          Satz unter "Umfang" falsch.
           ------------------------------------------------------------------ */}
       <section>
         <h2>Server-Protokolldaten</h2>
@@ -180,7 +210,10 @@ export default function DatenschutzPage(): ReactNode {
             (&bdquo;Router-Logs&ldquo;, die Liste oben) ist bei Scalingo
             standardmäßig <strong>nicht eingeschaltet</strong> und für diese
             Website nicht aktiviert. Protokolliert wird, was die Anwendung
-            selbst ausgibt, sowie Verbindungsdaten auf Netzebene.
+            selbst ausgibt, sowie Verbindungsdaten auf Netzebene. Die
+            Anwendung schreibt nur Fehlermeldungen und Warnungen in das
+            Protokoll, ohne Namen, E-Mail-Adressen oder Inhalte aus
+            Formularen.
           </dd>
         </dl>
         <p>
@@ -188,6 +221,55 @@ export default function DatenschutzPage(): ReactNode {
           nicht dazu verwendet, einzelne Besucherinnen und Besucher zu
           identifizieren.
         </p>
+      </section>
+
+      {/* ------------------------------------------------------------------
+          SCHUTZ VOR MISSBRAUCH (31.10.2026)
+          lib/rate-limit.ts, Tabelle rate_limits. Gespeichert wird nur
+          HMAC-SHA256(AUTH_SECRET, Wert), auf 40 Hex-Zeichen gekuerzt — ohne
+          AUTH_SECRET ein einfacher SHA-256. Pseudonym, nicht anonym: wer den
+          Schluessel hat, kann eine bekannte IP nachrechnen. Deshalb hier als
+          personenbezogen behandelt.
+          Grenzen: login-ip 50 / 15 min, login-email 8 / 15 min, join-ip
+          20 / h, trial-ip 10 / h, trial-contact 3 / Tag.
+          Geloescht wird nicht auf die Minute: rate-limit.ts raeumt Zeilen
+          ueber 48 h bei etwa jedem fuenfzigsten Treffer weg. Ohne Verkehr
+          bleiben sie entsprechend laenger — daher "nach etwa zwei Tagen".
+          ------------------------------------------------------------------ */}
+      <section>
+        <h2>Schutz vor Missbrauch</h2>
+        <p>
+          Anmeldung, Beitrittserklärung und Probetraining-Anfrage sind gegen
+          massenhafte Nutzung gesichert: gegen das Durchprobieren von
+          Passwörtern und dagegen, dass jemand über die Formulare fremde
+          Postfächer mit Mails in unserem Namen füllt. Dafür zählt die Website
+          für ein kurzes Zeitfenster, wie oft eine Anfrage von derselben
+          IP-Adresse, mit derselben E-Mail-Adresse oder mit derselben
+          Kontaktangabe kam.
+        </p>
+        <dl>
+          <dt>Was gespeichert wird</dt>
+          <dd>
+            Nicht die IP-Adresse oder E-Mail-Adresse selbst, sondern ein daraus
+            berechneter Prüfwert (HMAC-SHA256 mit einem geheimen Schlüssel des
+            Servers), dazu das Zeitfenster und die Zahl der Versuche. Ohne den
+            Schlüssel lässt sich aus dem Prüfwert nicht zurückrechnen, von wem
+            die Anfrage kam.
+          </dd>
+
+          <dt>Rechtsgrundlage</dt>
+          <dd>
+            Art. 6 Abs. 1 lit. f DSGVO: berechtigtes Interesse am Schutz der
+            Mitgliederkonten und an einem missbrauchsfreien Betrieb der
+            Formulare.
+          </dd>
+
+          <dt>Speicherdauer</dt>
+          <dd>
+            Einträge, die älter als zwei Tage sind, werden im laufenden Betrieb
+            automatisch gelöscht, also nach etwa zwei Tagen.
+          </dd>
+        </dl>
       </section>
 
       <section>
@@ -201,8 +283,10 @@ export default function DatenschutzPage(): ReactNode {
 
         {/* ----------------------------------------------------------------
             Die Liste entspricht 1:1 den Spalten in lib/db.ts (members,
-            payments, attendance_votes). Wer dort eine Spalte ergaenzt, muss
-            sie hier nachtragen.
+            payments, payment_issues, mollie_checkouts, attendance_votes).
+            Wer dort eine Spalte ergaenzt, muss sie hier nachtragen.
+            31.10.2026: setup_token/fee_exempt (Einrichtungslink, Konten fuer
+            Trainer) und die beiden Zahlungstabellen vom 30.10. nachgetragen.
 
             Offen: Die Beitrittserklaerung (PDF) nennt eine "Meldung an den
             Dachverband". Ueber diese Website wird nichts an einen Dachverband
@@ -248,10 +332,27 @@ export default function DatenschutzPage(): ReactNode {
             Verein kann Ihr Passwort nicht einsehen.
           </li>
           <li>
+            <strong>Einrichtungslink</strong>: Legt der Vorstand ein Konto
+            selbst an (etwa für Trainer, dann beitragsfrei) oder schickt er
+            einen neuen Link zum Festlegen des Passworts, wird dafür ein
+            zufälliger Code gespeichert. Er wird gelöscht, sobald das Passwort
+            festgelegt ist.
+          </li>
+          <li>
             <strong>Zahlungsstand</strong>: je bezahltem Posten
             (Einschreibgebühr, Monatsbeitrag, 10er-Block) die Art, der Monat,
-            der Betrag, wann er eingetragen wurde und von wem. Es werden keine
-            Kontonummern, Kartendaten oder Bankauszüge gespeichert.
+            der Betrag, ob er von Hand oder online eingetragen wurde, wann und
+            von wem. Es werden keine Kontonummern, Kartendaten oder
+            Bankauszüge gespeichert.
+          </li>
+          <li>
+            <strong>Online-Zahlung</strong>: die zuletzt begonnene Zahlung mit
+            den bezahlten Posten und dem Link zur Bezahlseite, damit ein
+            zweiter Klick keine zweite Zahlung anlegt. Geht online Geld für
+            einen Posten ein, der schon bezahlt war, wird das mit Ihrem Namen,
+            dem Posten, dem Betrag und der Kennung der Zahlung festgehalten,
+            zusammen mit dem Vermerk, wann und von wem es erledigt wurde
+            (siehe &bdquo;Online-Zahlung&ldquo; unten).
           </li>
           <li>
             <strong>Anwesenheitseinträge</strong>: je Trainingstag ein Eintrag
@@ -312,16 +413,31 @@ export default function DatenschutzPage(): ReactNode {
           </dd>
         </dl>
 
+        {/* ----------------------------------------------------------------
+            31.10.2026: Es gibt im Code KEINEN Status "ausgetreten" und keine
+            Loeschfunktion fuer aufgenommene Mitglieder — /vorstand loescht
+            nur abgelehnte Antraege. Die zwoelf Monate sind deshalb eine
+            Pflicht des Vereins, die der Vorstand von Hand erfuellt (Scalingo
+            -> PostgreSQL-Konsole: delete from members where id = ...). Vorher
+            stand hier ein Passiv, das nach Automatik klang.
+            Achtung beim Loeschen: payments, attendance_votes und
+            mollie_checkouts haengen mit "on delete cascade" am Mitglied und
+            verschwinden mit; payment_issues bleibt (member_id wird null, der
+            Name steht in member_name). Die sieben Jahre fuer Zahlungen muss
+            der Verein also ausserhalb der Website erfuellen (Kontoauszug,
+            Mollie, Kassabuch) — oder vor dem Loeschen exportieren.
+            ---------------------------------------------------------------- */}
         <h3>Speicherdauer</h3>
         <p>
-          Mitgliedsdaten und Anwesenheitseinträge werden spätestens zwölf
-          Monate nach dem Austritt aus dem Verein gelöscht, auf Wunsch
-          jederzeit früher. Die Frist gibt dem Verein Zeit, offene Beiträge und
-          Ansprüche aus der Mitgliedschaft abzuwickeln, und ist nicht länger als
-          dafür nötig.
+          Nach dem Austritt aus dem Verein löscht der Vorstand Mitgliedsdaten
+          und Anwesenheitseinträge, spätestens zwölf Monate danach, auf Wunsch
+          jederzeit früher. Das geschieht von Hand, nicht automatisch. Die
+          Frist gibt dem Verein Zeit, offene Beiträge und Ansprüche aus der
+          Mitgliedschaft abzuwickeln, und ist nicht länger als dafür nötig.
         </p>
         <p>
-          Ausgenommen sind die Aufzeichnungen über Zahlungen: Sie bewahrt der
+          Ausgenommen sind die Aufzeichnungen über Zahlungen, einschließlich
+          der Vermerke über doppelt eingegangene Zahlungen: Sie bewahrt der
           Verein so lange auf, wie gesetzliche Aufbewahrungspflichten es
           verlangen, in der Regel sieben Jahre (§ 132 BAO), gerechnet ab dem
           Ende des Kalenderjahres, in dem die letzte Zahlung verbucht wurde.
@@ -337,6 +453,16 @@ export default function DatenschutzPage(): ReactNode {
         </p>
       </section>
 
+      {/* ------------------------------------------------------------------
+          COOKIES — abgeglichen 31.10.2026 mit lib/auth.ts und
+          lib/session-cookies.ts. Das JWT traegt memberId, iat, exp und ab
+          heute einen session_version-Zaehler (alle Sitzungen eines Kontos
+          auf einmal beenden). Darum "technische Angaben zu seiner
+          Gueltigkeit" statt einer Aufzaehlung: kein neues personenbezogenes
+          Datum, und der Satz bleibt richtig, wenn weitere solche Felder
+          dazukommen. Der Beitritt ruft createSession(id, true) — also
+          immer 90 Tage, ohne Haekchen.
+          ------------------------------------------------------------------ */}
       <section>
         <h2>Cookies und lokale Speicherung</h2>
         <p>
@@ -351,14 +477,17 @@ export default function DatenschutzPage(): ReactNode {
           </dt>
           <dd>
             Ein signiertes Token (JWT, Verfahren HS256), das ausschließlich die
-            interne Mitglieds-Nummer und die Gültigkeitsdauer enthält,
-            weder Ihr Passwort noch Ihren Namen. Es hält Sie angemeldet.
+            interne Mitglieds-Nummer und technische Angaben zu seiner
+            Gültigkeit enthält, weder Ihr Passwort noch Ihren Namen. Es hält
+            Sie angemeldet.
             Eigenschaften: <code>httpOnly</code> (für JavaScript im Browser
             nicht lesbar), <code>sameSite=lax</code> (wird nicht an fremde
             Seiten mitgeschickt), im Betrieb zusätzlich <code>secure</code>
             (nur über HTTPS). Laufzeit: 90 Tage, wenn Sie beim Anmelden
             &bdquo;Angemeldet bleiben&ldquo; angehakt lassen, sonst nur bis zum
-            Schließen des Browsers. Beim Abmelden wird es sofort gelöscht.
+            Schließen des Browsers. Nach dem Absenden der Beitrittserklärung
+            sind Sie automatisch für 90 Tage angemeldet. Beim Abmelden wird es
+            sofort gelöscht.
           </dd>
 
           <dt>
@@ -413,12 +542,15 @@ export default function DatenschutzPage(): ReactNode {
         <h2>Empfänger und Auftragsverarbeiter</h2>
         <p>
           Die Daten werden nicht verkauft und nicht zu Werbezwecken
-          weitergegeben. Zum Betrieb der Website ist ein einziger Dienstleister
-          eingebunden, der als Auftragsverarbeiter nach Art. 28 DSGVO tätig
-          wird; für Online-Zahlungen kommt ein Zahlungsdienstleister dazu
-          (siehe unten):
+          weitergegeben. Zum Betrieb der Website sind zwei Dienstleister
+          eingebunden, die als Auftragsverarbeiter nach Art. 28 DSGVO tätig
+          werden: Scalingo für Hosting und Datenbank, Brevo für den
+          E-Mail-Versand. Für Online-Zahlungen kommt Mollie dazu, das die
+          Zahlungsdaten als eigener Verantwortlicher verarbeitet (siehe
+          unten).
         </p>
 
+        <h3>Hosting und Datenbank</h3>
         <dl>
           <dt>Anbieter</dt>
           <dd>
@@ -429,8 +561,14 @@ export default function DatenschutzPage(): ReactNode {
           <dt>Verarbeitet</dt>
           <dd>
             Den gesamten Betrieb: Auslieferung der Website, Server-Protokolle
-            und die Datenbank des Mitgliederbereichs (Tabellen{" "}
-            <code>members</code> und <code>attendance_votes</code>).
+            und die Datenbank. Darin liegen Mitglieder und Anträge
+            (<code>members</code>), Anwesenheiten
+            (<code>attendance_votes</code>), bezahlte Posten
+            (<code>payments</code>), doppelt eingegangene Zahlungen
+            (<code>payment_issues</code>), die zuletzt begonnene Online-Zahlung
+            je Mitglied (<code>mollie_checkouts</code>),
+            Probetraining-Anfragen (<code>trial_requests</code>) und die
+            Prüfwerte des Missbrauchsschutzes (<code>rate_limits</code>).
           </dd>
 
           <dt>Serverstandort</dt>
@@ -462,14 +600,61 @@ export default function DatenschutzPage(): ReactNode {
         {/* ----------------------------------------------------------------
             BREVO — nur aktiv, wenn BREVO_API_KEY gesetzt ist (lib/mail.ts).
             Anschrift vor dem Live-Schalten aus brevo.com/legal pruefen.
+
+            31.10.2026: die Liste unten ist jeder sendMail-Aufruf im Code:
+              app/beitreten/actions.ts       Bestaetigung + Vorstand (replyTo
+                                             Antragsteller)
+              app/vorstand/actions.ts        Aufnahme (admissionMail), an das
+                                             Mitglied und bei Minderjaehrigen
+                                             an guardian_email, falls da
+              components/trial/actions.ts    Bestaetigung nur bei E-Mail als
+                                             Kontakt + Vorstand
+              app/api/mollie/webhook         Doppelzahlung an den Vorstand
+                                             (duplicatePaymentMail)
+            An Brevo geht: to, replyTo, subject, textContent — kein eigenes
+            Namensfeld, der Name steht nur im Text. Wer einen weiteren
+            sendMail-Aufruf einbaut, traegt ihn hier ein.
             ---------------------------------------------------------------- */}
         <h3>E-Mail-Versand</h3>
         <p>
-          Bestätigungen nach einem Beitrittsantrag oder einer
-          Probetraining-Anfrage und die Benachrichtigung an den Vorstand werden
-          über Brevo (Sendinblue SAS, Paris, Frankreich) verschickt, als
-          Auftragsverarbeiter nach Art. 28 DSGVO. Übermittelt werden dafür
-          nur Empfängeradresse, Name und der Inhalt der Nachricht.
+          Über Brevo (Sendinblue SAS, Paris, Frankreich) verschickt die
+          Website als Auftragsverarbeiter nach Art. 28 DSGVO diese Nachrichten:
+        </p>
+        <ul>
+          <li>
+            <strong>Beitrittsantrag</strong>: eine Eingangsbestätigung an Sie
+            mit Ihrem Vornamen und der gewählten Mitgliedschaft, und eine
+            Benachrichtigung an den Vorstand mit Ihrem Namen, der gewählten
+            Mitgliedschaft und gegebenenfalls dem Vermerk, dass Sie unter 18
+            sind. Antwortet der Vorstand darauf, geht die Antwort an Ihre
+            E-Mail-Adresse.
+          </li>
+          <li>
+            <strong>Aufnahme</strong>: eine Willkommensmail an Sie mit der
+            gewählten Mitgliedschaft, den zu zahlenden Beträgen und der
+            Bankverbindung des Vereins. Bei Minderjährigen geht sie zusätzlich
+            an die E-Mail-Adresse des Erziehungsberechtigten, falls diese
+            angegeben wurde.
+          </li>
+          <li>
+            <strong>Probetraining-Anfrage</strong>: eine Eingangsbestätigung an
+            Sie, wenn Sie als Kontakt eine E-Mail-Adresse angegeben haben, und
+            eine Benachrichtigung an den Vorstand mit Name, Kontaktangabe,
+            Wunschtag und Nachricht.
+          </li>
+          <li>
+            <strong>Doppelt eingegangene Zahlung</strong>: eine
+            Benachrichtigung an den Vorstand mit Ihrem Namen, den betroffenen
+            Posten, den Beträgen und der Kennung der Zahlung bei Mollie, damit
+            er den Betrag zurückerstatten oder mit Ihnen klären kann.
+          </li>
+        </ul>
+        <p>
+          Übermittelt werden dafür nur die Empfängeradressen, gegebenenfalls
+          eine Adresse für Antworten, sowie Betreff und Text der Nachricht.
+          Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO: Die Nachrichten
+          dienen der Abwicklung von Anfrage, Antrag, Mitgliedschaft und
+          Beiträgen.
         </p>
 
         {/* ----------------------------------------------------------------
@@ -480,7 +665,13 @@ export default function DatenschutzPage(): ReactNode {
             eigener Verantwortlicher und NICHT als Auftragsverarbeiter.
             Anschrift aus dem DPA (mollie.com/legal/data-processing-agreement).
             Was die Website selbst speichert: lib/db.ts, Spalten
-            mollie_customer_id, mollie_subscription_id, payments.provider_ref.
+            mollie_customer_id, mollie_subscription_id, payments.provider_ref,
+            dazu seit 30.10.2026 mollie_checkouts (payment_id, items_key,
+            checkout_url) und payment_issues.
+            An Mollie geht (app/mitglieder/pay-actions.ts): Kunde mit name,
+            email, metadata.memberId; Zahlung mit Betrag, Beschreibung
+            "JJK <Posten> - <Name>", metadata memberId + Posten. Die
+            Mitglieds-Nummer steht deshalb (31.10.2026) mit im Text.
             ---------------------------------------------------------------- */}
         <h3>Online-Zahlung</h3>
         <dl>
@@ -494,8 +685,8 @@ export default function DatenschutzPage(): ReactNode {
           <dt>Was übermittelt wird</dt>
           <dd>
             Wenn Sie im Mitgliederbereich auf &bdquo;Jetzt bezahlen&ldquo;
-            tippen: Ihr Name, Ihre E-Mail-Adresse, der Betrag und wofür
-            bezahlt wird. Ihre Bankdaten geben Sie direkt bei Mollie bzw. Ihrer
+            tippen: Ihr Name, Ihre E-Mail-Adresse, Ihre interne
+            Mitglieds-Nummer, der Betrag und wofür bezahlt wird. Ihre Bankdaten geben Sie direkt bei Mollie bzw. Ihrer
             Bank ein, nicht auf dieser Website. Online bezahlt werden nur
             Einschreibgebühr und 10er-Block; Monatsbeiträge laufen per
             Dauerauftrag direkt auf das Vereinskonto, ohne Mollie. Auf dem
@@ -506,8 +697,11 @@ export default function DatenschutzPage(): ReactNode {
           <dd>
             Auf der Website wird nur gespeichert, welche Posten bezahlt sind,
             sowie die Kennungen, die Mollie für Sie und Ihre Zahlungen
-            vergibt. Im Konto des Vereins bei Mollie sind zusätzlich die
-            Angaben zur jeweiligen Zahlung einsehbar.
+            vergibt, und der Link zur zuletzt begonnenen Zahlung. Geht für
+            einen schon bezahlten Posten noch einmal Geld ein, hält die
+            Website das fest und benachrichtigt den Vorstand per E-Mail. Im
+            Konto des Vereins bei Mollie sind zusätzlich die Angaben zur
+            jeweiligen Zahlung einsehbar.
           </dd>
 
           <dt>Rolle und Rechtsgrundlage</dt>
@@ -542,6 +736,15 @@ export default function DatenschutzPage(): ReactNode {
           daraus eine echte Anmeldung wird, gehoert hier ein eigener Abschnitt
           hin: welcher Versanddienst, welche Einwilligung, wie der Abmeldeweg
           aussieht.
+
+          PROBETRAINING, Loeschung (geprueft 31.10.2026): "erledigt" =
+          Knopf unter /vorstand (deleteTrialRequestAction). Die drei Monate
+          setzt kein Zeitplaner durch, sondern ein delete beim Aufruf von
+          /vorstand und (ab 31.10.2026) bei jeder neuen Anfrage. Der Text
+          verspricht keinen taeglichen Lauf und bleibt deshalb so. Die
+          Benachrichtigungsmail an BOARD_EMAILS liegt aber im Postfach des
+          Vorstands und faellt NICHT unter diese Loeschung. Offen: das muss
+          der Verein selbst regeln (Mails mitloeschen) oder hier nennen.
           ------------------------------------------------------------------ */}
       <section>
         <h2>Kontaktaufnahme und Probetraining-Anfrage</h2>
@@ -755,6 +958,11 @@ export default function DatenschutzPage(): ReactNode {
             Der Mitgliederbereich ist ohne gültige Anmeldung nicht erreichbar.
           </li>
           <li>
+            Fehlgeschlagene Anmeldeversuche, Beitrittserklärungen und
+            Probetraining-Anfragen sind in ihrer Zahl begrenzt (siehe
+            &bdquo;Schutz vor Missbrauch&ldquo;).
+          </li>
+          <li>
             Der Hosting-Dienstleister verschlüsselt alle auf der Plattform
             gespeicherten Daten im Ruhezustand und wechselt die Schlüssel
             regelmäßig.
@@ -793,7 +1001,7 @@ export default function DatenschutzPage(): ReactNode {
         </p>
       </section>
 
-      <p className="jjk-legal-stand">Stand: 15. Oktober 2026</p>
+      <p className="jjk-legal-stand">Stand: 31. Oktober 2026</p>
     </LegalPage>
   );
 }
