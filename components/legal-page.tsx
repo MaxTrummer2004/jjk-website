@@ -60,8 +60,15 @@ export function LegalPage({ title, eyebrow, lead, children }: LegalPageProps): R
           <p className="font-mono text-[0.68rem] font-medium uppercase tracking-[0.24em] text-accent">
             {eyebrow}
           </p>
-          <h1 className="jjk-section-title mt-4">
-            {title}
+          {/* Bei 390 px lief "Datenschutzerklaerung" 29 px ueber den Rand
+              (31.10.2026). hyphens:auto allein reicht nicht, weil nicht jeder
+              Browser ein deutsches Trennwoerterbuch hat; das weiche
+              Trennzeichen (U+00AD, in der Shippori-Teilmenge) trennt dort,
+              wo es sprachlich hingehoert. `title` selbst bleibt unveraendert,
+              es ist der Schluessel fuer OTHER. wrap-break-word ist nur der
+              Rueckfall fuer kuenftige lange Titel. */}
+          <h1 className="jjk-section-title mt-4 hyphens-manual wrap-break-word">
+            {title.replace("Datenschutzerklärung", "Datenschutz\u00ADerklärung")}
           </h1>
           <p className="mt-5 text-base leading-relaxed text-foreground-dim">{lead}</p>
         </header>
