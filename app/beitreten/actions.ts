@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { ensureSchema, sql } from "@/lib/db";
-import { createSession, hashPassword } from "@/lib/auth";
+import { createSession, hashPassword, passwordTooLong, PASSWORD_TOO_LONG } from "@/lib/auth";
 import { PLAN_INFO, isAdult, isPlan } from "@/lib/membership";
 import { boardEmails, sendMail } from "@/lib/mail";
 import { clientIp, hit, type Limit } from "@/lib/rate-limit";
@@ -143,6 +143,9 @@ export async function joinAction(prev: JoinState, formData: FormData): Promise<J
 
   if (!isPlan(v.plan)) return fail("Bitte eine Mitgliedschaft auswählen.");
   if (password.length < 8) return fail("Das Passwort braucht mindestens 8 Zeichen.");
+  // bcrypt liest nur 72 Byte; laengere Passwoerter wuerden still gekuerzt
+  // (31.10.2026, wie beim Einrichten und Wechseln in app/mitglieder).
+  if (passwordTooLong(password)) return fail(PASSWORD_TOO_LONG);
   if (password !== password2) return fail("Die beiden Passwörter stimmen nicht überein.");
   if (!v.accept_terms) {
     return fail("Bitte bestätige die Bedingungen der Mitgliedschaft und den Datenschutz.");
