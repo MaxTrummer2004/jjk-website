@@ -432,7 +432,15 @@ function ScheduleStack({
       {/* Position in Worten, zwischen den beiden Pfeilen. `aria-live`, damit
           ein Screenreader den Wechsel mitbekommt — die Karten selbst tauschen
           nur ihre Z-Reihenfolge, und davon erfaehrt er nichts. */}
-      <div className="-mt-5 flex items-center justify-center gap-2">
+      {/* `relative z-10` seit 31.10.2026: die Zeile zieht sich mit -mt-5 um
+          20 px unter den Stapel, und der Stapel (relative, spaeter gemalt
+          als die statische Zeile) lag darueber. elementFromPoint in der
+          Knopfmitte lieferte das div[role=group] des Stapels, nicht den
+          Knopf; am Handy reagierten die Pfeile nur in ihren unteren 16 von
+          36 px. Mit z-10 liegt die Zeile oben. Am Stapel geht dabei nichts
+          verloren: hitArea ist "card", der leere Containerrand unter den
+          Karten nahm ohnehin keinen Klick an. Optisch aendert sich nichts. */}
+      <div className="relative z-10 -mt-5 flex items-center justify-center gap-2">
         <Arrow direction="prev" onClick={prev} label="Vorheriger Tag" />
         <p
           id={liveId}
