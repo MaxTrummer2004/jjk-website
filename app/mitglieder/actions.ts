@@ -3,10 +3,21 @@
 import { revalidatePath } from "next/cache";
 import { ensureSchema, sql } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { createSession, destroySession, hashPassword, verifyPassword } from "@/lib/auth";
+import {
+  MAX_EMAIL_CHARS,
+  MAX_PASSWORD_CHECK_CHARS,
+  PASSWORD_TOO_LONG,
+  createSession,
+  destroySession,
+  hashPassword,
+  passwordTooLong,
+  readSessionClaims,
+  verifyPassword,
+} from "@/lib/auth";
 import { getCurrentMember } from "@/lib/members";
 import { mostRecentTrainingDay, toDateOnly } from "@/lib/attendance";
 import { clientIp, hit, refund, type Limit } from "@/lib/rate-limit";
+import { hashSetupToken } from "@/lib/setup-token";
 
 export interface ActionResult {
   error?: string;
@@ -14,6 +25,21 @@ export interface ActionResult {
 
 const LOGIN_IP: Limit = { bucket: "login-ip", max: 50, windowSeconds: 15 * 60 };
 const LOGIN_EMAIL: Limit = { bucket: "login-email", max: 8, windowSeconds: 15 * 60 };
+
+// Grenzen fuer die beiden anderen Stellen, an denen bcrypt rechnet
+// (31.10.2026). Ein bcrypt-Lauf mit Kostenstufe 10 haelt den Node-Prozess
+// rund 70 ms fest; ohne Grenze legten etwa zehn Anfragen pro Sekunde die
+// ganze Seite lahm. Anders als beim Login gibt es hier KEIN refund: auch ein
+// erfolgreicher Versuch rechnet (Pruefen und neu Hashen), und wer sein
+// eigenes Passwort kennt, koennte sonst endlos im Kreis aendern.
+//   Einrichtungslink 10 / 15 min je IP — ein Mensch braucht einen Versuch,
+//                    hoechstens zwei, wenn die Wiederholung nicht passt
+//   Passwortwechsel   5 / 15 min je Konto — ein Konto gibt es fuer jeden,
+//                    der /beitreten ausfuellt; 20 / 15 min je IP gegen viele
+//                    solche Konten von einer Maschine
+const SETUP_IP: Limit = { bucket: "setup-ip", max: 10, windowSeconds: 15 * 60 };
+const CHANGE_MEMBER: Limit = { bucket: "pwchange-member", max: 5, windowSeconds: 15 * 60 };
+const CHANGE_IP: Limit = { bucket: "pwchange-ip", max: 20, windowSeconds: 15 * 60 };
 
 /**
  * Registrieren gibt es hier nicht mehr: ein Konto entsteht nur noch ueber die
@@ -53,6 +79,11 @@ export async function loginAction(
   if (!byIp || !byEmail) {
     return { error: "Zu viele Versuche. Bitte in 15 Minuten nochmal." };
   }
+  // Uebergrosse Eingaben gar nicht erst pruefen (lib/auth.ts). Nach dem
+  // Zaehler, damit auch sie als Fehlversuch zaehlen.
+  if (email.length > MAX_EMAIL_CHARS || password.length > MAX_PASSWORD_CHECK_CHARS) {
+    return { error: "E-Mail-Adresse oder Passwort falsch." };
+  }
 
   const result = await sql<{ id: number; password_hash: string }>`
     select id, password_hash from members where email = ${email}
@@ -75,25 +106,55 @@ export async function loginAction(
 
 /**
  * Passwort ueber einen Einrichtungslink festlegen (/konto-einrichten?token=…).
- * Den Link erzeugt der Vorstand per SQL fuer Trainer- und Vorstandskonten.
- * Der Token gilt genau einmal und wird beim Setzen geloescht.
+ * Den Link erzeugt der Vorstand unter /vorstand (Trainer und Vorstand, oder
+ * "Passwort vergessen"). Er gilt einmal und 72 Stunden (lib/setup-token.ts).
+ *
+ * Reihenfolge seit 31.10.2026: Grenze, dann Token, dann bcrypt. Vorher wurde
+ * das neue Passwort gehasht, BEVOR feststand, ob der Token ueberhaupt passt —
+ * jeder beliebige 16-Zeichen-Unsinn kostete einen vollen bcrypt-Lauf, und
+ * schon zehn solche Anfragen pro Sekunde reichten, um den Prozess zu
+ * saettigen. Jetzt kostet ein falscher Token eine Indexsuche.
  */
 export async function setupPasswordAction(
   _prev: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
   await ensureSchema();
+  if (!(await hit(SETUP_IP, await clientIp()))) {
+    return { error: "Zu viele Versuche. Bitte in 15 Minuten nochmal." };
+  }
   const token = String(formData.get("token") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const password2 = String(formData.get("password2") ?? "");
-  if (token.length < 16) return { error: "Der Link ist ungültig." };
+  // Echte Tokens haben 48 Zeichen; alles ueber 128 ist kein Link von uns.
+  if (token.length < 16 || token.length > 128) return { error: "Der Link ist ungültig." };
   if (password.length < 8) return { error: "Das Passwort braucht mindestens 8 Zeichen." };
+  if (passwordTooLong(password)) return { error: PASSWORD_TOO_LONG };
   if (password !== password2) return { error: "Die beiden Passwörter stimmen nicht überein." };
 
+  const tokenHash = hashSetupToken(token);
+  const found = await sql<{ id: number; expired: boolean }>`
+    select id, (setup_token_expires_at is null or setup_token_expires_at <= now()) as expired
+    from members where setup_token_hash = ${tokenHash}
+  `;
+  const target = found[0];
+  if (!target) return { error: "Der Link ist ungültig oder wurde schon benutzt." };
+  if (target.expired) {
+    return { error: "Der Link ist abgelaufen. Bitte beim Vorstand einen neuen anfordern." };
+  }
+
   const hash = await hashPassword(password);
+  // Die Bedingung steht im UPDATE noch einmal: zwei gleichzeitige Absendungen
+  // desselben Links rechnen beide, aber nur eine findet die Zeile noch vor.
+  // session_version + 1 meldet jede andere Sitzung dieses Kontos ab — wer
+  // einen Link fuer "Passwort vergessen" bekommt, soll nicht neben einem
+  // noch offenen fremden Login weiterarbeiten.
   const rows = await sql<{ id: number }>`
-    update members set password_hash = ${hash}, setup_token = null
-    where setup_token = ${token}
+    update members
+    set password_hash = ${hash}, setup_token_hash = null, setup_token_expires_at = null,
+        setup_token = null, session_version = session_version + 1
+    where id = ${target.id} and setup_token_hash = ${tokenHash}
+      and setup_token_expires_at > now()
     returning id
   `;
   const id = rows[0]?.id;
@@ -103,7 +164,16 @@ export async function setupPasswordAction(
   redirect("/mitglieder");
 }
 
-/** Eigenes Passwort aendern, im Mitgliederbereich. */
+/**
+ * Eigenes Passwort aendern, im Mitgliederbereich.
+ *
+ * Seit 31.10.2026 meldet das alle ANDEREN Sitzungen des Kontos ab (Version
+ * hoch), und genau diese eine bleibt eingeloggt: das Cookie wird mit der neuen
+ * Version neu ausgestellt, mit derselben Lebensdauer wie vorher. Wer sein
+ * Passwort aendert, weil es jemand anderes kennt, will genau das. Ein offener
+ * Einrichtungslink verfaellt dabei mit — er wuerde das neue Passwort sonst
+ * wieder ueberschreiben koennen.
+ */
 export async function changePasswordAction(
   _prev: ActionResult & { ok?: boolean },
   formData: FormData
@@ -116,7 +186,17 @@ export async function changePasswordAction(
   const password = String(formData.get("password") ?? "");
   const password2 = String(formData.get("password2") ?? "");
   if (password.length < 8) return { error: "Das neue Passwort braucht mindestens 8 Zeichen." };
+  if (passwordTooLong(password)) return { error: PASSWORD_TOO_LONG };
   if (password !== password2) return { error: "Die beiden neuen Passwörter stimmen nicht überein." };
+  if (current.length > MAX_PASSWORD_CHECK_CHARS) return { error: "Das aktuelle Passwort stimmt nicht." };
+
+  // Erst das Konto, dann die IP: ist das Konto schon gesperrt, wird der
+  // IP-Zaehler nicht weiter beschrieben (wie beim Login).
+  const byMember = await hit(CHANGE_MEMBER, `m${member.id}`);
+  const byIp = byMember ? await hit(CHANGE_IP, await clientIp()) : true;
+  if (!byMember || !byIp) {
+    return { error: "Zu viele Versuche. Bitte in 15 Minuten nochmal." };
+  }
 
   const rows = await sql<{ password_hash: string }>`
     select password_hash from members where id = ${member.id}
@@ -125,7 +205,14 @@ export async function changePasswordAction(
     return { error: "Das aktuelle Passwort stimmt nicht." };
   }
   const hash = await hashPassword(password);
-  await sql`update members set password_hash = ${hash} where id = ${member.id}`;
+  await sql`
+    update members
+    set password_hash = ${hash}, session_version = session_version + 1,
+        setup_token_hash = null, setup_token_expires_at = null, setup_token = null
+    where id = ${member.id}
+  `;
+  const claims = await readSessionClaims();
+  await createSession(member.id, claims?.remember ?? true);
   return { ok: true };
 }
 

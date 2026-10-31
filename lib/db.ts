@@ -161,6 +161,33 @@ async function createSchema(): Promise<void> {
     alter table members add column if not exists mollie_subscription_id text;
     alter table members add column if not exists fee_exempt boolean not null default false;
     alter table members add column if not exists setup_token text;
+    alter table members add column if not exists session_version integer not null default 0;
+    alter table members add column if not exists setup_token_hash text;
+    alter table members add column if not exists setup_token_expires_at timestamptz;
+  `);
+
+  // Einrichtungslinks (31.10.2026): gespeichert wird nur noch der SHA-256 des
+  // Tokens (setup_token_hash), mit Ablauf nach 72 Stunden. Vorher stand der
+  // Token im Klartext in `setup_token` und galt unbegrenzt — wer die Tabelle
+  // lesen konnte (Backup, Dump, Dashboard), konnte jedes offene Konto
+  // uebernehmen. SHA-256 ohne Salz genuegt hier, anders als bei Passwoertern:
+  // der Token hat 192 Bit Zufall, da gibt es nichts durchzuprobieren.
+  //
+  // Bestehende Klartext-Tokens werden hier einmal umgeschrieben statt beim
+  // Einloesen beide Formen anzunehmen. Sonst laege der Klartext weiter in der
+  // Datenbank, bis jemand den Link benutzt — also womoeglich nie. Eine eigene
+  // Spalte statt Umschreiben an Ort und Stelle, weil sich Klartext und Hash
+  // sonst nicht sicher unterscheiden lassen (ein per SQL gesetzter Token kann
+  // selbst wie ein 64-stelliger Hash aussehen). Wiederholbar: danach ist
+  // `setup_token` leer, ein zweiter Lauf (oder ein zweiter Container
+  // gleichzeitig) findet nichts mehr. Offene Altlinks bekommen ihre 72
+  // Stunden ab diesem Deploy.
+  await sql.query(`
+    update members
+    set setup_token_hash = encode(sha256(convert_to(setup_token, 'UTF8')), 'hex'),
+        setup_token_expires_at = coalesce(setup_token_expires_at, now() + interval '72 hours'),
+        setup_token = null
+    where setup_token is not null;
   `);
 
   // Eine Zeile je bezahltem Posten. Heute setzt sie der Kassier per Haekchen

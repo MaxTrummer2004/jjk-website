@@ -13,8 +13,8 @@ export function SetupForm({ token }: { token: string }): ReactNode {
   return (
     <form action={action} className="flex flex-col gap-3">
       <input type="hidden" name="token" value={token} />
-      <input name="password" type="password" placeholder="Passwort (mind. 8 Zeichen)" autoComplete="new-password" minLength={8} required className={inputClass} />
-      <input name="password2" type="password" placeholder="Passwort wiederholen" autoComplete="new-password" minLength={8} required className={inputClass} />
+      <input name="password" type="password" placeholder="Passwort (mind. 8 Zeichen)" autoComplete="new-password" minLength={8} maxLength={72} required className={inputClass} />
+      <input name="password2" type="password" placeholder="Passwort wiederholen" autoComplete="new-password" minLength={8} maxLength={72} required className={inputClass} />
       {state.error ? <p className="text-sm text-accent">{state.error}</p> : null}
       <button
         type="submit"

@@ -14,6 +14,7 @@ export function ResetPassword({ memberId }: { memberId: number }): ReactNode {
         name="password"
         type="text"
         minLength={8}
+        maxLength={72}
         required
         placeholder="Neues Passwort"
         autoComplete="off"
