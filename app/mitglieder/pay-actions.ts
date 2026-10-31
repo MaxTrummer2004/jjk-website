@@ -42,6 +42,23 @@ import {
  *  blockiert hoechstens so lange. */
 const CLAIM_STALE_SECONDS = 60;
 
+/**
+ * Mollie lehnt ab oder ist nicht erreichbar (31.10.2026, End-to-End-Test):
+ * vorher flog der Fehler weiter, und das Mitglied sah Nexts englische
+ * Fehlerseite. Jetzt zurueck in den Mitgliederbereich, der rote Block sagt
+ * auf Deutsch, was los ist, und zeigt die Bankdaten (status-panel.tsx).
+ */
+const FAILED = "/mitglieder?zahlung=fehler";
+
+/** Ins Log nur Mitglieds-ID, HTTP-Status und Meldung — kein Name, keine
+ *  Adresse: Logs liegen ein Jahr bei Scalingo. Mollies Meldung nennt Pfad
+ *  und Grund (z. B. "422 ... amount"), nicht die Daten der Anfrage. */
+function logPayError(step: string, memberId: number, err: unknown): void {
+  const status = err instanceof MollieError ? (err.status ?? "-") : "-";
+  const message = err instanceof Error ? err.message : "unbekannt";
+  console.error(`[zahlung] ${step}`, `Mitglied #${memberId}`, status, message);
+}
+
 /** Mollie-Status, bei denen das Geld unterwegs oder schon da ist. */
 const IN_FLIGHT = new Set(["pending", "authorized", "paid"]);
 
@@ -89,8 +106,11 @@ export async function startPaymentAction(): Promise<void> {
     const prev = await mollie<MolliePayment>("GET", `/payments/${seen.payment_id}`).catch((err: unknown) => {
       // 404: Zahlung gibt es nicht mehr (z. B. Schluessel gewechselt) → neu.
       if (err instanceof MollieError && err.status === 404) return null;
-      throw err;
+      // Sonst KEINE neue anlegen: die alte koennte gerade bezahlt werden.
+      logPayError("Zahlung lesen", member.id, err);
+      return "error" as const;
     });
+    if (prev === "error") redirect(FAILED);
     const href = prev?._links?.checkout?.href;
     if (prev?.status === "open" && href) redirect(href);
     if (prev && IN_FLIGHT.has(prev.status)) redirect("/mitglieder?zahlung=1");
@@ -114,7 +134,7 @@ export async function startPaymentAction(): Promise<void> {
       `;
   if (claimed.length === 0) await followOtherClick(member.id);
 
-  let href: string;
+  let href: string | null = null;
   try {
     let customerId = member.mollieCustomerId;
     if (!customerId) {
@@ -144,17 +164,21 @@ export async function startPaymentAction(): Promise<void> {
     });
     const link = payment._links?.checkout?.href;
     if (!link) throw new Error("Mollie hat keinen Checkout-Link geliefert.");
-    href = link;
     await sql`
-      update mollie_checkouts set payment_id = ${payment.id}, checkout_url = ${href}
+      update mollie_checkouts set payment_id = ${payment.id}, checkout_url = ${link}
       where member_id = ${member.id} and payment_id = ${claim}
     `;
+    href = link;
   } catch (err) {
+    logPayError("Zahlung anlegen", member.id, err);
     // Sperre freigeben, sonst wartet der naechste Klick eine Minute.
-    await sql`delete from mollie_checkouts where member_id = ${member.id} and payment_id = ${claim}`;
-    throw err;
+    await sql`delete from mollie_checkouts where member_id = ${member.id} and payment_id = ${claim}`.catch(
+      (e: unknown) => logPayError("Sperre freigeben", member.id, e)
+    );
   }
-  redirect(href);
+  // redirect() wirft (NEXT_REDIRECT) und steht deshalb hinter dem try: im
+  // catch oben landete sonst der Redirect selbst als "Fehler".
+  redirect(href ?? FAILED);
 }
 
 /**

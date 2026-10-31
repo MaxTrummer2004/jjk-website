@@ -1,5 +1,6 @@
 import { sql } from "@/lib/db";
 import type { MemberRecord } from "@/lib/members";
+import { MollieError, mollie, type MolliePayment } from "@/lib/mollie";
 import {
   ENROLLMENT_FEE_CENTS,
   PLAN_INFO,
@@ -70,4 +71,49 @@ export async function getPaymentStatus(member: MemberRecord, now = new Date()): 
   ];
 
   return { month, monthLabel: monthLabel(month), items, allPaid: items.every((i) => i.paid) };
+}
+
+/**
+ * Was der Statusblock nach der Rueckkehr vom Checkout sagt (31.10.2026).
+ *   confirming — Zahlung laeuft noch oder ist bezahlt, aber der Webhook hat
+ *                sie noch nicht eingetragen: "Seite neu laden"
+ *   canceled   — abgebrochen, abgelaufen oder fehlgeschlagen
+ *   failed     — Mollie hat das Anlegen abgelehnt (?zahlung=fehler,
+ *                app/mitglieder/pay-actions.ts)
+ */
+export type PayNotice = "confirming" | "canceled" | "failed";
+
+const STILL_RUNNING = new Set(["open", "pending", "authorized", "paid"]);
+const GAVE_UP = new Set(["canceled", "expired", "failed"]);
+
+/**
+ * Hinweis fuer /mitglieder?zahlung=1. Vorher stand "Zahlung wird bestaetigt"
+ * allein wegen des Parameters da — auch nach einem Abbruch im Checkout und
+ * fuer immer, wenn der Monat (Dauerauftrag, nicht online) noch offen war und
+ * der rote Block deshalb blieb. Jetzt entscheidet die letzte Zahlung aus
+ * mollie_checkouts, und auch das nur, solange online noch etwas offen ist:
+ * ist Einmaliges bezahlt und eingetragen, gibt es nichts zu bestaetigen,
+ * egal was der Monat macht.
+ *
+ * Ein Mollie-Aufruf, und nur mit ?zahlung=1 in der Adresse (also direkt nach
+ * dem Checkout). Antwortet Mollie nicht, bleibt es beim alten Hinweis: wer
+ * gerade bezahlt hat, soll nicht "abgebrochen" lesen, weil Mollie hakt.
+ */
+export async function checkoutNotice(memberId: number, status: PaymentStatus): Promise<PayNotice | null> {
+  if (!status.items.some((i) => !i.paid && i.key !== "month")) return null;
+  const rows = await sql<{ payment_id: string }>`
+    select payment_id from mollie_checkouts where member_id = ${memberId}
+  `;
+  const id = rows[0]?.payment_id;
+  if (!id?.startsWith("tr_")) return null;
+  try {
+    const payment = await mollie<MolliePayment>("GET", `/payments/${id}`);
+    if (STILL_RUNNING.has(payment.status)) return "confirming";
+    if (GAVE_UP.has(payment.status)) return "canceled";
+    return null;
+  } catch (err) {
+    if (err instanceof MollieError && err.status === 404) return null;
+    console.error("[zahlung] Status beim Zurueckkommen", `Mitglied #${memberId}`, err instanceof Error ? err.message : "unbekannt");
+    return "confirming";
+  }
 }

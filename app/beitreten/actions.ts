@@ -179,8 +179,11 @@ export async function joinAction(prev: JoinState, formData: FormData): Promise<J
   // koennte): Antrag hier normal stellen, dann im Scalingo-Dashboard unter
   // Addons → PostgreSQL → "Run a console" (oder `scalingo --app <app>
   // pgsql-console`) von Hand aufnehmen:
-  //   update members set status = 'active', decided_at = now()
+  //   update members set status = 'active', decided_at = now(), fee_exempt = true
   //   where email = 'vorname@jjk.academy' and status = 'pending';
+  // `fee_exempt = true`, weil der Antrag einen Tarif traegt und das Konto
+  // sonst als zahlendes Mitglied mit offenem Beitrag dasteht (31.10.2026).
+  // Spaeter geht dasselbe unter /vorstand mit dem Schalter "beitragsfrei".
   // Ab dann nimmt dieses Konto die weiteren Vorstandsmitglieder unter
   // /vorstand auf. Vorher pruefen, dass der Antrag wirklich von der Person
   // stammt (Name, Telefon) — genau das ist die Pruefung, die hier fehlt.

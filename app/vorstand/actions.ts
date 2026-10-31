@@ -6,7 +6,7 @@ import { sql } from "@/lib/db";
 import { MAX_EMAIL_CHARS, PASSWORD_TOO_LONG, hashPassword, passwordTooLong } from "@/lib/auth";
 import { getCurrentMember, getMember, isBoard, isBoardEmail, type MemberRecord } from "@/lib/members";
 import { SETUP_TOKEN_HOURS, newSetupToken } from "@/lib/setup-token";
-import { ENROLLMENT_FEE_CENTS, PLAN_INFO, dueCents, monthKey } from "@/lib/membership";
+import { ENROLLMENT_FEE_CENTS, PLAN_INFO, dueCents, monthKey, viennaDate } from "@/lib/membership";
 import { admissionMail, sendMail } from "@/lib/mail";
 import { isMollieConfigured, mollie, toValue } from "@/lib/mollie";
 
@@ -64,6 +64,10 @@ export async function admitAction(formData: FormData): Promise<void> {
   const me = await requireBoard();
   const target = await getMember(idFrom(formData));
   if (!target || target.status !== "pending") return;
+  // Beitrittsdatum als Wiener Kalendertag (31.10.2026): `current_date` ist
+  // der Tag der Datenbank, auf Scalingo UTC — eine Aufnahme um 0:30 bekam
+  // den Vortag, und die Anwesenheit (lib/attendance.ts) zaehlte ihn mit.
+  const joined = viennaDate(new Date());
   if (target.isMinor && !target.guardianConsentReceived) return;
   if (isBoardEmail(target.email)) {
     console.warn("[admit] Antrag mit Vorstandsadresse nicht aufgenommen", target.id);
@@ -71,7 +75,7 @@ export async function admitAction(formData: FormData): Promise<void> {
   }
   const admitted = await sql<{ guardian_email: string | null }>`
     update members
-    set status = 'active', decided_at = now(), decided_by = ${me.id}, joined_at = current_date
+    set status = 'active', decided_at = now(), decided_by = ${me.id}, joined_at = ${joined}::date
     where id = ${target.id} and status = 'pending'
     returning guardian_email
   `;
@@ -160,6 +164,43 @@ export async function toggleFlagAction(formData: FormData): Promise<void> {
     }
   } else {
     return;
+  }
+  done();
+}
+
+/**
+ * Beitragsfrei an/aus fuer ein bestehendes Konto (31.10.2026). Vorher ging
+ * das nur beim Anlegen ueber createStaffAction oder per SQL — wer erst als
+ * Mitglied beigetreten war und dann Trainer wurde (oder das erste
+ * Vorstandskonto, das ueber /beitreten entsteht), blieb rot mit offenem
+ * Beitrag. Der Zielwert kommt als `on` mit statt eines Umschaltens wie bei
+ * toggleFlagAction: ein Doppelklick setzt dann zweimal dasselbe, statt es
+ * gleich wieder zurueckzunehmen.
+ *
+ * Ein altes SEPA-Abo (vor 15.10.2026, siehe pay-actions.ts) buchte sonst
+ * weiter ab, also wird es beim Einschalten bei Mollie gekuendigt, so wie
+ * toggleFlagAction den Betrag bei der Ermaessigung nachzieht. Schlaegt das
+ * fehl, bleibt die Abo-ID stehen und /vorstand zeigt weiter "SEPA-Abo" —
+ * der Vorstand sieht, dass im Mollie-Dashboard noch etwas zu tun ist.
+ */
+export async function setFeeExemptAction(formData: FormData): Promise<void> {
+  await requireBoard();
+  const id = idFrom(formData);
+  const on = formData.get("on") === "1";
+  const rows = await sql`
+    update members set fee_exempt = ${on} where id = ${id} and status = 'active' returning id
+  `;
+  if (rows.length === 0) return;
+  if (on && isMollieConfigured()) {
+    const m = await getMember(id);
+    if (m?.mollieCustomerId && m.mollieSubscriptionId?.startsWith("sub_")) {
+      try {
+        await mollie("DELETE", `/customers/${m.mollieCustomerId}/subscriptions/${m.mollieSubscriptionId}`);
+        await sql`update members set mollie_subscription_id = null where id = ${id}`;
+      } catch (err) {
+        console.error("[beitragsfrei] Abo kuendigen", id, err instanceof Error ? err.message : "unbekannt");
+      }
+    }
   }
   done();
 }
@@ -293,9 +334,10 @@ export async function createStaffAction(_prev: StaffState, formData: FormData): 
   const name = `${first} ${last}`;
   await sql`
     insert into members (name, first_name, last_name, email, password_hash, status, fee_exempt,
-      applied_at, decided_at, decided_by, setup_token_hash, setup_token_expires_at)
+      joined_at, applied_at, decided_at, decided_by, setup_token_hash, setup_token_expires_at)
     values (${name}, ${first}, ${last}, ${email}, '!', 'active', true,
-      now(), now(), ${me.id}, ${hash}, now() + make_interval(hours => ${SETUP_TOKEN_HOURS}::int))
+      ${viennaDate(new Date())}::date, now(), now(), ${me.id}, ${hash},
+      now() + make_interval(hours => ${SETUP_TOKEN_HOURS}::int))
   `;
   done();
   return { link: setupLink(token), name };

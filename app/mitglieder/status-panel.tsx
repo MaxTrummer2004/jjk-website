@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { siteConfig } from "@/lib/config";
 import { PLAN_INFO, euro, type Plan } from "@/lib/membership";
-import type { PaymentStatus } from "@/lib/payments";
+import type { PayNotice, PaymentStatus } from "@/lib/payments";
 import { cancelFlexAction, startPaymentAction } from "./pay-actions";
 import { PayButton } from "./pay-button";
 
@@ -41,8 +41,9 @@ export interface StatusPanelProps {
   payEnabled: boolean;
   /** Laufendes SEPA-Abo bei Mollie: der Monat wird abgebucht, nicht bezahlt. */
   hasSubscription: boolean;
-  /** Gerade vom Mollie-Checkout zurueck (?zahlung=1). */
-  justReturned: boolean;
+  /** Hinweis nach dem Checkout bzw. einem Fehler beim Anlegen
+   *  (lib/payments.ts, checkoutNotice); null, wenn es nichts zu sagen gibt. */
+  payNotice: PayNotice | null;
   /** Trainer/Vorstand: kein Beitrag, kein Zahlungsblock. */
   feeExempt?: boolean;
 }
@@ -166,7 +167,7 @@ function PaymentBlock({
   openCents,
   payEnabled,
   hasSubscription,
-  justReturned,
+  payNotice,
   plan,
   reducedRequested,
   reducedVerified,
@@ -228,10 +229,24 @@ function PaymentBlock({
         <p className="mt-3 text-xs text-white/80">Regulärer Preis, bis der Ausweis gezeigt wurde.</p>
       ) : null}
 
-      {justReturned ? (
+      {payNotice === "confirming" ? (
         <p className="mt-4 rounded-lg bg-black/20 px-3 py-2 text-sm">
           Zahlung wird bestätigt, das dauert meist nur Sekunden. Seite neu laden.
         </p>
+      ) : payNotice === "canceled" ? (
+        <p className="mt-4 rounded-lg bg-black/20 px-3 py-2 text-sm">
+          Zahlung abgebrochen – du kannst es nochmal versuchen.
+        </p>
+      ) : payNotice === "failed" && oneOff.length > 0 ? (
+        // Bankdaten mit dem Zweck fuer die Einmalposten: der Monat hat unten
+        // seinen eigenen Zweck ("Mitgliedsbeitrag").
+        <div className="mt-4 rounded-lg bg-black/20 px-3 py-2 text-sm">
+          <p>
+            Die Zahlung konnte gerade nicht gestartet werden. Bitte versuch es gleich nochmal oder
+            überweise den Betrag:
+          </p>
+          <BankDetails purpose={`${fullName}, ${oneOff.map((i) => i.label).join(" + ")}`} />
+        </div>
       ) : null}
 
       {payEnabled && oneOff.length > 0 ? (
@@ -242,7 +257,7 @@ function PaymentBlock({
             {oneOff.map((i) => i.label).join(" + ")} jetzt zahlungspflichtig bezahlen · {euro(oneOffCents)}
           </PayButton>
           <p className="mt-3 text-xs leading-relaxed text-white/85">
-            Einmalige Zahlung per EPS-Überweisung über Mollie.
+            Einmalige Zahlung online über Mollie.
           </p>
         </form>
       ) : null}

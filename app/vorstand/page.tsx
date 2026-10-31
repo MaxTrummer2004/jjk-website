@@ -19,6 +19,7 @@ import {
   deleteTrialRequestAction,
   rejectAction,
   resolvePaymentIssueAction,
+  setFeeExemptAction,
   toggleFlagAction,
   togglePaymentAction,
 } from "./actions";
@@ -206,6 +207,10 @@ export default async function BoardPage(): Promise<ReactNode> {
   const active = members.filter((m) => m.status === "active" && !m.fee_exempt && isPlan(m.plan));
   // Trainer und Vorstand: beitragsfrei, eigene Liste ohne Rot/Gruen.
   const staff = members.filter((m) => m.status === "active" && m.fee_exempt);
+  // Aufgenommen, nicht beitragsfrei, ohne Mitgliedschaft: Altkonten aus der
+  // Zeit vor der Beitrittserklaerung. Sie standen bisher in keiner Liste, und
+  // ohne Liste gab es fuer sie auch keinen "beitragsfrei"-Schalter.
+  const noPlan = members.filter((m) => m.status === "active" && !m.fee_exempt && !isPlan(m.plan));
   const allOk = (m: Row): boolean => {
     if (!isPlan(m.plan)) return false;
     const regular = PLAN_INFO[m.plan].monthly ? paid(m.id, "month", month) : paid(m.id, "block");
@@ -432,6 +437,9 @@ export default async function BoardPage(): Promise<ReactNode> {
                     {m.reduced_requested ? (
                       <Toggle memberId={m.id} action={toggleFlagAction} fields={{ flag: "reduced" }} on={m.reduced_verified} label="Ausweis geprüft" />
                     ) : null}
+                    {/* Trainer oder Vorstand geworden: verschiebt das Konto
+                        nach unten in "beitragsfrei" (31.10.2026). */}
+                    <Toggle memberId={m.id} action={setFeeExemptAction} fields={{ on: "1" }} on={false} label="beitragsfrei" />
                   </div>
                   <Details m={m} />
                 </li>
@@ -455,7 +463,15 @@ export default async function BoardPage(): Promise<ReactNode> {
             {staff.map((m) => (
               <li key={m.id} className="rounded-xl border border-border bg-card-plate p-4">
                 <span className="font-medium text-foreground">{m.name}</span>
-                <span className="ml-2 text-sm text-foreground-dim">{m.email}</span>
+                <span className="ml-2 text-sm text-foreground-dim">
+                  {m.email}
+                  {m.has_subscription ? " · SEPA-Abo" : ""}
+                </span>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {/* Aus: mit Tarif aus dem Antrag zurueck in die Beitragsliste,
+                      ohne (Konto hier angelegt) nach "Ohne Mitgliedschaft". */}
+                  <Toggle memberId={m.id} action={setFeeExemptAction} fields={{ on: "0" }} on={true} label="beitragsfrei" />
+                </div>
                 <div className="mt-3">
                   <NewSetupLink memberId={m.id} />
                 </div>
@@ -464,6 +480,30 @@ export default async function BoardPage(): Promise<ReactNode> {
             ))}
           </ul>
         </section>
+
+        {/* ── Aufgenommen ohne Mitgliedschaft (Altkonten) ──────────── */}
+        {noPlan.length > 0 ? (
+          <section className="mt-16">
+            <h2 className="font-mono text-[0.72rem] font-medium uppercase tracking-[0.24em] text-accent">
+              Ohne Mitgliedschaft ({noPlan.length})
+            </h2>
+            <ul className="mt-4 flex flex-col gap-3">
+              {noPlan.map((m) => (
+                <li key={m.id} className="rounded-xl border border-border bg-card-plate p-4">
+                  <span className="font-medium text-foreground">{m.name}</span>
+                  <span className="ml-2 text-sm text-foreground-dim">{m.email}</span>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Toggle memberId={m.id} action={setFeeExemptAction} fields={{ on: "1" }} on={false} label="beitragsfrei" />
+                  </div>
+                  <div className="mt-3">
+                    <NewSetupLink memberId={m.id} />
+                  </div>
+                  <Details m={m} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         {/* ── Abgelehnt ────────────────────────────────────────────── */}
         {rejected.length > 0 ? (

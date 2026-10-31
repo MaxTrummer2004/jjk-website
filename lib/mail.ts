@@ -137,7 +137,11 @@ export function admissionMail(m: {
       `${info.monthly ? "1. " : ""}${oneOff.join(" und ")} bezahlen`
     );
     if (m.payOnline) {
-      lines.push("Das geht online im Mitgliederbereich per EPS-Überweisung:", area);
+      // Ohne "per EPS-Ueberweisung" (31.10.2026): pay-actions.ts legt die
+      // Zahlung ohne `method` an, Mollie bietet also an, was im Dashboard
+      // aktiviert ist. Die Mail soll nichts versprechen, was der Checkout
+      // dann anders zeigt.
+      lines.push("Das geht online im Mitgliederbereich:", area);
     } else {
       lines.push("Bitte überweise den Betrag auf das Vereinskonto:", "", ...bank(`${m.fullName}, ${oneOffLabel}`));
     }

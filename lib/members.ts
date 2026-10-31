@@ -25,7 +25,8 @@ export interface MemberRecord {
   joinedAt: string;
   mollieCustomerId: string | null;
   mollieSubscriptionId: string | null;
-  /** Trainer und Vorstand: zahlen keinen Beitrag. Wird nur per SQL gesetzt. */
+  /** Trainer und Vorstand: zahlen keinen Beitrag. Gesetzt beim Anlegen
+   *  (createStaffAction) oder unter /vorstand (setFeeExemptAction). */
   feeExempt: boolean;
 }
 

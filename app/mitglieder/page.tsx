@@ -2,17 +2,12 @@ import type { ReactNode } from "react";
 import { HomeLink } from "./home-link";
 import { ensureSchema, sql } from "@/lib/db";
 import { getCurrentMember, isBoard } from "@/lib/members";
-import { getPaymentStatus } from "@/lib/payments";
+import { checkoutNotice, getPaymentStatus, type PayNotice } from "@/lib/payments";
 import { isMollieConfigured } from "@/lib/mollie";
 import { StatusPanel } from "./status-panel";
 import { ChangePassword } from "./change-password";
 import { PendingView } from "./pending-view";
-import {
-  computeStats,
-  mostRecentTrainingDay,
-  toDateOnly,
-  type AttendanceVote,
-} from "@/lib/attendance";
+import { computeStats, currentVoteDay, type AttendanceVote } from "@/lib/attendance";
 import { AuthLogin } from "./auth-login";
 import { MemberProfile } from "./member-profile";
 import { DismissTransition } from "@/components/dismiss-transition";
@@ -68,7 +63,7 @@ export default async function MitgliederPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<ReactNode> {
-  const justReturned = (await searchParams).zahlung === "1";
+  const zahlung = (await searchParams).zahlung;
   try {
     await ensureSchema();
   } catch {
@@ -85,6 +80,14 @@ export default async function MitgliederPage({
   const memberId = member.id;
 
   const payment = await getPaymentStatus(member);
+  // ?zahlung=1 kommt vom Checkout zurueck, ?zahlung=fehler von pay-actions.ts.
+  // Was davon angezeigt wird, entscheidet der Zahlungsstand, nicht die
+  // Adresse (lib/payments.ts, checkoutNotice).
+  let payNotice: PayNotice | null = null;
+  if (payment && member.status === "active") {
+    if (zahlung === "fehler") payNotice = "failed";
+    else if (zahlung === "1") payNotice = await checkoutNotice(member.id, payment);
+  }
   const statusPanel = (
     <StatusPanel
       status={member.status}
@@ -98,7 +101,7 @@ export default async function MitgliederPage({
       fullName={member.name}
       payEnabled={isMollieConfigured()}
       hasSubscription={Boolean(member.mollieSubscriptionId)}
-      justReturned={justReturned}
+      payNotice={payNotice}
       feeExempt={member.feeExempt}
     />
   );
@@ -119,7 +122,7 @@ export default async function MitgliederPage({
   // Die Rangliste zeigt nur aufgenommene Mitglieder — offene Antraege haben
   // dort nichts verloren.
   const [membersResult, votesResult] = await Promise.all([
-    sql<MemberRow>`select id, name, joined_at from members where status = 'active' order by id asc`,
+    sql<MemberRow>`select id, name, joined_at::text as joined_at from members where status = 'active' order by id asc`,
     sql<{ member_id: number; training_date: string; present: boolean }>`
       select member_id, training_date::text as training_date, present
       from attendance_votes
@@ -142,10 +145,16 @@ export default async function MitgliederPage({
   // Mitgliedern nur Name und Anwesenheitsquote. MemberProfile ist eine
   // Client-Komponente — alles in `ranked` ist im Seitenquelltext lesbar,
   // auch was sie nicht anzeigt.
+  //
+  // joined_at als Text (31.10.2026): `pg` machte aus der date-Spalte
+  // Mitternacht in der Zeitzone des Servers, lib/attendance.ts rechnet jetzt
+  // mit Wiener Kalendertagen. Ein `now` fuer alle, damit eine Seite nicht
+  // ueber Mitternacht zwei verschiedene "heute" mischt.
+  const now = new Date();
   const ranked = membersResult
     .map((m) => {
       const votes = votesByMember.get(m.id) ?? [];
-      const { presentDays, attendancePct, reliabilityPct } = computeStats(new Date(m.joined_at), votes);
+      const { presentDays, attendancePct, reliabilityPct } = computeStats(m.joined_at, votes, now);
       return { id: m.id, name: m.name, stats: { presentDays, attendancePct, reliabilityPct } };
     })
     .sort((a, b) => {
@@ -156,7 +165,7 @@ export default async function MitgliederPage({
     });
 
   const me = ranked.find((m) => m.id === memberId);
-  const trainingDate = toDateOnly(mostRecentTrainingDay(new Date()));
+  const trainingDate = currentVoteDay(now);
   const myVote = (votesByMember.get(memberId) ?? []).find(
     (v) => v.training_date === trainingDate
   );

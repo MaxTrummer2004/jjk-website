@@ -105,7 +105,7 @@ export default function BedingungenPage(): ReactNode {
           Monatsersten auf das Vereinskonto überwiesen (Jiu Jitsu Kaisen Akademie, IBAN AT56 2081
           5000 4769 9848, BIC STSPAT2GXXX), Verwendungszweck: Ihr Name und
           &bdquo;Mitgliedsbeitrag&ldquo;. Einschreibgebühr und 10er-Block können Sie im
-          Mitgliederbereich online per EPS-Überweisung über den Zahlungsdienstleister Mollie B.V.
+          Mitgliederbereich online über den Zahlungsdienstleister Mollie B.V.
           (Amsterdam) bezahlen, per Überweisung oder bar im Training.
         </p>
       </section>

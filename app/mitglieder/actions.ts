@@ -15,7 +15,7 @@ import {
   verifyPassword,
 } from "@/lib/auth";
 import { getCurrentMember } from "@/lib/members";
-import { mostRecentTrainingDay, toDateOnly } from "@/lib/attendance";
+import { currentVoteDay } from "@/lib/attendance";
 import { clientIp, hit, refund, type Limit } from "@/lib/rate-limit";
 import { hashSetupToken } from "@/lib/setup-token";
 
@@ -235,7 +235,10 @@ export async function voteAction(
   const memberId = member.id;
 
   const present = formData.get("present") === "true";
-  const trainingDate = toDateOnly(mostRecentTrainingDay(new Date()));
+  // Wiener Kalendertag, nicht der des Servers (lib/attendance.ts, 31.10.2026).
+  // Dieselbe Rechnung wie das angezeigte Datum in page.tsx; nur wer die Seite
+  // ueber Mitternacht offen laesst, stimmt fuer den neuen Tag ab.
+  const trainingDate = currentVoteDay();
 
   await sql`
     insert into attendance_votes (member_id, training_date, present)

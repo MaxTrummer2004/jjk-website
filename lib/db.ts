@@ -77,6 +77,15 @@ function getPool(): Pool {
       // erlaubt die Datenbank weiterhin Klartextverbindungen von anderswo.
       ssl: { rejectUnauthorized: false },
     });
+    // Fehler einer Verbindung, die gerade im Pool wartet (31.10.2026): die
+    // Datenbank startet neu, Scalingo schliesst sie bei einer Wartung. `pg`
+    // meldet das als "error"-Ereignis am Pool, und ohne Zuhoerer wird daraus
+    // ein uncaughtException mit Stacktrace im Log. Der Pool wirft die
+    // Verbindung ohnehin weg und baut beim naechsten Query eine neue; hier
+    // bleibt nur eine Zeile. Nur Code und Meldung — keine Query, keine Werte.
+    pool.on("error", (err: Error & { code?: string }) => {
+      console.error("[db] Verbindung im Leerlauf verloren", err.code ?? "-", err.message);
+    });
   }
   return pool;
 }

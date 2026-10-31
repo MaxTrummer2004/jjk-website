@@ -22,7 +22,10 @@ export function VoteForm({
   return (
     <div className="rounded-3xl border border-accent/25 bg-card p-5 sm:p-6">
       <p className="text-sm font-medium text-foreground-dim">
-        {currentVote === null ? "War da:" : "Wart da:"}{" "}
+        {/* Vorher "War da:" bzw. "Wart da:" — Tippfehler, und nach "War
+            nicht da" stand trotzdem "da" (31.10.2026). Jetzt Frage, solange
+            offen, danach der gespeicherte Stand in beide Richtungen. */}
+        {currentVote === null ? "Warst du da?" : currentVote ? "Warst da:" : "Warst nicht da:"}{" "}
         <span className="text-foreground">{trainingDateLabel}</span>
       </p>
       <div className="mt-3 flex gap-3">

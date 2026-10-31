@@ -90,14 +90,29 @@ export function dueCents(plan: Plan, reducedVerified: boolean): number {
  * nachsieht, soll den neuen Monat sehen.
  */
 export function monthKey(date: Date): string {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Vienna",
-    year: "numeric",
-    month: "2-digit",
-  }).formatToParts(date);
+  return `${viennaDate(date).slice(0, 7)}-01`;
+}
+
+const VIENNA_DAY = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Vienna",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/**
+ * Kalendertag in Wien als YYYY-MM-DD (31.10.2026). Dieselbe Rechnung wie
+ * monthKey, jetzt fuer den Tag: Anwesenheit (lib/attendance.ts) und das
+ * Beitrittsdatum bei der Aufnahme haengen daran. Vorher nahmen sie die Zeit
+ * des Servers bzw. `current_date` der Datenbank — auf Scalingo UTC, also
+ * zwischen 0 und 2 Uhr Wiener Zeit noch der Vortag.
+ */
+export function viennaDate(date: Date): string {
+  const parts = VIENNA_DAY.formatToParts(date);
   const y = parts.find((p) => p.type === "year")?.value ?? "1970";
   const m = parts.find((p) => p.type === "month")?.value ?? "01";
-  return `${y}-${m}-01`;
+  const d = parts.find((p) => p.type === "day")?.value ?? "01";
+  return `${y}-${m}-${d}`;
 }
 
 const MONTHS = [
