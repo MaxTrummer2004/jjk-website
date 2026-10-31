@@ -606,22 +606,81 @@ export function StreetMap({
       canvas.height = Math.round(h * dpr);
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
-      if (data) draw(progress.get());
+      if (data) paint(progress.get());
     };
 
     let complained = false;
-    const tick = (): void => {
-      if (dead) return;
+    // Zeichnet nur noch, wenn sich etwas geaendert hat (31.10.2026).
+    //
+    // Vorher zeichnete tick() in JEDEM Bild die ganze Karte neu, auch wenn
+    // niemand scrollte und auch, wenn die Karte gar nicht im Bild war. Auf
+    // schwacher Grafik ist das teuer: gemessen in headless Chromium mit
+    // Software-Rendering haengt der Hauptfaden pro Bild 2 bis 3,5 s in
+    // "GPU backpressure" (CanvasRenderingContext2D::FinalizeFrame), und
+    // das schon waehrend des Loaders, weil die Karte unten in den Hero ragt.
+    // Der Zaehler dort brauchte so ueber 90 s statt 2,2.
+    //
+    // Was ein Bild bestimmt, steht vollstaendig in draw(): der Fortschritt,
+    // w/h/dpr, ob schmal (`wide`), die gemessenen Plattengroessen `sizes` und
+    // ob die Platten schon im DOM haengen. Die ersten vier werden hier
+    // verglichen, `sizes` per Identitaet — es wird nur durch Neuzuweisung
+    // geaendert (remeasure, layout, Neumessen in draw). Solange noch eine
+    // Platte fehlt oder am Handy eine mit Breite 0 gemessen ist, zeichnet
+    // tick() weiter jedes Bild, genau wie vorher: draw() holt das selbst im
+    // naechsten Bild nach. Gleiche Eingaben, gleiche Pixel — die Canvas
+    // behaelt ihren Inhalt, und die Stile der Platten bleiben stehen.
+    let last: { v: number; w: number; h: number; dpr: number; narrow: boolean; sizes: unknown } | null = null;
+    const settled = (): boolean => {
+      if (!data) return false;
+      for (let i = 0; i < data.marks.length; i++) if (!markRefs.current[i]) return false;
+      if (wide.matches) return true;
+      return sizes.length === data.marks.length && sizes.every((z) => z.w > 0);
+    };
+    const paint = (v: number): void => {
       try {
-        draw(progress.get());
+        draw(v);
       } catch (err) {
         if (!complained) {
           complained = true;
           console.error("[StreetMap] Fehler beim Zeichnen:", err);
         }
       }
+      last = settled() ? { v, w, h, dpr, narrow: !wide.matches, sizes } : null;
+    };
+    // Ausserhalb des Bildes laeuft gar keine Schleife. 100 % Vorlauf oben und
+    // unten, damit sie ein Bild frueher anlaeuft, als die Karte sichtbar
+    // wird — der IntersectionObserver meldet erst nach dem Layout, und ein
+    // Bild mit altem Stand waere sonst beim Hereinscrollen zu sehen.
+    let visible = false;
+    const tick = (): void => {
+      raf = 0;
+      if (dead || !visible || !data) return;
+      const v = progress.get();
+      const l = last;
+      const changed =
+        !l || l.v !== v || l.w !== w || l.h !== h || l.dpr !== dpr ||
+        l.narrow !== !wide.matches || l.sizes !== sizes;
+      if (changed) paint(v);
       raf = requestAnimationFrame(tick);
     };
+    const run = (): void => {
+      if (!raf && visible && data && !dead) tick();
+    };
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[entries.length - 1];
+        if (!entry) return;
+        visible = entry.isIntersecting;
+        if (visible) {
+          run();
+        } else if (raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        }
+      },
+      { rootMargin: "100% 0px" },
+    );
+    io.observe(wrap);
 
     void fetch("/data/graz-streets.json")
       .then((r) => r.json() as Promise<Raw>)
@@ -644,7 +703,7 @@ export function StreetMap({
         requestAnimationFrame(() => {
           if (dead) return;
           layout();
-          tick();
+          run();
         });
       })
       .catch((err: unknown) => {
@@ -657,6 +716,7 @@ export function StreetMap({
     return () => {
       dead = true;
       cancelAnimationFrame(raf);
+      io.disconnect();
       ro.disconnect();
       document.fonts.removeEventListener("loadingdone", remeasure);
     };
