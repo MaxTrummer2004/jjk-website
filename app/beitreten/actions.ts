@@ -6,6 +6,7 @@ import { createSession, hashPassword } from "@/lib/auth";
 import { PLAN_INFO, isAdult, isPlan } from "@/lib/membership";
 import { boardEmails, sendMail } from "@/lib/mail";
 import { clientIp, hit, type Limit } from "@/lib/rate-limit";
+import { MAX, lineError, nameError } from "@/lib/input";
 
 /**
  * Die Beitrittserklaerung, online.
@@ -51,6 +52,8 @@ const TEXT_FIELDS = [
   "guardian_email",
 ] as const;
 
+const NAME_FIELDS = ["first_name", "last_name", "guardian_first_name", "guardian_last_name"] as const;
+
 const BOX_FIELDS = ["reduced", "consent_photos", "consent_whatsapp", "accept_terms"] as const;
 
 /**
@@ -85,6 +88,9 @@ export async function joinAction(prev: JoinState, formData: FormData): Promise<J
   for (const key of BOX_FIELDS) v[key] = formData.get(key) !== null ? "on" : "";
   v.email = (v.email ?? "").toLowerCase();
   v.guardian_email = (v.guardian_email ?? "").toLowerCase();
+  // NFC (31.10.2026): "Jürgen" kommt je nach Tastatur als ein Zeichen oder
+  // als u + Trema. Gleich gespeichert, gleich lang gezaehlt.
+  for (const key of NAME_FIELDS) v[key] = (v[key] ?? "").normalize("NFC");
 
   const password = String(formData.get("password") ?? "");
   const password2 = String(formData.get("password2") ?? "");
@@ -94,6 +100,21 @@ export async function joinAction(prev: JoinState, formData: FormData): Promise<J
   if (!v.first_name || !v.last_name) return fail("Bitte Vor- und Nachnamen angeben.");
   if (!v.address) return fail("Bitte deine Adresse angeben.");
   if (!v.phone) return fail("Bitte eine Telefonnummer angeben.");
+  // Laengen und Zeichen (31.10.2026, Sicherheitsreview): bis dahin ging
+  // jedes Feld in beliebiger Laenge in Datenbank und Vorstandsmail, und der
+  // Vorname in die Bestaetigung an eine unbestaetigte Adresse. Grenzen und
+  // Begruendung in lib/input.ts; join-form.tsx setzt dieselben maxLength.
+  // VOR EMAIL_RE: dessen "[^\s@]+\.[^\s@]+$" probiert bei einer langen
+  // Kette aus Punkten quadratisch viele Aufteilungen durch — gemessen
+  // 2,5 s fuer 40 000 Zeichen, bei 1 MB (Next' Grenze fuer Server Actions)
+  // waeren es Minuten, in denen der Prozess sonst nichts tut.
+  const tooMuch =
+    nameError(v.first_name ?? "", "Der Vorname") ??
+    nameError(v.last_name ?? "", "Der Nachname") ??
+    lineError(v.address ?? "", "Die Adresse", MAX.address) ??
+    lineError(v.phone ?? "", "Die Telefonnummer", MAX.phone) ??
+    lineError(v.email ?? "", "Die E-Mail-Adresse", MAX.email);
+  if (tooMuch) return fail(tooMuch);
   if (!EMAIL_RE.test(v.email ?? "")) return fail("Die E-Mail-Adresse sieht nicht gültig aus.");
 
   const birth = v.birth_date ?? "";
@@ -109,6 +130,12 @@ export async function joinAction(prev: JoinState, formData: FormData): Promise<J
         "Du bist unter 18: Bitte Namen und Telefonnummer eines Erziehungsberechtigten angeben."
       );
     }
+    const guardianTooMuch =
+      nameError(v.guardian_first_name ?? "", "Der Vorname des Erziehungsberechtigten") ??
+      nameError(v.guardian_last_name ?? "", "Der Nachname des Erziehungsberechtigten") ??
+      lineError(v.guardian_phone ?? "", "Die Telefonnummer des Erziehungsberechtigten", MAX.phone) ??
+      lineError(v.guardian_email ?? "", "Die E-Mail-Adresse des Erziehungsberechtigten", MAX.email);
+    if (guardianTooMuch) return fail(guardianTooMuch);
     if (v.guardian_email && !EMAIL_RE.test(v.guardian_email)) {
       return fail("Die E-Mail-Adresse des Erziehungsberechtigten sieht nicht gültig aus.");
     }
@@ -193,8 +220,15 @@ export async function joinAction(prev: JoinState, formData: FormData): Promise<J
     sendMail({
       to: v.email,
       subject: "Dein Beitrittsantrag ist angekommen",
+      // "Hallo," ohne Namen (31.10.2026): die Adresse ist unbestaetigt, der
+      // Name frei eingegeben. Auch nach der Pruefung oben bliebe er Text,
+      // den ein Fremder in eine von uns signierte Mail an ein fremdes
+      // Postfach schreibt ("Max, ruf sofort 0664… an"). Ohne ihn steht in
+      // dieser Mail kein einziges frei eingegebenes Zeichen mehr — der
+      // Tarif kommt aus PLAN_INFO. Persoenlich wird erst die Aufnahme-Mail,
+      // nachdem der Vorstand den Antrag gesehen hat.
       text: [
-        `Hallo ${v.first_name},`,
+        "Hallo,",
         "",
         "danke für deinen Antrag bei der Jiu Jitsu Kaisen Akademie. Er ist bei uns angekommen.",
         "",
