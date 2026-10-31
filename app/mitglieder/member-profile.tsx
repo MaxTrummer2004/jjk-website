@@ -1,45 +1,34 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { MotionConfig, motion, type Variants } from "motion/react";
 import { TransitionLink } from "@/components/transition-link";
-import {
-  AnimatePresence,
-  motion,
-  useReducedMotion,
-  type Variants,
-} from "motion/react";
-import { LogOut } from "lucide-react";
+import { useReducedMotion } from "@/lib/motion";
 import { VoteForm } from "./vote-form";
+import { ChangePassword } from "./change-password";
 import { logoutAction } from "./actions";
 import { HomeLink } from "./home-link";
 
-const container: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.7,
-      ease: [0.22, 1, 0.36, 1],
-      staggerChildren: 0.07,
-      delayChildren: 0.15,
-    },
-  },
-};
+/**
+ * Der Mitgliederbereich nach der Aufnahme (Umbau 31.10.2026, Begruendung
+ * ausfuehrlich in app/globals.css unter "DER MITGLIEDERBEREICH").
+ *
+ * Kurz: Kopfzeile ueber die volle Breite (Rolle, Name, rechts die vier
+ * Verweise), darunter ab lg zwei Spalten — links Abstimmung, Zahlen, Beitrag,
+ * rechts Podium und EINE Rangliste. Vorher gab es zwei Navigationen
+ * uebereinander (Profil | Rangliste oben, Abstimmung | Rangliste | Podium in
+ * der Karte) und damit zwei Ranglisten mit verschiedenen Spalten. Jetzt steht
+ * alles gleichzeitig da; es sind bei 1440 px 1136 px Breite, und die
+ * Rangliste braucht keinen Klick mehr.
+ *
+ * Kein Avatar mehr. Die Initialen im leuchtenden Kreis waren die einzige
+ * runde Form und der einzige Glanz auf der Seite und sagten nichts, was der
+ * Name daneben nicht schon sagt. Ein Siegel als Ersatz waere eine zweite
+ * Bedeutung fuer die Hanko-Form, die oben auf der Startseite der Eingang
+ * HIERHER ist.
+ */
 
-const item: Variants = {
-  hidden: { opacity: 0, y: 14 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
-  },
-};
-
-const tabs = ["Abstimmung", "Rangliste", "Podium"] as const;
-type Tab = (typeof tabs)[number];
-
-const medals = ["🥇", "🥈", "🥉"];
+const ease = [0.22, 1, 0.36, 1] as const;
 
 interface MemberStats {
   presentDays: number;
@@ -56,47 +45,49 @@ interface RankedMember {
 interface Props {
   memberId: number;
   name: string;
-  /** Unter dem Namen, z. B. "Alle Kurse Flex". Ersetzt das fruehere "@benutzername". */
-  subtitle: string;
+  /** Augenbraue ueber dem Namen: Rolle, bei Mitgliedern mit dem Tarif. */
+  eyebrow: string;
   /** Der Statusblock (app/mitglieder/status-panel.tsx), vom Server gerendert. */
   status: ReactNode;
-  /** Nur fuer den Vorstand: Link auf /vorstand. */
+  /** Nur fuer den Vorstand: Verweis auf /vorstand. */
   boardLink: boolean;
-  /** Klein unter dem Abmelden-Knopf, z. B. "Passwort ändern". */
-  footer?: ReactNode;
   stats: MemberStats;
   ranked: RankedMember[];
   trainingDateLabel: string;
+  /** Der Abstimmungstag ist heute (nicht der letzte Trainingstag davor). */
+  isToday: boolean;
   currentVote: boolean | null;
 }
-
-type View = "profil" | "rangliste";
 
 export function MemberProfile({
   memberId,
   name,
-  subtitle,
+  eyebrow,
   status,
   boardLink,
-  footer,
   stats,
   ranked,
   trainingDateLabel,
+  isToday,
   currentVote,
-}: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>("Abstimmung");
-  const [view, setView] = useState<View>("profil");
-  const reduceMotion = useReducedMotion();
+}: Props): ReactNode {
+  const [pwOpen, setPwOpen] = useState(false);
+  const reduce = useReducedMotion();
 
-  const initials = name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  // Zurueckhaltend: die Bloecke blenden nacheinander ein und heben sich um
+  // 10 px. Bei "weniger Bewegung" nur die Blende, ohne Weg und ohne Versatz.
+  // MotionConfig "user" sichert dasselbe ab, falls der erste Render noch den
+  // Server-Wert (false) aus lib/motion.tsx sieht.
+  const block: Variants = {
+    hidden: { opacity: 0, y: reduce ? 0 : 10 },
+    visible: { opacity: 1, y: 0, transition: { duration: reduce ? 0.2 : 0.5, ease } },
+  };
+  const page: Variants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: reduce ? 0 : 0.06 } },
+  };
 
   const podium = ranked.slice(0, 3);
-
   const profileStats = [
     { value: String(stats.presentDays), label: "Trainings" },
     { value: `${stats.attendancePct}%`, label: "Anwesenheit" },
@@ -104,330 +95,154 @@ export function MemberProfile({
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="min-h-screen w-full px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24"
-    >
-      {/* Statusblock: Zahlungsstand, rot oder gruen. Steht ueber allem, weil
-          er das Einzige auf der Seite ist, das etwas von einem verlangt. */}
-      <div className="mx-auto mb-8 w-full max-w-lg">{status}</div>
-
-      {boardLink ? (
-        <div className="mx-auto mb-8 flex w-full max-w-lg justify-center">
-          <TransitionLink
-            href="/vorstand"
-            className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card-plate px-5 text-sm font-medium text-foreground transition-colors hover:border-border-hot"
-          >
-            Vorstandsbereich →
-          </TransitionLink>
-        </div>
-      ) : null}
-
-      {/* View switcher */}
-      <div className="mx-auto mb-8 flex w-full max-w-lg rounded-full border border-white/10 bg-white/[0.04] p-1">
-        {(["profil", "rangliste"] as View[]).map((v) => (
-          <button
-            key={v}
-            type="button"
-            onClick={() => setView(v)}
-            className={`relative flex-1 cursor-pointer rounded-full px-3 py-2 text-sm font-medium capitalize transition-colors duration-200 focus-visible:outline-none ${
-              view === v ? "text-accent-foreground" : "text-foreground-dim hover:text-foreground"
-            }`}
-          >
-            {view === v && (
-              <motion.span
-                layoutId="viewTab"
-                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-0 rounded-full"
-                style={{ background: "var(--accent)" }}
-              />
-            )}
-            <span className="relative z-10">{v === "profil" ? "Profil" : "Rangliste"}</span>
-          </button>
-        ))}
-      </div>
-
-      <AnimatePresence mode="wait" initial={false}>
-        {view === "profil" ? (
-          <motion.div
-            key="profil"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="flex w-full items-start lg:items-center"
-          >
-      <div className="mx-auto flex w-full max-w-[1400px] items-center justify-center">
+    <MotionConfig reducedMotion="user">
+      <main id="main-content" className="min-h-screen w-full bg-background-deep">
         <motion.div
-          variants={container}
+          variants={page}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-white/10 shadow-2xl shadow-black/40"
-          style={{ background: "var(--card)" }}
+          animate="visible"
+          className="mx-auto w-full max-w-[75rem] px-4 py-12 sm:px-8 sm:py-16 lg:py-20"
         >
-          {/* Spotlight glow */}
-          <motion.div
-            aria-hidden="true"
-            animate={{ opacity: reduceMotion ? 0.6 : [0.45, 0.8, 0.45] }}
-            transition={
-              reduceMotion
-                ? { duration: 0 }
-                : { duration: 7, repeat: Infinity, ease: "easeInOut" }
-            }
-            className="pointer-events-none absolute -top-28 left-1/2 h-64 w-[30rem] max-w-none -translate-x-1/2 rounded-full blur-3xl"
-            style={{ background: "color-mix(in srgb, var(--accent) 18%, transparent)", opacity: 0.6 }}
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-12 top-0 h-px"
-            style={{ background: "linear-gradient(to right, transparent, color-mix(in srgb, var(--accent) 40%, transparent), transparent)" }}
-          />
-
-          <div className="relative px-6 pb-6 pt-8 sm:px-8 sm:pb-8 sm:pt-10">
-            {/* Avatar */}
-            <motion.div variants={item} className="relative mx-auto h-24 w-24">
-              <div
-                aria-hidden="true"
-                className="absolute -inset-2 rounded-full blur-xl"
-                style={{ background: "color-mix(in srgb, var(--accent) 25%, transparent)" }}
-              />
-              <div
-                className="relative flex h-full w-full items-center justify-center rounded-full p-[3px]"
-                style={{ background: "linear-gradient(to bottom, color-mix(in srgb, var(--accent) 50%, transparent), color-mix(in srgb, var(--accent) 10%, transparent))" }}
+          <motion.header
+            variants={block}
+            className="flex flex-col gap-5 border-b border-border pb-7 lg:flex-row lg:items-end lg:justify-between lg:gap-10 lg:pb-9"
+          >
+            <div className="min-w-0">
+              <p className="jjk-mb-eyebrow">{eyebrow}</p>
+              <h1 className="jjk-section-title mt-3 wrap-break-word">{name}</h1>
+            </div>
+            <nav aria-label="Konto" className="jjk-mb-links lg:shrink-0 lg:justify-end">
+              {boardLink ? (
+                <TransitionLink href="/vorstand" className="jjk-mb-link">
+                  Vorstandsbereich <span aria-hidden="true">→</span>
+                </TransitionLink>
+              ) : null}
+              <button
+                type="button"
+                className="jjk-mb-link"
+                aria-expanded={pwOpen}
+                aria-controls="passwort"
+                onClick={() => setPwOpen((o) => !o)}
               >
-                <div
-                  className="flex h-full w-full items-center justify-center rounded-full text-2xl font-bold text-accent"
-                  style={{ background: "var(--background-deep)" }}
-                >
-                  {initials}
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Name */}
-            <motion.div variants={item} className="mt-5 text-center">
-              <h1 className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl" style={{ fontFamily: "var(--font-display)" }}>
-                {name}
-              </h1>
-              <p className="mt-1.5 text-sm text-foreground-dim">{subtitle} · JJK Academy</p>
-            </motion.div>
-
-            {/* Stats */}
-            <motion.div
-              variants={item}
-              className="mt-7 flex items-stretch justify-center divide-x divide-white/10 border-y border-white/10 py-4"
-            >
-              {profileStats.map((stat) => (
-                <div key={stat.label} className="px-5 text-center sm:px-7">
-                  <p className="text-lg font-semibold tabular-nums tracking-tight text-foreground">
-                    {stat.value}
-                  </p>
-                  <p className="mt-0.5 text-xs text-foreground-dim">{stat.label}</p>
-                </div>
-              ))}
-            </motion.div>
-
-            {/* Tabs */}
-            <motion.div
-              variants={item}
-              role="group"
-              aria-label="Mitgliederbereich"
-              className="mt-6 flex rounded-full border border-white/10 bg-white/[0.04] p-1"
-            >
-              {tabs.map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setActiveTab(tab)}
-                  aria-pressed={activeTab === tab}
-                  className={`relative flex-1 cursor-pointer rounded-full px-3 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
-                    activeTab === tab ? "text-accent-foreground" : "text-foreground-dim hover:text-foreground"
-                  }`}
-                >
-                  {activeTab === tab && (
-                    <motion.span
-                      layoutId="memberTab"
-                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute inset-0 rounded-full"
-                      style={{ background: "var(--accent)" }}
-                    />
-                  )}
-                  <span className="relative z-10">{tab}</span>
-                </button>
-              ))}
-            </motion.div>
-
-            {/* Tab content */}
-            <motion.div variants={item} className="relative mt-4">
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  {activeTab === "Abstimmung" && (
-                    <VoteForm
-                      trainingDateLabel={trainingDateLabel}
-                      currentVote={currentVote}
-                    />
-                  )}
-
-                  {activeTab === "Rangliste" && (
-                    <div className="max-h-52 overflow-y-auto rounded-2xl border border-white/10 bg-white/[0.03]">
-                      {ranked.map((m, i) => (
-                        <div
-                          key={m.id}
-                          className="flex items-center gap-3 border-b border-white/5 px-4 py-2.5 last:border-0 text-sm"
-                          style={
-                            m.id === memberId
-                              ? { backgroundColor: "color-mix(in srgb, var(--accent) 12%, transparent)" }
-                              : undefined
-                          }
-                        >
-                          <span className="w-5 shrink-0 text-center text-xs tabular-nums text-foreground-dim">{i + 1}</span>
-                          <span className="flex-1 truncate font-medium text-foreground">{m.name}</span>
-                          <span className="tabular-nums text-foreground-dim">{m.stats.presentDays}</span>
-                          <span className="w-12 text-right tabular-nums text-foreground-dim">{m.stats.attendancePct}%</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {activeTab === "Podium" && (
-                    <div className="flex flex-col gap-2.5">
-                      {podium.map((m, i) => (
-                        <div
-                          key={m.id}
-                          className="flex items-center gap-3.5 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3"
-                          style={
-                            i === 0
-                              ? { borderColor: "rgba(255,215,0,0.3)" }
-                              : i === 1
-                                ? { borderColor: "rgba(224,224,224,0.2)" }
-                                : { borderColor: "rgba(205,127,50,0.3)" }
-                          }
-                        >
-                          <span className="text-xl">{medals[i]}</span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-medium text-foreground">{m.name}</span>
-                            <span className="block truncate text-xs text-foreground-dim">{m.stats.presentDays} Trainings · {m.stats.attendancePct}%</span>
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </motion.div>
-
-            {/* Logout */}
-            <motion.div variants={item} className="mt-3">
-              <form action={logoutAction}>
-                <motion.button
-                  type="submit"
-                  whileTap={{ scale: 0.985 }}
-                  className="inline-flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
-                  style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}
-                >
-                  <LogOut className="h-4 w-4" />
+                Passwort ändern
+              </button>
+              <form action={logoutAction} className="contents">
+                <button type="submit" className="jjk-mb-link">
                   Abmelden
-                </motion.button>
+                </button>
               </form>
-            </motion.div>
-            {footer ? <div className="mt-4">{footer}</div> : null}
+              <HomeLink className="jjk-mb-link" />
+            </nav>
+          </motion.header>
+
+          {/* Das Formular bleibt eingehaengt, wenn es zu ist: so steht
+              "Passwort geändert." noch da, wenn man es wieder aufklappt, und
+              ein halb getipptes Passwort ist nicht weg. */}
+          <ChangePassword id="passwort" open={pwOpen} />
+
+          <div className="mt-8 grid gap-12 lg:mt-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,6fr)] lg:gap-14">
+            <div className="flex min-w-0 flex-col gap-8">
+              <motion.div variants={block}>
+                <VoteForm
+                  trainingDateLabel={trainingDateLabel}
+                  isToday={isToday}
+                  currentVote={currentVote}
+                />
+              </motion.div>
+
+              <motion.section variants={block} aria-label="Deine Zahlen">
+                <dl className="jjk-mb-stats">
+                  {profileStats.map((s) => (
+                    <div key={s.label} className="jjk-mb-stat">
+                      <dt>{s.label}</dt>
+                      <dd>{s.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                  Zuverlässigkeit zählt, wie oft abgestimmt wurde. Jede 5. verpasste Abstimmung
+                  wird verziehen.
+                </p>
+              </motion.section>
+
+              <motion.div variants={block}>{status}</motion.div>
+            </div>
+
+            <div className="flex min-w-0 flex-col gap-10">
+              {podium.length > 0 ? (
+                <motion.section variants={block} aria-labelledby="podium-title">
+                  <h2 id="podium-title" className="jjk-mb-eyebrow">
+                    Podium
+                  </h2>
+                  <ol className="jjk-mb-podium mt-4">
+                    {podium.map((m, i) => (
+                      <li key={m.id} data-first={i === 0 ? "" : undefined}>
+                        <span className="jjk-mb-podium-rank">{i + 1}</span>
+                        <span className="jjk-mb-podium-name">{m.name}</span>
+                        <span className="jjk-mb-podium-meta">
+                          {m.stats.presentDays} Trainings · {m.stats.attendancePct}%
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                </motion.section>
+              ) : null}
+
+              <motion.section variants={block} aria-labelledby="rangliste-title">
+                <h2 id="rangliste-title" className="jjk-mb-eyebrow">
+                  Rangliste
+                </h2>
+                <div className="jjk-mb-rank-wrap jjk-mb-plate mt-4">
+                  <table className="jjk-mb-rank">
+                    <colgroup>
+                      <col className="jjk-mb-rank-pos" />
+                      <col />
+                      <col className="jjk-mb-rank-num" />
+                      <col className="jjk-mb-rank-num" />
+                      <col className="jjk-mb-rank-num" />
+                    </colgroup>
+                    <thead>
+                      <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Name</th>
+                        <RankHead short="Tr." long="Trainings" />
+                        <RankHead short="Anw." long="Anwesenheit" />
+                        <RankHead short="Zuv." long="Zuverlässigkeit" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ranked.map((m, i) => (
+                        <tr
+                          key={m.id}
+                          data-me={m.id === memberId ? "" : undefined}
+                          aria-current={m.id === memberId ? "true" : undefined}
+                        >
+                          <td>{i + 1}</td>
+                          <td title={m.name}>{m.name}</td>
+                          <td>{m.stats.presentDays}</td>
+                          <td>{m.stats.attendancePct}%</td>
+                          <td>{m.stats.reliabilityPct}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </motion.section>
+            </div>
           </div>
         </motion.div>
-      </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="rangliste"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="mx-auto w-full max-w-4xl"
-          >
-            {/* Podium */}
-            {ranked.length > 0 && (
-              <div className="mb-10">
-                <h2 className="font-display text-xl text-foreground mb-4">Podium</h2>
-                <div className="grid grid-cols-3 gap-3">
-                  {ranked.slice(0, 3).map((m, i) => (
-                    <div
-                      key={m.id}
-                      className="rounded-2xl border p-4 text-center"
-                      style={{
-                        borderColor:
-                          i === 0
-                            ? "rgba(255,215,0,0.4)"
-                            : i === 1
-                              ? "rgba(224,224,224,0.35)"
-                              : "rgba(205,127,50,0.4)",
-                        background: "var(--card)",
-                        transform: i === 0 ? "translateY(-8px)" : undefined,
-                      }}
-                    >
-                      <div className="text-2xl">{medals[i]}</div>
-                      <div className="mt-1 truncate text-sm font-semibold text-foreground">{m.name}</div>
-                      <div className="mt-1 text-lg font-bold text-foreground">{m.stats.presentDays}</div>
-                      <div className="text-[0.6rem] tracking-wide text-foreground-dim uppercase">Trainings</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+      </main>
+    </MotionConfig>
+  );
+}
 
-            {/* Full ranking table */}
-            <h2 className="font-display text-xl text-foreground mb-4">Rangliste</h2>
-            <div className="overflow-x-auto rounded-2xl border border-white/10">
-              <table className="w-full min-w-[480px] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-white/10 text-foreground-dim">
-                    <th className="px-4 py-3 font-medium">#</th>
-                    <th className="px-4 py-3 font-medium">Name</th>
-                    <th className="px-4 py-3 text-right font-medium">Trainings</th>
-                    <th className="px-4 py-3 text-right font-medium">Anwesenheit</th>
-                    <th className="px-4 py-3 text-right font-medium">Zuverlässigkeit</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ranked.map((m, i) => (
-                    <tr
-                      key={m.id}
-                      className="border-b border-white/5 last:border-0"
-                      style={
-                        m.id === memberId
-                          ? { backgroundColor: "color-mix(in srgb, var(--accent) 12%, transparent)" }
-                          : undefined
-                      }
-                    >
-                      <td className="px-4 py-3 text-foreground-dim">{i + 1}</td>
-                      <td className="px-4 py-3 font-medium text-foreground">{m.name}</td>
-                      <td className="px-4 py-3 text-right text-foreground">{m.stats.presentDays}</td>
-                      <td className="px-4 py-3 text-right text-foreground-dim">{m.stats.attendancePct}%</td>
-                      <td className="px-4 py-3 text-right text-foreground-dim">{m.stats.reliabilityPct}%</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="mt-3 text-xs text-foreground-dim">
-              Zuverlässigkeit zählt, wie oft abgestimmt wurde. Jede 5. verpasste Abstimmung wird verziehen.
-            </p>
-
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="mt-8 flex justify-center">
-        <HomeLink />
-      </div>
-    </motion.div>
+function RankHead({ short, long }: { short: string; long: string }): ReactNode {
+  return (
+    <th scope="col">
+      <span className="jjk-mb-th-short" aria-hidden="true">
+        {short}
+      </span>
+      <span className="jjk-mb-th-long">{long}</span>
+    </th>
   );
 }

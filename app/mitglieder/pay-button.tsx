@@ -9,18 +9,27 @@ import { useFormStatus } from "react-dom";
  * (pay-actions.ts, mollie_checkouts); das hier erspart nur den zweiten
  * Request und zeigt, dass etwas passiert — der Weg zu Mollie dauert eine
  * Sekunde, und in der wurde vorher ein zweites Mal getippt.
+ *
+ * Seit 31.10.2026 .jjk-btn-loud statt weisser Pille auf rotem Grund: der
+ * Grund ist jetzt Papier, und dies ist auf der Seite die einzige Flaeche in
+ * vollem Zinnober — genau die Ausnahme, fuer die globals.css die Klasse
+ * vorsieht (eine Handlung, um die es geht). Die Abstimmung bekommt bewusst
+ * keinen zweiten Vollton, siehe .jjk-mb-vote-btn. Die Farbe kommt damit aus
+ * der Klasse, der fruehere `color`-Parameter ist weg.
  */
-export function PayButton({ color, children }: { color: string; children: ReactNode }): ReactNode {
+export function PayButton({ children }: { children: ReactNode }): ReactNode {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
       disabled={pending}
       aria-busy={pending}
-      className="inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-4 text-center text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-70"
-      style={{ color }}
+      className="jjk-btn jjk-btn-loud w-full text-center leading-snug disabled:cursor-wait disabled:opacity-70"
     >
-      {pending ? "Weiter zu Mollie …" : children}
+      {/* Ein Kind fuer .jjk-btn (inline-flex): sonst wird jeder Textteil
+          ein eigenes Flex-Element, und der Betrag stand als zweite Spalte
+          neben dem umbrochenen Text (390 px). */}
+      <span>{pending ? "Weiter zu Mollie …" : children}</span>
     </button>
   );
 }

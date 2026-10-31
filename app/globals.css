@@ -6961,3 +6961,365 @@ html[data-jjk-intro="skip"] .jjk-intro-veil {
   width: 0.62em;
   text-align: center;
 }
+
+/* ==========================================================================
+   DER MITGLIEDERBEREICH (/mitglieder)
+   ==========================================================================
+
+   Umbau 31.10.2026, Rueckmeldung des Auftraggebers zu einem Screenshot bei
+   1920 px: "Layout irgendwie schlecht". Gemessen war da: eine 512 px breite
+   Spalte mitten in 1920 px; die Abstimmung, das Einzige, was man hier jeden
+   Tag tut, als Letztes unter Zahlungsblock, Vorstandsknopf, Avatar, Name und
+   Zahlen (bei 900 px Hoehe unter der Falz); "Rangliste" zweimal, einmal im
+   Umschalter oben und einmal als Reiter in der Karte; dazu rounded-3xl,
+   shadow-2xl, ein glimmender Avatar-Kreis und Ampelflaechen in Gruen, Bernstein
+   und Rot. Nichts davon kommt sonst auf der Seite vor.
+
+   Jetzt dieselbe Sprache wie Preiszeilen, Wochenplan und Rechtsseiten:
+   flaches Papier (--card-plate), eckig, Haarlinien, Mono-Versalien fuer
+   Etiketten, Zinnober nur dort, wo etwas zu tun ist. Ab lg zwei Spalten:
+   links, was nur MICH betrifft (Abstimmung, Zahlen, Beitrag), rechts, was ALLE
+   sehen (Podium, Rangliste). Darunter eine Spalte in genau dieser Reihenfolge.
+
+   Alle Masse stehen hier und nicht als Utilities am Element: diese Klassen
+   liegen ausserhalb von @layer und schlagen jede Tailwind-Klasse, die
+   dieselbe Eigenschaft setzt (Falle 2 in CLAUDE.md). Am Element stehen nur
+   Abstaende nach aussen. */
+
+.jjk-mb-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+/* Etikett ohne Aufforderung (Monat beim bezahlten Beitrag, Abbuchung):
+   dieselbe Zeile in Grau, damit Rot weiter "hier ist etwas zu tun" heisst. */
+.jjk-mb-eyebrow[data-quiet] {
+  color: var(--muted-foreground);
+}
+
+/* Die Kopfzeile rechts: Textverweise statt Knoepfe. Vier Dinge, die man
+   selten braucht (Vorstand, Passwort, Abmelden, Startseite), sollen neben dem
+   Namen stehen und nicht mit der Abstimmung um den Blick konkurrieren —
+   vorher war "Abmelden" der groesste rote Knopf der Seite. Mindesthoehe
+   2,75 rem, damit sie am Handy trotzdem ein Daumenziel sind. */
+.jjk-mb-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 1.6rem;
+  row-gap: 0;
+}
+.jjk-mb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  min-height: 2.75rem;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--foreground-dim);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.35em;
+  transition:
+    color 0.3s ease-out,
+    text-decoration-color 0.3s ease-out;
+}
+.jjk-mb-link:hover,
+.jjk-mb-link[aria-expanded="true"] {
+  color: var(--foreground);
+  text-decoration-color: var(--accent);
+}
+.jjk-mb-link:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Die Platte. Dasselbe Papier wie .jjk-plan, eckig, eine Haarlinie. */
+.jjk-mb-plate {
+  position: relative;
+  background: var(--card-plate);
+  border: 1px solid var(--border);
+}
+/* Hier ist etwas zu tun: die Glutkante der hervorgehobenen Preiszeile
+   (.jjk-plan[data-featured]) — ein Rand, kein Schatten, und keine eigene
+   Warnfarbe. Vorher #dc2626 als volle Flaeche: neben dem Zinnober der Seite
+   nicht zu unterscheiden, und es war die einzige Ampel auf der ganzen Seite. */
+.jjk-mb-plate[data-due] {
+  background: color-mix(in srgb, var(--accent) 7%, var(--card-plate));
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* Die Abstimmung. Die Knoepfe sind .jjk-btn — der gewaehlte behaelt den
+   Zinnoberfaden unten, den .jjk-btn sonst nur beim Zeigen aufzieht, dazu die
+   Kante in Zinnober. So steht die Antwort da, ohne dass ein zweiter roter
+   Vollton (neben dem Bezahlknopf) auf die Seite kommt. */
+.jjk-mb-vote-btn {
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.9em 1em;
+  font-size: 1rem;
+}
+.jjk-mb-vote-btn[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent) 12%, var(--card-plate));
+  border-color: var(--accent);
+}
+.jjk-mb-vote-btn[aria-pressed="true"]::after {
+  scale: 1 1;
+}
+.jjk-mb-vote-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+/* Drei Zahlen in einer Zeile, Haarlinien dazwischen — gebaut wie
+   .jjk-plan-amt: Etikett oben, Zahl darunter. Am Handy richten sich die
+   Spalten nach ihrem Inhalt statt nach Dritteln: "ZUVERLAESSIGKEIT" ist in
+   der Mono 104 px breit, ein Drittel von 360 px abzueglich Rand nur 93. */
+.jjk-mb-stats {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: start;
+  margin: 0;
+  border-block: 1px solid var(--border);
+}
+.jjk-mb-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1rem 1.1rem 1.05rem;
+}
+.jjk-mb-stat:first-child {
+  padding-left: 0;
+}
+.jjk-mb-stat + .jjk-mb-stat {
+  border-left: 1px solid var(--border);
+}
+.jjk-mb-stat dt {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.jjk-mb-stat dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--foreground);
+}
+@media (min-width: 640px) {
+  .jjk-mb-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .jjk-mb-stat {
+    padding: 1.15rem 1.5rem 1.2rem;
+  }
+  .jjk-mb-stat dd {
+    font-size: 2.4rem;
+  }
+}
+
+/* Podium: drei Felder in einem geteilten Panel, Ein-Pixel-Fugen ueber dem
+   Rahmenton wie .jjk-week und .jjk-plans. Die Platzziffer in der
+   Anzeigeschrift ersetzt die drei Medaillen-Emoji und die Gold-, Silber- und
+   Bronzeraender: Emoji sind farbig und in keiner der vier Schriften. Platz 1
+   bekommt die Glutkante oben und die Ziffer in Zinnober. */
+.jjk-mb-podium {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.jjk-mb-podium li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 0.9rem 0.85rem 1rem;
+  background: var(--card-plate);
+}
+.jjk-mb-podium li[data-first] {
+  background: color-mix(in srgb, var(--accent) 7%, var(--card-plate));
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+.jjk-mb-podium-rank {
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--foreground-dim);
+}
+.jjk-mb-podium li[data-first] .jjk-mb-podium-rank {
+  color: var(--accent-bright);
+}
+.jjk-mb-podium-name {
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+.jjk-mb-podium-meta {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+@media (min-width: 640px) {
+  .jjk-mb-podium li {
+    padding: 1.1rem 1.2rem 1.2rem;
+  }
+  .jjk-mb-podium-rank {
+    font-size: 2.6rem;
+  }
+}
+
+/* Die Rangliste. Eine Tabelle, weil es eine ist — vorher zwei Listen mit
+   verschiedenen Spalten (Reiter in der Karte: drei Zahlen, Ansicht oben:
+   vier). Die Spaltenkoepfe richten sich nach der Breite der SPALTE, nicht des
+   Fensters: bei 1024 px ist die rechte Spalte 417 px schmal, am Tablet die
+   einspaltige Liste 700 px breit. Daher eine Container-Abfrage. Unter 30 rem
+   stehen sichtbar die Abkuerzungen, der volle Name bleibt fuer Screenreader
+   im Kopf. */
+.jjk-mb-rank-wrap {
+  container-type: inline-size;
+}
+.jjk-mb-rank {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.jjk-mb-rank col.jjk-mb-rank-pos {
+  width: 2.4rem;
+}
+.jjk-mb-rank col.jjk-mb-rank-num {
+  width: 3.4rem;
+}
+.jjk-mb-rank th {
+  padding: 0.75rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: right;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.jjk-mb-rank td {
+  padding: 0.7rem 0.5rem;
+  text-align: right;
+  color: var(--foreground-dim);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+}
+.jjk-mb-rank tr:last-child td {
+  border-bottom: 0;
+}
+.jjk-mb-rank th:nth-child(-n + 2),
+.jjk-mb-rank td:nth-child(-n + 2) {
+  text-align: left;
+}
+.jjk-mb-rank th:first-child,
+.jjk-mb-rank td:first-child {
+  padding-left: 0.9rem;
+}
+.jjk-mb-rank th:last-child,
+.jjk-mb-rank td:last-child {
+  padding-right: 0.9rem;
+}
+.jjk-mb-rank td:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  color: var(--foreground);
+}
+.jjk-mb-rank td:nth-child(3) {
+  color: var(--foreground);
+}
+/* Die eigene Zeile: dieselbe Glutkante wie die faellige Platte. */
+.jjk-mb-rank tr[data-me] td {
+  background: color-mix(in srgb, var(--accent) 9%, var(--card-plate));
+}
+.jjk-mb-rank tr[data-me] td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.jjk-mb-th-long {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@container (min-width: 30rem) {
+  .jjk-mb-th-short {
+    display: none;
+  }
+  .jjk-mb-th-long {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+  .jjk-mb-rank col.jjk-mb-rank-pos {
+    width: 2.8rem;
+  }
+  /* Je so breit wie ihr Kopf in der Mono: 9, 11 und 15 Zeichen. */
+  .jjk-mb-rank col.jjk-mb-rank-num:nth-child(3) {
+    width: 5.2rem;
+  }
+  .jjk-mb-rank col.jjk-mb-rank-num:nth-child(4) {
+    width: 6.2rem;
+  }
+  .jjk-mb-rank col.jjk-mb-rank-num:nth-child(5) {
+    width: 7.6rem;
+  }
+}
+
+/* Eingabefelder fuer "Passwort aendern". .jjk-field passt nicht: es ist fuer
+   Feld-und-Knopf-in-einer-Zeile gebaut (flex:1, kein rechter Rand). */
+.jjk-mb-input {
+  display: block;
+  width: 100%;
+  height: 2.75rem;
+  padding: 0 0.85rem;
+  font-size: 0.95rem;
+  color: var(--foreground);
+  background: rgba(7, 7, 10, 0.5);
+  border: 1px solid var(--border);
+  transition: border-color 0.3s ease-out;
+}
+.jjk-mb-input::placeholder {
+  color: var(--muted-foreground);
+}
+.jjk-mb-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jjk-mb-link,
+  .jjk-mb-input {
+    transition: none;
+  }
+}

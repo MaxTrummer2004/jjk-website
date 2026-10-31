@@ -5,9 +5,8 @@ import { getCurrentMember, isBoard } from "@/lib/members";
 import { checkoutNotice, getPaymentStatus, type PayNotice } from "@/lib/payments";
 import { isMollieConfigured } from "@/lib/mollie";
 import { StatusPanel } from "./status-panel";
-import { ChangePassword } from "./change-password";
 import { PendingView } from "./pending-view";
-import { computeStats, currentVoteDay, type AttendanceVote } from "@/lib/attendance";
+import { computeStats, currentVoteDay, today, type AttendanceVote } from "@/lib/attendance";
 import { AuthLogin } from "./auth-login";
 import { MemberProfile } from "./member-profile";
 import { DismissTransition } from "@/components/dismiss-transition";
@@ -114,7 +113,7 @@ export default async function MitgliederPage({
     return (
       <>
         <DismissTransition />
-        <PendingView>{statusPanel}</PendingView>
+        <PendingView name={member.name}>{statusPanel}</PendingView>
       </>
     );
   }
@@ -164,6 +163,12 @@ export default async function MitgliederPage({
       return b.stats.reliabilityPct - a.stats.reliabilityPct;
     });
 
+  // Augenbraue ueber dem Namen (31.10.2026): die Rolle, bei Mitgliedern mit
+  // Tarif. Vorher stand der Tarif klein unter dem Namen und "Trainer &
+  // Vorstand" ein zweites Mal als eigene Platte im Statusblock.
+  const role = member.feeExempt ? "Trainer & Vorstand" : isBoard(member) ? "Vorstand" : "Mitglied";
+  const eyebrow = !member.feeExempt && member.plan ? `${role} · ${PLAN_LABEL_SHORT[member.plan]}` : role;
+
   const me = ranked.find((m) => m.id === memberId);
   const trainingDate = currentVoteDay(now);
   const myVote = (votesByMember.get(memberId) ?? []).find(
@@ -176,13 +181,13 @@ export default async function MitgliederPage({
       <MemberProfile
         memberId={memberId}
         name={me?.name ?? member.name}
-        subtitle={member.feeExempt ? "Trainer & Vorstand" : member.plan ? PLAN_LABEL_SHORT[member.plan] : "Mitglied"}
+        eyebrow={eyebrow}
         status={statusPanel}
-        footer={<ChangePassword />}
         boardLink={isBoard(member)}
         stats={me?.stats ?? { presentDays: 0, attendancePct: 0, reliabilityPct: 0 }}
         ranked={ranked}
         trainingDateLabel={formatDateLabel(trainingDate)}
+        isToday={trainingDate === today(now)}
         currentVote={myVote ? myVote.present : null}
       />
     </>

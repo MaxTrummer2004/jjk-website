@@ -29,10 +29,11 @@ export function HomeLink({ className }: { className?: string }): ReactNode {
           /* Ohne Cookie landet man wieder hier — unschoen, aber nicht kaputt. */
         }
       }}
-      className={
-        className ??
-        "inline-flex items-center gap-2 rounded-xl border border-white/10 bg-card px-4 py-2.5 text-sm font-medium text-foreground-dim transition-colors hover:border-white/20 hover:text-foreground"
-      }
+      // Vorgabe eckig wie .jjk-btn (31.10.2026); vorher rounded-xl auf
+      // --card, die letzte runde Kachel im Bereich. Braucht nur noch der
+      // Hinweis "noch nicht eingerichtet" in page.tsx — Kopfzeilen und Login
+      // geben ihre eigene Klasse mit.
+      className={className ?? "jjk-btn jjk-btn-sm jjk-btn-quiet"}
     >
       <span aria-hidden>←</span> Startseite
     </TransitionLink>
