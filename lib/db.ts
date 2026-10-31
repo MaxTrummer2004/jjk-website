@@ -207,7 +207,15 @@ async function createSchema(): Promise<void> {
   // Einschreibgebuehr und den 10er-Block. Der Unique-Index arbeitet mit
   // coalesce, weil Postgres zwei NULLs nicht als gleich ansieht und sonst
   // dieselbe Einschreibgebuehr zweimal eingetragen werden koennte.
+  //
+  // Die Advisory-Sperre vorneweg (31.10.2026): starten zwei Prozesse
+  // gleichzeitig, hielten beide nach dem Unique-Index einen ShareLock auf
+  // payments und warteten dann beide auf den AccessExclusiveLock fuer das
+  // alter table — Deadlock 40P01 in 4 von 60 Laeufen. Der Block laeuft als
+  // eine implizite Transaktion (mehrere Anweisungen in einem query), die
+  // xact-Sperre gilt also genau fuer ihn und loest sich am Ende von selbst.
   await sql.query(`
+    select pg_advisory_xact_lock(727274);
     create table if not exists payments (
       id serial primary key,
       member_id integer not null references members(id) on delete cascade,

@@ -231,7 +231,9 @@ export default function DatenschutzPage(): ReactNode {
           Schluessel hat, kann eine bekannte IP nachrechnen. Deshalb hier als
           personenbezogen behandelt.
           Grenzen: login-ip 50 / 15 min, login-email 8 / 15 min, join-ip
-          20 / h, trial-ip 10 / h, trial-contact 3 / Tag.
+          20 / h, trial-ip 10 / h, trial-contact 3 / Tag, setup-ip 10 / 15 min,
+          pwchange-ip und pwchange-member je 15 min, mollie-unknown-ip
+          120 / 15 min (nur unbekannte Zahlungs-IDs).
           Geloescht wird nicht auf die Minute: rate-limit.ts raeumt Zeilen
           ueber 48 h bei etwa jedem fuenfzigsten Treffer weg. Ohne Verkehr
           bleiben sie entsprechend laenger — daher "nach etwa zwei Tagen".
@@ -239,7 +241,8 @@ export default function DatenschutzPage(): ReactNode {
       <section>
         <h2>Schutz vor Missbrauch</h2>
         <p>
-          Anmeldung, Beitrittserklärung und Probetraining-Anfrage sind gegen
+          Anmeldung, Festlegen und Ändern des Passworts, Beitrittserklärung
+          und Probetraining-Anfrage sind gegen
           massenhafte Nutzung gesichert: gegen das Durchprobieren von
           Passwörtern und dagegen, dass jemand über die Formulare fremde
           Postfächer mit Mails in unserem Namen füllt. Dafür zählt die Website
@@ -334,9 +337,10 @@ export default function DatenschutzPage(): ReactNode {
           <li>
             <strong>Einrichtungslink</strong>: Legt der Vorstand ein Konto
             selbst an (etwa für Trainer, dann beitragsfrei) oder schickt er
-            einen neuen Link zum Festlegen des Passworts, wird dafür ein
-            zufälliger Code gespeichert. Er wird gelöscht, sobald das Passwort
-            festgelegt ist.
+            einen neuen Link zum Festlegen des Passworts, wird dafür nur ein
+            Prüfwert dieses zufälligen Codes gespeichert, nicht der Code
+            selbst. Der Link gilt 72 Stunden und wird gelöscht, sobald das
+            Passwort festgelegt ist.
           </li>
           <li>
             <strong>Zahlungsstand</strong>: je bezahltem Posten
