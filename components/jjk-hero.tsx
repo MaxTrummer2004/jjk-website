@@ -316,7 +316,7 @@ export function JJKHero(): ReactNode {
     introAlreadyPlayed = true;
   }, [prefersReducedMotion, blend]);
 
-  // Progress-Counter: alle 22 ms +1 bis 100 (~2,2 s gesamt).
+  // Progress-Counter: 0 bis 100 in 2,2 s, ein Schritt pro 22 ms.
   //
   // Vorher 30 ms, also 3 s, plus 700 ms Hold plus 1,6 s Uebergang = 5,3 s bis
   // zur Seite. Das ist fuer einen Wiederbesucher lang. Jetzt 2,2 + 0,5 + 1,35
@@ -324,11 +324,39 @@ export function JJKHero(): ReactNode {
   // liest sich das Zaehlen nicht mehr als Zaehlen, sondern als Flackern, und
   // der Crossfade vom Siegel zum Emblem braucht Zeit, um als Verwandlung
   // gelesen zu werden statt als Umschalten.
+  //
+  // Seit 31.10.2026 an der UHR, nicht mehr am Takt. Vorher zaehlte ein
+  // setInterval je Takt +1 — das setzt voraus, dass jeder Takt kommt. Auf
+  // schwacher Grafik kommt er nicht: gemessen in headless Chromium mit
+  // Software-WebGL (SwiftShader, Produktions-Build) haengt der Hauptfaden
+  // pro Frame 2 bis 3,5 s in "GPU backpressure", ausgeloest von der
+  // 2D-Canvas der StreetMap weiter unten, die jedes Bild neu zeichnet. Die
+  // Takte dazwischen fallen aus, nach 90 s stand der Zaehler bei 39. Jetzt
+  // ist der Wert die seit dem Start vergangene Zeit durch 22 ms; ein
+  // ausgefallener Takt verschiebt nichts, der naechste holt auf, die Zahl
+  // springt dann, statt zu stehen. Dieselbe Messung jetzt: 100 nach 5,8 s
+  // (ein einziger Stillstand), ohne die Karte nach 2,6 s — alter Code dort
+  // 3,0 s, das Gefuehl im Normalfall ist also dasselbe.
+  //
+  // Ein Intervall, das die Uhr liest, und nicht requestAnimationFrame: rAF
+  // kommt nur, wenn ein Frame kommt, und die blieben dort sekundenlang aus.
+  // Der Zaehler soll 100 nach der Uhr erreichen, damit Hold und Uebergang
+  // puenktlich anfangen. 16 ms, damit im Normalfall keine Zahl uebersprungen
+  // wird; setProgress nur, wenn sich die ganze Zahl aendert, also hoechstens
+  // 100 Renders wie vorher. Monoton: performance.now() steigt, der Wert ist
+  // auf 100 gekappt, und Math.max haelt ihn auch, falls der Effekt neu
+  // startet (StrictMode im Dev haengt ihn einmal aus und wieder ein).
   useEffect(() => {
     if (phase !== "counting" || prefersReducedMotion) return;
+    const start = performance.now();
+    let shown = 0;
     const id = window.setInterval(() => {
-      setProgress((p) => Math.min(p + 1, 100));
-    }, 22);
+      const value = Math.min(100, Math.floor((performance.now() - start) / 22));
+      if (value === shown) return;
+      shown = value;
+      setProgress((p) => Math.max(p, value));
+      if (value >= 100) window.clearInterval(id);
+    }, 16);
     return () => window.clearInterval(id);
   }, [phase, prefersReducedMotion]);
 
