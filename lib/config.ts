@@ -247,11 +247,13 @@ export type ScheduleClass = {
  * Seit 29.10.2026 (Auftraggeber: "Trainingsplan umaendern nach dem Bild"):
  * sieben Kurse pro Woche — Jiu-Jitsu No-Gi 3x (Mo und Mi 18:00–19:15,
  * Do 19:00–20:00), Jiu-Jitsu Gi 2x (Di 19:00–20:00, Fr 18:00–19:15), Boxen
- * 2x (Di und Do 17:45–18:45). Dazu Mo–Fr 17:00–17:45 "Matte frei" zum
+ * 2x (Di und Do 17:45–19:00; bis 1.11.2026 endete es um 18:45, seither
+ * auf Wunsch des Auftraggebers bis 19:00, also direkt vor der 19-Uhr-
+ * Einheit). Dazu Mo–Fr 17:00–17:45 "Matte frei" zum
  * Drillen eigener Techniken und am Samstag die Open Mat. Alles "Jedes
  * Level", Einstieg jederzeit. Es gibt damit keine gemeinsamen Schienen mehr:
- * Mo/Mi/Fr eine Einheit zu 75 Minuten ab 18:00, Di/Do zwei zu 60 Minuten ab
- * 17:45 und 19:00.
+ * Mo/Mi/Fr eine Einheit zu 75 Minuten ab 18:00, Di/Do Boxen 75 Minuten ab
+ * 17:45 und gleich danach eine Einheit zu 60 Minuten ab 19:00.
  *
  * Die Open Mat hat KEINE feste Zeit, sie wird in der Gruppe ausgemacht.
  * Deshalb steht "Nach Absprache" woertlich in `time`, statt eine Uhrzeit zu
@@ -280,7 +282,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
     day: "Di",
     classes: [
       { time: "17:00–17:45", name: "Matte frei", note: "Zum Drillen eigener Techniken", kind: "frei", level: "jedes" },
-      { time: "17:45–18:45", name: "Boxen", note: "Technik, Partnerübungen & Sparring (für alle, die wollen)", program: "Boxen", kind: "boxen", level: "jedes", attire: "box" },
+      { time: "17:45–19:00", name: "Boxen", note: "Technik, Partnerübungen & Sparring (für alle, die wollen)", program: "Boxen", kind: "boxen", level: "jedes", attire: "box" },
       { time: "19:00–20:00", name: "Jiu-Jitsu Gi", note: "Technik & Sparring im Gi", program: "Jiu-Jitsu Gi", kind: "gi", level: "jedes", attire: "gi" },
     ],
   },
@@ -295,7 +297,7 @@ export const schedule: { day: string; classes: ScheduleClass[] }[] = [
     day: "Do",
     classes: [
       { time: "17:00–17:45", name: "Matte frei", note: "Zum Drillen eigener Techniken", kind: "frei", level: "jedes" },
-      { time: "17:45–18:45", name: "Boxen", note: "Technik, Partnerübungen & Sparring (für alle, die wollen)", program: "Boxen", kind: "boxen", level: "jedes", attire: "box" },
+      { time: "17:45–19:00", name: "Boxen", note: "Technik, Partnerübungen & Sparring (für alle, die wollen)", program: "Boxen", kind: "boxen", level: "jedes", attire: "box" },
       { time: "19:00–20:00", name: "Jiu-Jitsu No-Gi", note: "Technik & Sparring ohne Gi", program: "Jiu-Jitsu No-Gi", kind: "nogi", level: "jedes", attire: "nogi" },
     ],
   },
