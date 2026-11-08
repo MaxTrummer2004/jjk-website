@@ -7350,6 +7350,35 @@ html[data-jjk-intro="skip"] .jjk-intro-veil {
   animation: jjk-cta-ink 48s linear infinite;
 }
 
+.jjk-cta {
+  transition: color 0.45s ease;
+}
+
+/* Hover: rote Tusche-Textur blendet ueber die helle, Schrift wird hell. */
+.jjk-cta-red {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("/img/cta-ink-red.webp");
+  background-size: auto 260%;
+  background-position: 0 50%;
+  background-repeat: repeat-x;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  animation: jjk-cta-ink 48s linear infinite;
+  pointer-events: none;
+}
+
+.jjk-cta:hover,
+.jjk-cta:focus-visible {
+  color: #fff4ec;
+}
+
+.jjk-cta:hover .jjk-cta-red,
+.jjk-cta:focus-visible .jjk-cta-red {
+  opacity: 1;
+}
+
 .jjk-cta::before {
   content: "";
   position: absolute;
@@ -7418,7 +7447,8 @@ html[data-jjk-intro="skip"] .jjk-intro-veil {
 
 @media (prefers-reduced-motion: reduce) {
   .jjk-cta,
-  .jjk-cta::before {
+  .jjk-cta::before,
+  .jjk-cta-red {
     animation: none;
   }
 }

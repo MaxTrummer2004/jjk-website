@@ -549,10 +549,11 @@ export function JJKHero(): ReactNode {
             {/* Einziger Hero-Button (Stundenplan-Button am 08.11.2026 entfernt).
                 Gemalte Tusche-Textur innen, Glutlicht laeuft am Rand um
                 (.jjk-cta in globals.css). Fuehrt mit Seitenuebergang auf
-                /probetraining. */}
+                /probetraining. Kein Magnet-Effekt mehr (reduce): beim Hover
+                bleibt er stehen und wird zur roten Tusche. */}
             <MagneticLink
               href="/probetraining"
-              reduce={prefersReducedMotion}
+              reduce
               onClick={(e) => {
                 if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                 e.preventDefault();
@@ -560,7 +561,9 @@ export function JJKHero(): ReactNode {
               }}
               className="jjk-cta inline-flex h-15 items-center rounded-full px-10 text-base font-semibold tracking-tight sm:h-16 sm:px-12 sm:text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             >
-              Gratis Probetraining
+              {/* Rote Tusche fuer Hover, blendet ueber die helle. */}
+              <span className="jjk-cta-red" aria-hidden />
+              <span className="relative">Gratis Probetraining</span>
             </MagneticLink>
           </motion.div>
         </div>
