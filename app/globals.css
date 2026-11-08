@@ -7358,11 +7358,12 @@ html[data-jjk-intro="skip"] .jjk-intro-veil {
   border-radius: inherit;
   background: conic-gradient(
     from var(--jjk-cta-a),
-    transparent 0deg 285deg,
-    rgba(185, 28, 28, 0.55) 315deg,
-    #e8461e 340deg,
-    #ff8a3d 354deg,
-    #ffd7a8 359deg,
+    transparent 0deg 265deg,
+    rgba(220, 38, 38, 0.85) 295deg,
+    #ff3b1a 325deg,
+    #ff7a1f 345deg,
+    #ffb35c 354deg,
+    #fff3e0 359.5deg,
     transparent 360deg
   );
   -webkit-mask:
@@ -7395,19 +7396,19 @@ html[data-jjk-intro="skip"] .jjk-intro-veil {
     animation-timing-function: ease-in-out;
   }
   45% {
-    --jjk-cta-a: 434deg;
+    --jjk-cta-a: 432.5deg;
     animation-timing-function: ease-in-out;
   }
   58% {
-    --jjk-cta-a: 428deg;
+    --jjk-cta-a: 429.5deg;
     animation-timing-function: ease-in-out;
   }
   72% {
-    --jjk-cta-a: 433deg;
+    --jjk-cta-a: 432.5deg;
     animation-timing-function: ease-in-out;
   }
   86% {
-    --jjk-cta-a: 429deg;
+    --jjk-cta-a: 429.5deg;
     animation-timing-function: ease-in-out;
   }
   100% {
