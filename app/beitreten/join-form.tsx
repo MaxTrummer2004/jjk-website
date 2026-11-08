@@ -1,5 +1,6 @@
 "use client";
 
+import { PasswordInput } from "@/components/password-input";
 import { useActionState, useState, type ReactNode } from "react";
 import { TransitionLink } from "@/components/transition-link";
 import { joinAction, type JoinState } from "./actions";
@@ -47,16 +48,28 @@ function Field({
         {label}
         {required ? null : <span className="font-normal text-foreground-dim"> (optional)</span>}
       </span>
-      <input
-        name={name}
-        type={type}
-        autoComplete={autoComplete}
-        required={required}
-        defaultValue={defaultValue}
-        maxLength={maxLength}
-        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-        className={input}
-      />
+      {type === "password" ? (
+        <PasswordInput
+          name={name}
+          autoComplete={autoComplete}
+          required={required}
+          defaultValue={defaultValue}
+          maxLength={maxLength}
+          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+          className={input}
+        />
+      ) : (
+        <input
+          name={name}
+          type={type}
+          autoComplete={autoComplete}
+          required={required}
+          defaultValue={defaultValue}
+          maxLength={maxLength}
+          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+          className={input}
+        />
+      )}
       {hint ? <span className="text-xs text-foreground-dim">{hint}</span> : null}
     </label>
   );

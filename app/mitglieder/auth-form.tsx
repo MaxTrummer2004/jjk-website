@@ -1,5 +1,6 @@
 "use client";
 
+import { PasswordInput } from "@/components/password-input";
 import { useActionState, type ReactNode } from "react";
 import { TransitionLink } from "@/components/transition-link";
 import { motion } from "motion/react";
@@ -46,9 +47,8 @@ export function AuthForm(): ReactNode {
           required
           className={inputClass}
         />
-        <input
+        <PasswordInput
           name="password"
-          type="password"
           placeholder="Passwort"
           autoComplete="current-password"
           required

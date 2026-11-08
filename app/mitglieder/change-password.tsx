@@ -1,5 +1,6 @@
 "use client";
 
+import { PasswordInput } from "@/components/password-input";
 import { useActionState, useEffect, useRef, type ReactNode } from "react";
 import { changePasswordAction, type ActionResult } from "./actions";
 
@@ -30,19 +31,17 @@ export function ChangePassword({ id, open }: { id: string; open: boolean }): Rea
         Passwort ändern
       </h2>
       <form action={action} className="mt-4 grid gap-3 sm:grid-cols-3">
-        <input
+        <PasswordInput
           ref={first}
           name="current"
-          type="password"
           placeholder="Aktuelles Passwort"
           aria-label="Aktuelles Passwort"
           autoComplete="current-password"
           required
           className="jjk-mb-input"
         />
-        <input
+        <PasswordInput
           name="password"
-          type="password"
           placeholder="Neues Passwort (mind. 8 Zeichen)"
           aria-label="Neues Passwort (mind. 8 Zeichen)"
           autoComplete="new-password"
@@ -51,9 +50,8 @@ export function ChangePassword({ id, open }: { id: string; open: boolean }): Rea
           required
           className="jjk-mb-input"
         />
-        <input
+        <PasswordInput
           name="password2"
-          type="password"
           placeholder="Neues Passwort wiederholen"
           aria-label="Neues Passwort wiederholen"
           autoComplete="new-password"

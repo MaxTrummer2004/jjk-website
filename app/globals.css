@@ -7436,3 +7436,10 @@ html[data-jjk-intro="skip"] .jjk-intro-veil {
     animation: none;
   }
 }
+
+/* Eigener Augen-Knopf in PasswordInput: das eingebaute Auge von Edge
+   ausblenden, sonst stehen zwei Augen im Feld. */
+.jjk-pw-input::-ms-reveal,
+.jjk-pw-input::-ms-clear {
+  display: none;
+}
