@@ -7460,3 +7460,49 @@ html[data-jjk-intro="skip"] .jjk-intro-veil {
 .jjk-pw-input::-ms-clear {
   display: none;
 }
+
+/* Umschalter Alle Kurse / Nur Boxen (components/track-switch.tsx). */
+.jjk-track {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: rgba(7, 7, 10, 0.45);
+}
+
+.jjk-track-btn {
+  flex: 1 1 auto;
+  min-height: 2.5rem;
+  padding: 0 1.1rem;
+  border-radius: 9999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--foreground-dim, rgba(255, 255, 255, 0.6));
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.jjk-track-btn:hover {
+  color: var(--foreground);
+}
+
+.jjk-track-btn[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.jjk-track-btn:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 380px) {
+  .jjk-track-btn {
+    padding: 0 0.75rem;
+    font-size: 0.82rem;
+  }
+}

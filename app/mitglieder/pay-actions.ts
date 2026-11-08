@@ -1,5 +1,6 @@
 "use server";
 
+import { isFlexPlan } from "@/lib/membership";
 import { randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -190,7 +191,7 @@ export async function cancelFlexAction(): Promise<void> {
   const member = await getCurrentMember();
   if (
     !member ||
-    member.plan !== "flex" ||
+    !isFlexPlan(member.plan) ||
     !member.mollieSubscriptionId?.startsWith("sub_") ||
     !member.mollieCustomerId
   ) {

@@ -220,7 +220,8 @@ export async function POST(request: Request): Promise<NextResponse> {
         // Erster Monat ist mit dieser Zahlung bezahlt; das Abo beginnt am
         // naechsten Monatsersten. Bindung: Jahr 12 Monate → noch 11,
         // 3 Monate → noch 2. Flex: ohne Ende.
-        const times = member.plan === "year" ? 11 : member.plan === "quarter" ? 2 : null;
+        const bind = PLAN_INFO[member.plan].months;
+        const times = bind ? bind - 1 : null;
         let sub: { id: string };
         try {
           sub = await mollie<{ id: string }>(

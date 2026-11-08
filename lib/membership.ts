@@ -12,7 +12,13 @@
  * ist die Beitrittserklaerung des Vereins, Stand 6. Oktober 2026.
  */
 
-export const PLANS = ["year", "quarter", "flex", "block"] as const;
+/**
+ * Alle Tarife, die in der Datenbank stehen koennen — auch die nicht mehr
+ * angebotenen (quarter, flex fuer "Alle Kurse"), damit bestehende
+ * Mitglieder weiter einen Preis haben. Was neu gewaehlt werden kann, steht
+ * in OFFERED_PLANS.
+ */
+export const PLANS = ["year", "quarter", "flex", "block", "box_half", "box_quarter", "box_flex"] as const;
 export type Plan = (typeof PLANS)[number];
 
 export interface PlanInfo {
@@ -24,6 +30,8 @@ export interface PlanInfo {
   reducedCents: number;
   /** true: monatlich im Voraus faellig. false: einmalig (10er-Block). */
   monthly: boolean;
+  /** Bindung in Monaten; null = ohne Bindung (Flex, 10er-Block). */
+  months: number | null;
 }
 
 export const PLAN_INFO: Record<Plan, PlanInfo> = {
@@ -33,6 +41,7 @@ export const PLAN_INFO: Record<Plan, PlanInfo> = {
     regularCents: 7000,
     reducedCents: 5500,
     monthly: true,
+    months: 12,
   },
   quarter: {
     label: "Alle Kurse – 3-Monatsbindung",
@@ -40,6 +49,7 @@ export const PLAN_INFO: Record<Plan, PlanInfo> = {
     regularCents: 8000,
     reducedCents: 6500,
     monthly: true,
+    months: 3,
   },
   flex: {
     label: "Alle Kurse – Flex",
@@ -47,6 +57,7 @@ export const PLAN_INFO: Record<Plan, PlanInfo> = {
     regularCents: 9000,
     reducedCents: 7500,
     monthly: true,
+    months: null,
   },
   block: {
     label: "10er-Block",
@@ -54,8 +65,56 @@ export const PLAN_INFO: Record<Plan, PlanInfo> = {
     regularCents: 14000,
     reducedCents: 12500,
     monthly: false,
+    months: null,
+  },
+  // Nur Boxen, ohne BJJ (Vorstand, 08.11.2026). Schueler/Studenten wie
+  // ueberall 15 € weniger.
+  box_half: {
+    label: "Nur Boxen – 6-Monatsbindung",
+    detail: "Alle Boxkurse · 6 Monate Laufzeit",
+    regularCents: 6000,
+    reducedCents: 4500,
+    monthly: true,
+    months: 6,
+  },
+  box_quarter: {
+    label: "Nur Boxen – 3-Monatsbindung",
+    detail: "Alle Boxkurse · 3 Monate Laufzeit",
+    regularCents: 7000,
+    reducedCents: 5500,
+    monthly: true,
+    months: 3,
+  },
+  box_flex: {
+    label: "Nur Boxen – Flex",
+    detail: "Alle Boxkurse · ohne Bindung · monatlich im Voraus",
+    regularCents: 8000,
+    reducedCents: 6500,
+    monthly: true,
+    months: null,
   },
 };
+
+export type Track = "all" | "box";
+
+/**
+ * Was in der Beitrittserklaerung waehlbar ist (08.11.2026): "Alle Kurse" nur
+ * noch mit Jahresbindung, "Nur Boxen" mit 6 Monaten, 3 Monaten oder Flex.
+ * Der 10er-Block gilt fuer beides.
+ */
+export const OFFERED_PLANS: Record<Track, readonly Plan[]> = {
+  all: ["year", "block"],
+  box: ["box_half", "box_quarter", "box_flex", "block"],
+};
+
+export function isOfferedPlan(value: unknown): value is Plan {
+  return isPlan(value) && (OFFERED_PLANS.all.includes(value) || OFFERED_PLANS.box.includes(value));
+}
+
+/** Ohne Bindung, monatlich kuendbar. */
+export function isFlexPlan(plan: Plan | null | undefined): boolean {
+  return plan === "flex" || plan === "box_flex";
+}
 
 /** Einmalig bei der allerersten Anmeldung, fuer alle Angebote gleich. */
 export const ENROLLMENT_FEE_CENTS = 2000;

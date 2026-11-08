@@ -18,6 +18,9 @@ const PLAN_LABEL_SHORT = {
   quarter: "Alle Kurse 3 Monate",
   flex: "Alle Kurse Flex",
   block: "10er-Block",
+  box_half: "Boxen 6 Monate",
+  box_quarter: "Boxen 3 Monate",
+  box_flex: "Boxen Flex",
 } as const;
 
 // `type`, nicht `interface`: nur Type-Aliase bekommen von TypeScript eine

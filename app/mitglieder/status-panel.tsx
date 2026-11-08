@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { siteConfig } from "@/lib/config";
-import { PLAN_INFO, euro, type Plan } from "@/lib/membership";
+import { PLAN_INFO, euro, isFlexPlan, type Plan } from "@/lib/membership";
 import type { PayNotice, PaymentStatus } from "@/lib/payments";
 import { cancelFlexAction, startPaymentAction } from "./pay-actions";
 import { PayButton } from "./pay-button";
@@ -198,7 +198,7 @@ function PaymentBlock({
           </span>
           <span className="text-sm text-foreground">Alles bezahlt</span>
         </p>
-        {hasSubscription && plan === "flex" ? <CancelFlex /> : null}
+        {hasSubscription && isFlexPlan(plan) ? <CancelFlex /> : null}
       </section>
     );
   }
@@ -216,7 +216,7 @@ function PaymentBlock({
           Du musst nichts tun. Eine SEPA-Lastschrift braucht ein paar Tage, bis sie hier als bezahlt
           erscheint.
         </p>
-        {plan === "flex" ? <CancelFlex /> : null}
+        {isFlexPlan(plan) ? <CancelFlex /> : null}
       </section>
     );
   }

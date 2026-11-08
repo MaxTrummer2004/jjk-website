@@ -6,11 +6,13 @@ import { TransitionLink } from "@/components/transition-link";
 import { joinAction, type JoinState } from "./actions";
 import {
   ENROLLMENT_FEE_CENTS,
-  PLANS,
+  OFFERED_PLANS,
   PLAN_INFO,
   euro,
   isAdult,
+  type Track,
 } from "@/lib/membership";
+import { TrackSwitch } from "@/components/track-switch";
 import { MembershipTerms } from "./terms";
 import { MAX } from "@/lib/input";
 
@@ -93,6 +95,9 @@ export function JoinForm(): ReactNode {
   const [state, action, pending] = useActionState(joinAction, initial);
   const v = state.values ?? {};
   const [birth, setBirth] = useState(v.birth_date ?? "");
+  // Alle Kurse oder Nur Boxen; nach einem Fehler beim Absenden bleibt die
+  // Wahl stehen, weil der Tarif sie verraet.
+  const [track, setTrack] = useState<Track>(v.plan?.startsWith("box_") ? "box" : "all");
   // Der Elternblock erscheint, sobald das Geburtsdatum auf unter 18 zeigt.
   // Der Server prueft dasselbe noch einmal — diese Anzeige ist Bequemlichkeit,
   // keine Kontrolle.
@@ -130,16 +135,18 @@ export function JoinForm(): ReactNode {
       ) : null}
 
       <Section title="Mitgliedschaft">
+        <TrackSwitch value={track} onChange={setTrack} className="self-start" />
         <p className="text-sm leading-relaxed text-foreground-dim">
-          Mit jeder Mitgliedschaft „Alle Kurse“ kannst du alle Kurse im Stundenplan so oft besuchen, wie du
-          willst.
+          {track === "box"
+            ? "Mit „Nur Boxen“ kannst du alle Boxkurse im Stundenplan so oft besuchen, wie du willst. Jiu-Jitsu ist nicht dabei."
+            : "Mit der Mitgliedschaft „Alle Kurse“ kannst du alle Kurse im Stundenplan so oft besuchen, wie du willst."}
         </p>
         <div className="flex flex-col gap-3" role="radiogroup">
-          {PLANS.map((plan) => {
+          {OFFERED_PLANS[track].map((plan) => {
             const info = PLAN_INFO[plan];
             const per = info.monthly ? " / Monat" : " einmalig";
             // Die guenstigste Monatsvariante hervorheben (Vorstand, 10.10.2026).
-            const cheapest = plan === "year";
+            const cheapest = plan === "year" || plan === "box_half";
             return (
               <label
                 key={plan}

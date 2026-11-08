@@ -25,7 +25,7 @@
 import { LegalPage } from "@/components/legal-page";
 import { createMetadata } from "@/lib/metadata";
 import { siteConfig } from "@/lib/config";
-import { ENROLLMENT_FEE_CENTS, PLANS, PLAN_INFO, euro } from "@/lib/membership";
+import { ENROLLMENT_FEE_CENTS, OFFERED_PLANS, PLAN_INFO, euro } from "@/lib/membership";
 import { TERMS_SECTIONS } from "@/app/beitreten/terms";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -61,7 +61,7 @@ export default function BedingungenPage(): ReactNode {
       <section>
         <h2>Mitgliedschaften und Preise</h2>
         <ul>
-          {PLANS.map((plan) => {
+          {[...new Set([...OFFERED_PLANS.all, ...OFFERED_PLANS.box])].map((plan) => {
             const info = PLAN_INFO[plan];
             const per = info.monthly ? " pro Monat" : " einmalig";
             return (
