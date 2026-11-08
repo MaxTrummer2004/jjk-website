@@ -6,7 +6,6 @@ let introAlreadyPlayed = false;
 
 import { MagneticLink } from "@/components/magnetic-link";
 import { useSectionTransition } from "@/lib/section-transition";
-import { TransitionLink } from "@/components/transition-link";
 import { softEase, useReducedMotion } from "@/lib/motion";
 import { setOpeningDone } from "@/lib/opening";
 import Watercolor from "@/components/watercolor";
@@ -546,8 +545,11 @@ export function JJKHero(): ReactNode {
           >
             Jiu-Jitsu Kaisen Academy
           </motion.h1>
-          <motion.div {...fadeUp(0.28)} className="mt-9 flex items-center gap-3">
-            {/* Fuehrt auf /probetraining, mit dem Seitenuebergang. */}
+          <motion.div {...fadeUp(0.28)} className="mt-10 flex justify-center">
+            {/* Einziger Hero-Button (Stundenplan-Button am 08.11.2026 entfernt).
+                Gemalte Tusche-Textur innen, Glutlicht laeuft am Rand um
+                (.jjk-cta in globals.css). Fuehrt mit Seitenuebergang auf
+                /probetraining. */}
             <MagneticLink
               href="/probetraining"
               reduce={prefersReducedMotion}
@@ -556,16 +558,10 @@ export function JJKHero(): ReactNode {
                 e.preventDefault();
                 navigate("/probetraining");
               }}
-              className="bg-foreground text-background inline-flex h-13 items-center rounded-full px-8 text-sm font-medium transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+              className="jjk-cta inline-flex h-15 items-center rounded-full px-10 text-base font-semibold tracking-tight sm:h-16 sm:px-12 sm:text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             >
-              Probetraining
+              Gratis Probetraining
             </MagneticLink>
-            <TransitionLink
-              href="#schedule"
-              className="bg-background text-foreground border-border hover:bg-muted inline-flex h-13 items-center rounded-full border px-8 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
-            >
-              Stundenplan
-            </TransitionLink>
           </motion.div>
         </div>
 

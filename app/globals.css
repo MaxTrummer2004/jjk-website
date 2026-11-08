@@ -7323,3 +7323,116 @@ html[data-jjk-intro="skip"] .jjk-intro-veil {
     transition: none;
   }
 }
+
+
+/* Hero-CTA "Gratis Probetraining" (08.11.2026).
+   Innen: vorgerenderte helle Tusche-Textur (public/img/cta-ink.webp,
+   horizontal nahtlos), driftet langsam. Rand: ein Glutlicht (rot zu orange)
+   laeuft einmal schnell um, bremst oben rechts stark ab, pendelt dort leicht
+   und laeuft nach ca. 2 s wieder los. */
+@property --jjk-cta-a {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 71deg;
+}
+
+.jjk-cta {
+  position: relative;
+  isolation: isolate;
+  color: #1a1714;
+  background-color: #f5f3ef;
+  background-image: url("/img/cta-ink.webp");
+  background-size: auto 260%;
+  background-position: 0 50%;
+  background-repeat: repeat-x;
+  box-shadow:
+    0 0 0 1px rgba(255, 122, 47, 0.22),
+    0 10px 30px -12px rgba(185, 28, 28, 0.45);
+  animation: jjk-cta-ink 48s linear infinite;
+}
+
+.jjk-cta::before,
+.jjk-cta::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--jjk-cta-a),
+    transparent 0deg 285deg,
+    rgba(185, 28, 28, 0.55) 315deg,
+    #e8461e 340deg,
+    #ff8a3d 354deg,
+    #ffd7a8 359deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  pointer-events: none;
+  z-index: -1;
+  animation: jjk-cta-orbit 3.4s linear infinite;
+}
+
+/* Weicher Schein: gleiche Spitze, breiterer Ring, unscharf. */
+.jjk-cta::after {
+  inset: -8px;
+  padding: 8px;
+  filter: blur(5px);
+  opacity: 0.75;
+}
+
+@keyframes jjk-cta-ink {
+  to {
+    background-position: -1024px 50%;
+  }
+}
+
+/* Winkel der Spitze = Startwinkel + 359deg. Oben rechts liegt bei einer
+   breiten Pille etwa bei 70deg (Spitze) -> Startwinkel 71deg. */
+@keyframes jjk-cta-orbit {
+  0% {
+    --jjk-cta-a: 71deg;
+    animation-timing-function: cubic-bezier(0.55, 0, 0.12, 1);
+  }
+  32% {
+    --jjk-cta-a: 431deg;
+    animation-timing-function: ease-in-out;
+  }
+  45% {
+    --jjk-cta-a: 439deg;
+    animation-timing-function: ease-in-out;
+  }
+  58% {
+    --jjk-cta-a: 425deg;
+    animation-timing-function: ease-in-out;
+  }
+  72% {
+    --jjk-cta-a: 436deg;
+    animation-timing-function: ease-in-out;
+  }
+  86% {
+    --jjk-cta-a: 427deg;
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    --jjk-cta-a: 431deg;
+  }
+}
+
+.jjk-cta:hover::after {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jjk-cta,
+  .jjk-cta::before,
+  .jjk-cta::after {
+    animation: none;
+  }
+}
