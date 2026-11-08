@@ -7333,7 +7333,7 @@ html[data-jjk-intro="skip"] .jjk-intro-veil {
 @property --jjk-cta-a {
   syntax: "<angle>";
   inherits: false;
-  initial-value: 71deg;
+  initial-value: 91deg;
 }
 
 .jjk-cta {
@@ -7414,34 +7414,35 @@ html[data-jjk-intro="skip"] .jjk-intro-veil {
 }
 
 /* Winkel der Spitze = Startwinkel + 359deg. Oben rechts liegt bei einer
-   breiten Pille etwa bei 70deg (Spitze) -> Startwinkel 71deg. */
+   breiten Pille etwa bei 70deg; die Spitze steht seit 08.11.2026 bei 90deg,
+   also rechts auf Texthoehe, damit der Strich die Ecke ganz abdeckt. */
 @keyframes jjk-cta-orbit {
   0% {
-    --jjk-cta-a: 71deg;
+    --jjk-cta-a: 91deg;
     animation-timing-function: cubic-bezier(0.55, 0, 0.12, 1);
   }
   32% {
-    --jjk-cta-a: 431deg;
+    --jjk-cta-a: 451deg;
     animation-timing-function: ease-in-out;
   }
   45% {
-    --jjk-cta-a: 432.5deg;
+    --jjk-cta-a: 452.5deg;
     animation-timing-function: ease-in-out;
   }
   58% {
-    --jjk-cta-a: 429.5deg;
+    --jjk-cta-a: 449.5deg;
     animation-timing-function: ease-in-out;
   }
   72% {
-    --jjk-cta-a: 432.5deg;
+    --jjk-cta-a: 452.5deg;
     animation-timing-function: ease-in-out;
   }
   86% {
-    --jjk-cta-a: 429.5deg;
+    --jjk-cta-a: 449.5deg;
     animation-timing-function: ease-in-out;
   }
   100% {
-    --jjk-cta-a: 431deg;
+    --jjk-cta-a: 451deg;
   }
 }
 
