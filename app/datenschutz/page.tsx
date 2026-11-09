@@ -571,7 +571,8 @@ export default function DatenschutzPage(): ReactNode {
             (<code>payments</code>), doppelt eingegangene Zahlungen
             (<code>payment_issues</code>), die zuletzt begonnene Online-Zahlung
             je Mitglied (<code>mollie_checkouts</code>),
-            Probetraining-Anfragen (<code>trial_requests</code>) und die
+            Probetraining-Anfragen mit den Antworten des Vorstands
+            (<code>trial_requests</code>, <code>trial_replies</code>) und die
             Prüfwerte des Missbrauchsschutzes (<code>rate_limits</code>).
           </dd>
 
@@ -644,7 +645,9 @@ export default function DatenschutzPage(): ReactNode {
             <strong>Probetraining-Anfrage</strong>: eine Eingangsbestätigung an
             Sie, wenn Sie als Kontakt eine E-Mail-Adresse angegeben haben, und
             eine Benachrichtigung an den Vorstand mit Name, Kontaktangabe,
-            Wunschtag und Nachricht.
+            Wunschtag und Nachricht. Antwortet der Vorstand über die Website,
+            geht die Antwort samt Ihrer ursprünglichen Nachricht an Ihre
+            E-Mail-Adresse.
           </li>
           <li>
             <strong>Doppelt eingegangene Zahlung</strong>: eine
@@ -741,8 +744,10 @@ export default function DatenschutzPage(): ReactNode {
           hin: welcher Versanddienst, welche Einwilligung, wie der Abmeldeweg
           aussieht.
 
-          PROBETRAINING, Loeschung (geprueft 31.10.2026): "erledigt" =
-          Knopf unter /vorstand (deleteTrialRequestAction). Die drei Monate
+          PROBETRAINING, Loeschung (seit 09.11.2026): "Erledigt" loescht nicht
+          mehr, sondern setzt done_at/done_by/note (markTrialDoneAction);
+          Antworten in trial_replies (on delete cascade). Endgueltig loeschen
+          nur im Archiv (deleteTrialRequestAction). Die zwoelf Monate
           setzt kein Zeitplaner durch, sondern ein delete beim Aufruf von
           /vorstand und (ab 31.10.2026) bei jeder neuen Anfrage. Der Text
           verspricht keinen taeglichen Lauf und bleibt deshalb so. Die
@@ -764,10 +769,14 @@ export default function DatenschutzPage(): ReactNode {
           Über die Seite &bdquo;Probetraining&ldquo; können
           Sie uns eine Anfrage schicken. Gespeichert werden der Name, die
           angegebene Kontaktmöglichkeit (E-Mail, Telefon oder Instagram-Name),
-          der Wunschtag, Ihre Nachricht und der Zeitpunkt. Sehen kann die
-          Anfrage nur der Vorstand. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b
-          DSGVO (Anbahnung der Teilnahme am Training). Die Anfrage wird
-          gelöscht, sobald sie erledigt ist, spätestens nach drei Monaten.
+          der Wunschtag, Ihre Nachricht und der Zeitpunkt. Antwortet Ihnen der
+          Vorstand über die Website per E-Mail, wird die Antwort bei der
+          Anfrage gespeichert; dazu, wer im Vorstand die Anfrage erledigt hat,
+          wann, und eine kurze interne Notiz. Sehen kann das nur der Vorstand.
+          Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Anbahnung der
+          Teilnahme am Training). Die Anfrage samt Antworten wird nach zwölf
+          Monaten gelöscht, damit wir bei späteren Rückfragen noch nachsehen
+          können, was vereinbart war.
         </p>
       </section>
 
@@ -1005,7 +1014,7 @@ export default function DatenschutzPage(): ReactNode {
         </p>
       </section>
 
-      <p className="jjk-legal-stand">Stand: 31. Oktober 2026</p>
+      <p className="jjk-legal-stand">Stand: 9. November 2026</p>
     </LegalPage>
   );
 }

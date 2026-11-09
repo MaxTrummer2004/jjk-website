@@ -16,7 +16,6 @@ import {
 import {
   admitAction,
   deleteRejectedAction,
-  deleteTrialRequestAction,
   rejectAction,
   resolvePaymentIssueAction,
   setFeeExemptAction,
@@ -27,6 +26,7 @@ import { mollieKeyWarning } from "@/lib/mollie";
 import { paymentKindLabel } from "@/lib/mail";
 import { ResetPassword } from "./reset-password";
 import { CreateStaff, NewSetupLink } from "./staff";
+import { TrialInbox, type TrialItem } from "./trial-inbox";
 
 export const dynamic = "force-dynamic";
 
@@ -146,7 +146,7 @@ function Details({ m }: { m: Row }): ReactNode {
 
 export default async function BoardPage(): Promise<ReactNode> {
   const me = await getCurrentMember();
-  if (!isBoard(me)) redirect("/mitglieder");
+  if (!isBoard(me) || !me) redirect("/mitglieder");
 
   await ensureSchema();
   const month = monthKey(new Date());
@@ -162,21 +162,45 @@ export default async function BoardPage(): Promise<ReactNode> {
     order by name asc
   `;
   // Was die Datenschutzerklaerung zusagt: Probetraining-Anfragen bleiben
-  // hoechstens drei Monate. Geloescht wird beim Aufruf dieser Seite — ohne
+  // hoechstens zwoelf Monate (seit 09.11.2026, vorher drei). Geloescht wird beim Aufruf dieser Seite — ohne
   // Zeitplaner, aber verlaesslich, solange der Vorstand hier vorbeischaut.
-  await sql`delete from trial_requests where created_at < now() - interval '3 months'`;
-  const trials = await sql<{
+  await sql`delete from trial_requests where created_at < now() - interval '12 months'`;
+  const trialRows = await sql<{
     id: number;
     name: string;
     contact: string;
     preferred_day: string | null;
     message: string | null;
     created: string;
+    done_at: string | null;
+    done_by: string | null;
+    note: string | null;
   }>`
     select id, name, contact, preferred_day, message,
-      to_char(created_at at time zone 'Europe/Vienna', 'DD.MM.YYYY HH24:MI') as created
+      to_char(created_at at time zone 'Europe/Vienna', 'DD.MM.YYYY HH24:MI') as created,
+      to_char(done_at at time zone 'Europe/Vienna', 'DD.MM.YYYY HH24:MI') as done_at,
+      done_by, note
     from trial_requests order by created_at desc
   `;
+  const replyRows = await sql<{ request_id: number; body: string; sent_by: string; sent_at: string }>`
+    select request_id, body, sent_by,
+      to_char(sent_at at time zone 'Europe/Vienna', 'DD.MM.YYYY HH24:MI') as sent_at
+    from trial_replies order by sent_at asc
+  `;
+  const trials: TrialItem[] = trialRows.map((t) => ({
+    id: t.id,
+    name: t.name,
+    contact: t.contact,
+    preferredDay: t.preferred_day,
+    message: t.message,
+    created: t.created,
+    doneAt: t.done_at,
+    doneBy: t.done_by,
+    note: t.note,
+    replies: replyRows
+      .filter((r) => r.request_id === t.id)
+      .map((r) => ({ body: r.body, sentBy: r.sent_by, sentAt: r.sent_at })),
+  }));
   const payments = await sql<PayRow>`
     select member_id, kind, period::text as period, source from payments
   `;
@@ -269,39 +293,8 @@ export default async function BoardPage(): Promise<ReactNode> {
           </section>
         ) : null}
 
-        {/* ── Probetraining-Anfragen ───────────────────────────────── */}
-        <section className="mt-12">
-          <h2 className="font-mono text-[0.72rem] font-medium uppercase tracking-[0.24em] text-accent">
-            Probetraining-Anfragen ({trials.length})
-          </h2>
-          {trials.length === 0 ? (
-            <p className="mt-4 text-sm text-foreground-dim">Keine offenen Anfragen.</p>
-          ) : (
-            <ul className="mt-4 flex flex-col gap-3">
-              {trials.map((t) => (
-                <li key={t.id} className="rounded-xl border border-border bg-card-plate p-4">
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <p className="font-medium text-foreground">{t.name}</p>
-                    <p className="text-xs text-foreground-dim">{t.created}</p>
-                  </div>
-                  <p className="mt-1 text-sm text-foreground">{t.contact}</p>
-                  {t.preferred_day ? (
-                    <p className="mt-1 text-sm text-foreground-dim">Wunschtag: {t.preferred_day}</p>
-                  ) : null}
-                  {t.message ? (
-                    <p className="mt-2 whitespace-pre-line text-sm text-foreground-dim">{t.message}</p>
-                  ) : null}
-                  <form action={deleteTrialRequestAction} className="mt-3">
-                    <input type="hidden" name="request_id" value={t.id} />
-                    <button type="submit" className="h-9 rounded-md border border-border px-3 text-sm text-foreground hover:border-border-hot">
-                      Erledigt (löschen)
-                    </button>
-                  </form>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        {/* ── Probetraining-Anfragen (app/vorstand/trial-inbox.tsx) ─── */}
+        <TrialInbox items={trials} meName={me.name} />
 
         {/* ── Antraege ─────────────────────────────────────────────── */}
         <section className="mt-12">

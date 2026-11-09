@@ -26,7 +26,7 @@ import { MAX, lineError, nameError } from "@/lib/input";
  * Links, Mailadressen, Umbrueche (lib/input.ts), Kontakt hoechstens 120. Die
  * Bestaetigung an den Anfragenden enthaelt KEIN frei eingegebenes Zeichen
  * mehr, weder Name noch Nachricht — siehe dort. Ausserdem raeumt jede neue
- * Anfrage die ueber drei Monate alten weg, siehe unten.
+ * Anfrage die ueber zwoelf Monate alten weg, siehe unten.
  */
 // 10 statt 3 je IP (Review 30.10.2026), aus demselben Grund wie beim
 // Beitritt: geteilte IP im Gym-WLAN. Die Grenze je Kontakt bleibt bei 3.
@@ -88,14 +88,15 @@ export async function requestTrialAction(prev: TrialState, formData: FormData): 
     insert into trial_requests (name, contact, preferred_day, message)
     values (${name}, ${contact}, ${day || null}, ${message || null})
   `;
-  // Drei Monate, wie die Datenschutzerklaerung verspricht (31.10.2026). Bis
+  // Zwoelf Monate (seit 09.11.2026, vorher drei), wie die
+  // Datenschutzerklaerung verspricht. Bis
   // dahin raeumte das nur app/vorstand/page.tsx beim Oeffnen auf — schaute
   // der Vorstand ein halbes Jahr nicht hinein, lagen die Anfragen ein halbes
   // Jahr. Jetzt auch hier, bei jeder neuen Anfrage; die Stelle unter
   // /vorstand bleibt, fuer Zeiten ohne neue Anfragen. Ein Fehler beim
   // Aufraeumen darf die Anfrage nicht scheitern lassen: sie ist schon
   // gespeichert, und der naechste Aufruf raeumt mit.
-  await sql`delete from trial_requests where created_at < now() - interval '3 months'`.catch(
+  await sql`delete from trial_requests where created_at < now() - interval '12 months'`.catch(
     (err: unknown) => console.error("[probetraining] aufraeumen", err)
   );
 

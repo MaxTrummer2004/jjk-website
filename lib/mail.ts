@@ -25,11 +25,11 @@ export async function sendMail(opts: {
   subject: string;
   text: string;
   replyTo?: string;
-}): Promise<void> {
+}): Promise<boolean> {
   const key = process.env.BREVO_API_KEY;
-  if (!key) return;
+  if (!key) return false;
   const to = (Array.isArray(opts.to) ? opts.to : [opts.to]).filter(Boolean).map((email) => ({ email }));
-  if (to.length === 0) return;
+  if (to.length === 0) return false;
   try {
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
@@ -43,9 +43,14 @@ export async function sendMail(opts: {
       }),
       cache: "no-store",
     });
-    if (!res.ok) console.error("[mail]", res.status, redactForLog(await res.text()));
+    if (!res.ok) {
+      console.error("[mail]", res.status, redactForLog(await res.text()));
+      return false;
+    }
+    return true;
   } catch (err) {
     console.error("[mail]", err);
+    return false;
   }
 }
 
@@ -53,7 +58,7 @@ export async function sendMail(opts: {
  * Brevos Fehlertext fuers Log (31.10.2026). Er nennt mitunter die
  * Empfaengeradresse ("email is not valid: max@…"), und Scalingo bewahrt Logs
  * ein Jahr auf — laenger, als wir manche dieser Adressen ueberhaupt
- * speichern (Probetraining: drei Monate). Adressen werden zu "<email>", der
+ * speichern (Probetraining: zwoelf Monate). Adressen werden zu "<email>", der
  * Rest auf 300 Zeichen gekappt; Status und Fehlercode reichen zur Diagnose.
  */
 export function redactForLog(text: string): string {

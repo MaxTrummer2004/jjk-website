@@ -7,7 +7,7 @@ import { MAX_EMAIL_CHARS, PASSWORD_TOO_LONG, hashPassword, passwordTooLong } fro
 import { getCurrentMember, getMember, isBoard, isBoardEmail, type MemberRecord } from "@/lib/members";
 import { SETUP_TOKEN_HOURS, newSetupToken } from "@/lib/setup-token";
 import { ENROLLMENT_FEE_CENTS, PLAN_INFO, dueCents, monthKey, viennaDate } from "@/lib/membership";
-import { admissionMail, sendMail } from "@/lib/mail";
+import { admissionMail, isMailConfigured, sendMail } from "@/lib/mail";
 import { isMollieConfigured, mollie, toValue } from "@/lib/mollie";
 
 /**
@@ -284,14 +284,101 @@ export async function resetPasswordAction(_prev: ResetState, formData: FormData)
   return { message: "Neues Passwort gesetzt, alle Geräte abgemeldet." };
 }
 
-/** Probetraining-Anfrage erledigt: loeschen. Laut Datenschutzerklaerung
- *  bleiben Anfragen nur, bis sie beantwortet sind. */
+/* ── Probetraining-Anfragen (09.11.2026) ──────────────────────────────────
+ * Vorher loeschte "Erledigt" die Anfrage endgueltig, und eine Nachricht, die
+ * man spaeter noch einmal nachlesen wollte, war weg (Herr Kern). Jetzt:
+ * Erledigt mit Name und Zeit des Vorstands und einer kurzen Notiz, danach im
+ * Archiv. Weg ist sie erst nach zwoelf Monaten (app/vorstand/page.tsx,
+ * components/trial/actions.ts) oder ueber "Löschen" im Archiv, fuer Spam.
+ */
+
+function requestIdFrom(formData: FormData): number | null {
+  const id = Number(formData.get("request_id"));
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+const NOTE_MAX = 500;
+const REPLY_MAX = 5000;
+
+export async function markTrialDoneAction(formData: FormData): Promise<void> {
+  const me = await requireBoard();
+  const id = requestIdFrom(formData);
+  if (!id) return;
+  const note = String(formData.get("note") ?? "").trim().slice(0, NOTE_MAX);
+  await sql`
+    update trial_requests
+    set done_at = now(), done_by = ${me.name}, note = ${note || null}
+    where id = ${id}
+  `;
+  revalidatePath("/vorstand");
+}
+
+export async function reopenTrialAction(formData: FormData): Promise<void> {
+  await requireBoard();
+  const id = requestIdFrom(formData);
+  if (!id) return;
+  await sql`update trial_requests set done_at = null, done_by = null where id = ${id}`;
+  revalidatePath("/vorstand");
+}
+
+/** Endgueltig loeschen — nur im Archiv angeboten, fuer Spam und Doppelte. */
 export async function deleteTrialRequestAction(formData: FormData): Promise<void> {
   await requireBoard();
-  const id = Number(formData.get("request_id"));
-  if (!Number.isInteger(id) || id <= 0) return;
-  await sql`delete from trial_requests where id = ${id}`;
+  const id = requestIdFrom(formData);
+  if (!id) return;
+  await sql`delete from trial_requests where id = ${id} and done_at is not null`;
   revalidatePath("/vorstand");
+}
+
+export interface TrialReplyState {
+  error?: string;
+  sent?: boolean;
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Antwort auf eine Anfrage direkt aus /vorstand: geht ueber Brevo von
+ * info@jjk.academy an die angegebene Adresse, Antworten darauf landen wie
+ * gewohnt bei info@jjk.academy. Gespeichert wird sie bei der Anfrage, damit
+ * jeder im Vorstand sieht, was schon geschrieben wurde.
+ */
+export async function replyTrialAction(_prev: TrialReplyState, formData: FormData): Promise<TrialReplyState> {
+  const me = await requireBoard();
+  const id = requestIdFrom(formData);
+  if (!id) return { error: "Anfrage nicht gefunden." };
+  const body = String(formData.get("body") ?? "").replace(/\r\n/g, "\n").trim();
+  if (!body) return { error: "Bitte eine Nachricht schreiben." };
+  if (body.length > REPLY_MAX) return { error: `Höchstens ${REPLY_MAX} Zeichen.` };
+  if (!isMailConfigured()) {
+    return { error: "Der Mailversand ist noch nicht eingerichtet (BREVO_API_KEY bei Scalingo fehlt)." };
+  }
+  const rows = await sql<{ contact: string; message: string | null; created: string }>`
+    select contact, message,
+      to_char(created_at at time zone 'Europe/Vienna', 'DD.MM.YYYY') as created
+    from trial_requests where id = ${id}
+  `;
+  const req = rows[0];
+  if (!req) return { error: "Anfrage nicht gefunden." };
+  const to = req.contact.trim();
+  if (!EMAIL_RE.test(to)) return { error: "Als Kontakt ist keine E-Mail-Adresse angegeben." };
+
+  const quoted = req.message
+    ? `\n\n---\nDeine Anfrage vom ${req.created}:\n${req.message
+        .split("\n")
+        .map((l) => `> ${l}`)
+        .join("\n")}`
+    : "";
+  const ok = await sendMail({
+    to,
+    subject: "Dein Probetraining bei der Jiu Jitsu Kaisen Akademie",
+    text: `${body}${quoted}`,
+    replyTo: siteConfig.email,
+  });
+  if (!ok) return { error: "Die Mail konnte nicht verschickt werden. Bitte später nochmal versuchen." };
+  await sql`insert into trial_replies (request_id, body, sent_by) values (${id}, ${body}, ${me.name})`;
+  revalidatePath("/vorstand");
+  return { sent: true };
 }
 
 

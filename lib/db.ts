@@ -249,6 +249,20 @@ async function createSchema(): Promise<void> {
       created_at timestamptz not null default now()
     );
   `;
+  // Erledigt statt geloescht (09.11.2026, Wunsch Herr Kern): wer und wann,
+  // plus eine kurze Notiz. Antworten aus /vorstand stehen in trial_replies.
+  await sql`alter table trial_requests add column if not exists done_at timestamptz`;
+  await sql`alter table trial_requests add column if not exists done_by text`;
+  await sql`alter table trial_requests add column if not exists note text`;
+  await sql`
+    create table if not exists trial_replies (
+      id serial primary key,
+      request_id integer not null references trial_requests(id) on delete cascade,
+      body text not null,
+      sent_by text not null,
+      sent_at timestamptz not null default now()
+    );
+  `;
 
   await sql`
     create table if not exists attendance_votes (
